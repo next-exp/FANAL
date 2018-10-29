@@ -1,2 +1,3 @@
 # FANAL
-Fast analysis repo
+Fast analysis repo.
+Property of Javier Muñoz Vidal and JJGC
