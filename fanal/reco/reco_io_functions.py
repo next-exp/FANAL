@@ -63,6 +63,7 @@ def get_events_reco_dict():
 	"""
 	events_dict = {
 	    'id':            [],
+	    'num_MChits':    [],
 	    'mcE':           [],
 	    'smE':           [],
 	    'smE_filter':    [],
@@ -102,6 +103,7 @@ def get_voxels_reco_dict():
 def extend_events_reco_data(
 	events_dict,
 	event_id,
+	evt_num_MChits = np.nan,
 	evt_mcE = np.nan,
 	evt_smE = np.nan,
 	evt_smE_filter = False,
@@ -119,6 +121,7 @@ def extend_events_reco_data(
 	It stores all the data related to an event into the events_dict.
 	"""
 	events_dict['id'].extend([event_id])
+	events_dict['num_MChits'].extend([evt_num_MChits])
 	events_dict['mcE'].extend([evt_mcE])
 	events_dict['smE'].extend([evt_smE])
 	events_dict['smE_filter'].extend([evt_smE_filter])

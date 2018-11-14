@@ -59,7 +59,7 @@ VERBOSITY_LEVEL = 1
 DET_NAME = 'NEXT100'
 
 # EVENT TYPE to be analyzed
-EVENT_TYPE = 'bb0nu'
+EVENT_TYPE = 'Bi214'
 
 # Some needed data
 Qbb  = 2457.83 * units.keV
@@ -214,8 +214,8 @@ for iFileName in iFileNames:
 			# For those events NOT passing the smE filter:
 			# Storing data of NON smE_filter vents
 			if not event_smE_filter:
-				extend_events_reco_data(events_dict, event_number, evt_mcE=event_mcE,
-					evt_smE=event_smE, evt_smE_filter=event_smE_filter)
+				extend_events_reco_data(events_dict, event_number, evt_num_MChits=num_hits,
+					evt_mcE=event_mcE, evt_smE=event_smE, evt_smE_filter=event_smE_filter)
 
 			# Only for those events passing the smE filter:
 			else:
@@ -249,8 +249,8 @@ for iFileName in iFileNames:
 											MIN_VETO_ENERGY)
             
                 # Storing data of NON smE_filter vents
-				extend_events_reco_data(events_dict, event_number, evt_mcE=event_mcE,
-					evt_smE=event_smE, evt_smE_filter=event_smE_filter,
+				extend_events_reco_data(events_dict, event_number, evt_num_MChits=num_hits,
+					evt_mcE=event_mcE, evt_smE=event_smE, evt_smE_filter=event_smE_filter,
 					evt_num_voxels=len(event_voxels), evt_voxel_sizeX=eff_voxel_size[0],
 					evt_voxel_sizeY=eff_voxel_size[1], evt_voxel_sizeZ=eff_voxel_size[2],
 					evt_voxels_minZ=voxels_minZ, evt_voxels_maxZ=voxels_maxZ,
