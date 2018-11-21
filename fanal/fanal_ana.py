@@ -54,7 +54,7 @@ from fanal.ana.ana_functions import process_tracks
 
 # GENERAL 
 VERBOSITY_LEVEL = 1
-EVENT_TYPE = 'bb0nu'
+EVENT_TYPE = 'Bi214'
 DET_NAME = 'NEXT100'
 
 # PSEUDO-RECONSTRUCTION

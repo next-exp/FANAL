@@ -29,6 +29,11 @@ from invisible_cities.evm.event_model         import MCHit
 from invisible_cities.reco.paolina_functions  import voxelize_hits
 
 # Specific fanalIC stuff
+from fanal.core.detector          import get_active_size
+from fanal.core.fanal_types       import DetName
+from fanal.core.fanal_types       import ActiveVolumeDim
+from fanal.core.mc_utilities      import print_mc_event
+from fanal.core.mc_utilities      import plot_mc_event
 from fanal.reco.reco_io_functions import get_sim_file_names
 from fanal.reco.reco_io_functions import get_reco_file_name
 from fanal.reco.reco_io_functions import get_reco_group_name
@@ -39,16 +44,11 @@ from fanal.reco.reco_io_functions import extend_voxels_reco_data
 from fanal.reco.reco_io_functions import store_events_reco_data
 from fanal.reco.reco_io_functions import store_voxels_reco_data
 from fanal.reco.reco_io_functions import store_events_reco_counters
-from fanal.core.detector          import get_active_size
-from fanal.core.fanal_types       import DetName
-from fanal.core.fanal_types       import ActiveVolumeDim
 from fanal.reco.energy            import smear_evt_energy
 from fanal.reco.energy            import smear_hit_energies
 from fanal.reco.position          import get_voxel_size
 from fanal.reco.position          import translate_hit_positions
 from fanal.reco.position          import check_event_fiduciality
-from fanal.core.mc_utilities      import print_mc_event
-from fanal.core.mc_utilities      import plot_mc_event
 
 
 
