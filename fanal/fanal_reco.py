@@ -40,6 +40,8 @@ from fanal.reco.reco_io_functions import store_events_reco_data
 from fanal.reco.reco_io_functions import store_voxels_reco_data
 from fanal.reco.reco_io_functions import store_events_reco_counters
 from fanal.core.detector          import get_active_size
+from fanal.core.fanal_types       import DetName
+from fanal.core.fanal_types       import ActiveVolumeDim
 from fanal.reco.energy            import smear_evt_energy
 from fanal.reco.energy            import smear_hit_energies
 from fanal.reco.position          import get_voxel_size
@@ -56,7 +58,7 @@ from fanal.core.mc_utilities      import plot_mc_event
 VERBOSITY_LEVEL = 1
 
 # DETECTOR NAME
-DET_NAME = 'NEXT100'
+DET_NAME = DetName.next100
 
 # EVENT TYPE to be analyzed
 EVENT_TYPE = 'Bi214'
@@ -66,7 +68,7 @@ Qbb  = 2457.83 * units.keV
 DRIFT_VELOCITY = 1. * units.mm / units.mus
 
 # DETECTOR-ACTIVE dimensions
-ACTIVE_ZMIN, ACTIVE_ZMAX, ACTIVE_RAD = get_active_size(DET_NAME)
+ACTIVE_dimensions = get_active_size(DET_NAME)
 
 
 
@@ -89,9 +91,9 @@ MIN_VETO_ENERGY = 10 * units.keV
 voxel_size = get_voxel_size(SPATIAL_DEFINITION)
 
 # Fiducial limits
-FID_minZ   = ACTIVE_ZMIN + VETO_WIDTH
-FID_maxZ   = ACTIVE_ZMAX - VETO_WIDTH
-FID_maxRAD = ACTIVE_RAD  - VETO_WIDTH
+FID_minZ   = ACTIVE_dimensions.z_min + VETO_WIDTH
+FID_maxZ   = ACTIVE_dimensions.z_max - VETO_WIDTH
+FID_maxRAD = ACTIVE_dimensions.rad  - VETO_WIDTH
 
 
 print('\n***********************************************************************************')
@@ -103,7 +105,7 @@ print('*************************************************************************
 
 if (VERBOSITY_LEVEL >= 1):
     print('\n* Detector-Active dimensions [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
-        .format(ACTIVE_ZMIN, ACTIVE_ZMAX, ACTIVE_RAD))
+        .format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max, ACTIVE_dimensions.rad))
     print('         ... fiducial limits [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
         .format(FID_minZ, FID_maxZ, FID_maxRAD))
     print('\n* Sigma at Qbb: {:.3f} keV.'.format(SIGMA_Qbb / units.keV))
@@ -114,8 +116,8 @@ if (VERBOSITY_LEVEL >= 1):
 #--- Input files
 
 SIM_PATH = '/Users/Javi/Development/fanalIC_NB/data/sim'
-iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
-#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
+#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
+iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
 
 if (VERBOSITY_LEVEL >= 1):
 	print('\n* {0} {1} input files:'.format(len(iFileNames), EVENT_TYPE))
@@ -233,7 +235,7 @@ for iFileName in iFileNames:
 					active_smHits.append(smHit)
 
 				# Filtering hits outside the ACTIVE region (due to translation)
-				active_smHits = [hit for hit in active_smHits if hit.Z < ACTIVE_ZMAX]
+				active_smHits = [hit for hit in active_smHits if hit.Z < ACTIVE_dimensions.z_max]
 
 				# Voxelizing using the active_smHits ...
 				event_voxels = voxelize_hits(active_smHits, voxel_size, strict_voxel_size=True)
@@ -342,42 +344,42 @@ plt.show()
 fid_voxels = voxels_df[voxels_df.event_id.isin(events_df_fid_True.index)]
 
 fig = plt.figure(figsize = (18,5))
-num_bins = int(ACTIVE_ZMAX/20)
+num_bins = int(ACTIVE_dimensions.z_max/20)
 
 ax1 = fig.add_subplot(1, 3, 1)
-plt.hist(fid_voxels.X, num_bins, [-ACTIVE_RAD, ACTIVE_RAD])
+plt.hist(fid_voxels.X, num_bins, [-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad])
 plt.title('X [mm]', size=14)
 
 ax2 = fig.add_subplot(1, 3, 2)
-plt.hist(fid_voxels.Y, num_bins, [-ACTIVE_RAD, ACTIVE_RAD])
+plt.hist(fid_voxels.Y, num_bins, [-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad])
 plt.title('Y [mm]', size=14)
 
 ax3 = fig.adax1 = fig.add_subplot(1, 3, 3)
-plt.hist(fid_voxels.Z, num_bins, [ACTIVE_ZMIN, ACTIVE_ZMAX])
+plt.hist(fid_voxels.Z, num_bins, [ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max])
 plt.title('Z [mm]', size=14)
 
 plt.show()
 
 fig = plt.figure(figsize = (18,5))
-num_bins = int(ACTIVE_ZMAX/20)
+num_bins = int(ACTIVE_dimensions.z_max/20)
 
 ax1 = fig.add_subplot(1, 3, 1)
 plt.hist2d(fid_voxels.X, fid_voxels.Y, num_bins,
-           [[-ACTIVE_RAD, ACTIVE_RAD], [-ACTIVE_RAD, ACTIVE_RAD]], norm=LogNorm())
+           [[-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad], [-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad]], norm=LogNorm())
 plt.xlabel('X [mm]', size=12)
 plt.ylabel('Y [mm]', size=12)
 plt.title('X-Y [mm]', size=14)
 
 ax2 = fig.add_subplot(1, 3, 2)
 plt.hist2d(fid_voxels.X, fid_voxels.Z, num_bins,
-           [[-ACTIVE_RAD, ACTIVE_RAD], [ACTIVE_ZMIN, ACTIVE_ZMAX]], norm=LogNorm())
+           [[-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad], [ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max]], norm=LogNorm())
 plt.xlabel('X [mm]', size=12)
 plt.ylabel('Z [mm]', size=12)
 plt.title('X-Z [mm]', size=14)
 
 ax3 = fig.adax1 = fig.add_subplot(1, 3, 3)
 plt.hist2d(fid_voxels.Y, fid_voxels.Z, num_bins,
-           [[-ACTIVE_RAD, ACTIVE_RAD], [ACTIVE_ZMIN, ACTIVE_ZMAX]], norm=LogNorm())
+           [[-ACTIVE_dimensions.rad, ACTIVE_dimensions.rad], [ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max]], norm=LogNorm())
 plt.xlabel('Y [mm]', size=12)
 plt.ylabel('Z [mm]', size=12)
 plt.title('Y-Z [mm]', size=14)
