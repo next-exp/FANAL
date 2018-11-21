@@ -17,16 +17,16 @@ def get_active_size(detname : DetName) -> ActiveVolumeDim:
 		                       z_max = 1300.  * units.mm,
 		                       rad   =  534.5 * units.mm)
 
-	elif det_name == DetName.new:
+	elif detname == DetName.new:
 		return ActiveVolumeDim(z_min =   0.  * units.mm,
 						       z_max = 532.  * units.mm,
-							   rad   = 198.  * units.mm) 
-	elif det_name == DetName.next500:
+							   rad   = 198.  * units.mm)
+	elif detname == DetName.next500:
 		return ActiveVolumeDim(z_min =   0.   * units.mm,
 						       z_max = 2000.  * units.mm,
 							   rad   = 1000.  * units.mm)
 	else:
-		except DetectorNameNotDefined
+		raise DetectorNameNotDefined
 
 
 
