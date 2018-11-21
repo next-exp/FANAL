@@ -20,7 +20,7 @@ def get_active_size(detname : DetName) -> ActiveVolumeDim:
 	elif det_name == DetName.new:
 		return ActiveVolumeDim(z_min =   0.  * units.mm,
 						       z_max = 532.  * units.mm,
-							   rad   = 198.  * units.mm)
+							   rad   = 198.  * units.mm) 
 	elif det_name == DetName.next500:
 		return ActiveVolumeDim(z_min =   0.   * units.mm,
 						       z_max = 2000.  * units.mm,
