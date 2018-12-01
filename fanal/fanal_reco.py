@@ -32,6 +32,7 @@ from invisible_cities.reco.paolina_functions  import voxelize_hits
 from fanal.core.detector          import get_active_size
 from fanal.core.fanal_types       import DetName
 from fanal.core.fanal_types       import ActiveVolumeDim
+from fanal.core.messenger         import Messenger
 from fanal.core.mc_utilities      import print_mc_event
 from fanal.core.mc_utilities      import plot_mc_event
 from fanal.reco.reco_io_functions import get_sim_file_names
@@ -56,6 +57,7 @@ from fanal.reco.position          import check_event_fiduciality
 
 # Verbosity level
 VERBOSITY_LEVEL = 1
+msg = Messenger(level=VERBOSITY_LEVEL, name='Reco')
 
 # DETECTOR NAME
 DET_NAME = DetName.next100
@@ -101,28 +103,26 @@ print('***** Detector: {}'.format(DET_NAME))
 print('***** Reconstructing {} events'.format(EVENT_TYPE))
 print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(FWHM_Qbb_perc / units.perCent))
 print('***** Spatial definition: {}'.format(SPATIAL_DEFINITION))
-print('***********************************************************************************')
+print('***********************************************************************************\n')
 
-if (VERBOSITY_LEVEL >= 1):
-    print('\n* Detector-Active dimensions [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
+msg.log(1, '* Detector-Active dimensions [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}' \
         .format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max, ACTIVE_dimensions.rad))
-    print('         ... fiducial limits [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
+msg.log(1, '       ... fiducial limits [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}\n' \
         .format(FID_minZ, FID_maxZ, FID_maxRAD))
-    print('\n* Sigma at Qbb: {:.3f} keV.'.format(SIGMA_Qbb / units.keV))
-    print('\n* Voxel_size: {} mm.'.format(voxel_size))
+msg.log(1, '* Sigma at Qbb: {:.3f} keV.\n'.format(SIGMA_Qbb / units.keV))
+msg.log(1, '* Voxel_size: {} mm.\n'.format(voxel_size))
 
 
 
 #--- Input files
 
 SIM_PATH = '/Users/Javi/Development/fanalIC_NB/data/sim'
-#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
-iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
+iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
+#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
 
-if (VERBOSITY_LEVEL >= 1):
-	print('\n* {0} {1} input files:'.format(len(iFileNames), EVENT_TYPE))
-	for iFileName in iFileNames:
-		print(' ', iFileName)
+msg.log(1, '* {0} {1} input files:'.format(len(iFileNames), EVENT_TYPE))
+for iFileName in iFileNames:
+    msg.log(1, ' ', iFileName)
 
 
 
@@ -133,9 +133,8 @@ RECO_PATH = '/Users/Javi/Development/fanalIC_NB/data/reco/'
 oFileName = get_reco_file_name(RECO_PATH, EVENT_TYPE)
 reco_group_name = get_reco_group_name(FWHM_Qbb_perc/units.perCent, SPATIAL_DEFINITION)
 
-if (VERBOSITY_LEVEL >= 1):
-	print('\n* Output file name:', oFileName)
-	print('  Reco group name:', reco_group_name)
+msg.log(1, '* Output file name:', oFileName)
+msg.log(1, '  Reco group name: ', reco_group_name)
 
 # Creating the output files and its groups
 oFile_filters = tb.Filters(complib='zlib', complevel=4)
@@ -179,9 +178,7 @@ for iFileName in iFileNames:
 
 	with tb.open_file(iFileName, mode='r') as iFile:
 		file_event_numbers = iFile.root.MC.extents.cols.evt_number
-
-		if (VERBOSITY_LEVEL >= 1):
-			print ('\n* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
+		msg.log(1, '*** Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
 		# Loading into memory all the hits in the file
 		file_mcHits = load_mchits(iFileName)
@@ -190,8 +187,7 @@ for iFileName in iFileNames:
 		for event_number in file_event_numbers:
 
 			# Verbosing
-			if (VERBOSITY_LEVEL >= 2):
-				print('\n  Reconstructing event Id: {0} ...'.format(event_number))
+			msg.log(2, '* Reconstructing event Id: {0} ...'.format(event_number))
 
 			# Getting mcHits of the event, using the event_number as the key
 			event_mcHits = file_mcHits[event_number]
@@ -208,10 +204,8 @@ for iFileName in iFileNames:
 			event_smE_filter = (E_MIN <= event_smE <= E_MAX)
             
 			# Verbosing
-			if (VERBOSITY_LEVEL >= 2):
-				print('    Num mcHits: {0:3}   mcE: {1:.1f} keV   smE: {2:.1f} keV   smE_filter: {3}' \
-					.format(num_hits, event_mcE/units.keV,
-						event_smE/units.keV, event_smE_filter))
+			msg.log(2, '    Num mcHits: {0:3}   mcE: {1:.1f} keV   smE: {2:.1f} keV   smE_filter: {3}' \
+				.format(num_hits, event_mcE/units.keV, event_smE/units.keV, event_smE_filter))
 
 			# For those events NOT passing the smE filter:
 			# Storing data of NON smE_filter vents
@@ -260,12 +254,11 @@ for iFileName in iFileNames:
 					evt_fid_filter=fiducial_filter)
 
 				# Verbosing
-				if (VERBOSITY_LEVEL >= 2):
-					print('    Num voxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto energy: {:.1f} keV   fid_filter: {}' \
-						.format(len(event_voxels), voxels_minZ, voxels_maxZ,
-							voxels_maxRad, veto_energy / units.keV, fiducial_filter))
-				if (VERBOSITY_LEVEL >= 3):
-					for voxel in event_voxels: print('     ', voxel)
+				msg.log(2, '    Num voxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto energy: {:.1f} keV   fid_filter: {}' \
+					.format(len(event_voxels), voxels_minZ, voxels_maxZ, voxels_maxRad,
+						    veto_energy / units.keV, fiducial_filter))
+				for voxel in event_voxels:
+					msg.log(3, '     ', voxel)
 
 
 
@@ -283,7 +276,7 @@ store_events_reco_counters(oFile, reco_group_name, simulated_events, stored_even
 # Closing the output file
 oFile.close()
 
-print('\n* fanalIC reconstruction done!\n')
+print('\n***** fanalIC reconstruction done!\n')
 
 
 

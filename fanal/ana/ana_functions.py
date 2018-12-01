@@ -9,7 +9,7 @@ from invisible_cities.core.system_of_units_c  import units
 
 
 
-def get_new_energies(event_voxels, verbosity=False):
+def get_new_energies(event_voxels, msg):
     """
     As a first approach, we give the energy of negligible voxels to
     the closest non-negligible voxel.
@@ -36,8 +36,7 @@ def get_new_energies(event_voxels, verbosity=False):
         negl_neig_pairs.append((i, closest_index))
         neig_index.append(closest_index)
 
-        if verbosity:
-            print ('    Negl. Voxel Id: {0} with E: {1:4.1f} keV  -->  Voxel Id: {2} '
+        msg.log(3, '    Negl. Voxel Id: {0} with E: {1:4.1f} keV  -->  Voxel Id: {2} '
                    .format(i, negl_voxel.E / units.keV, closest_index))
             
     # Generating the list of new energies
@@ -86,7 +85,7 @@ def get_voxel_track_relations(event_voxels, event_tracks):
 
 
 
-def process_tracks(event_tracks, track_Eth, verbosity):
+def process_tracks(event_tracks, track_Eth, msg):
     """
     * Computing event energies
     * Filtering tracks with energy below threshold
@@ -107,17 +106,15 @@ def process_tracks(event_tracks, track_Eth, verbosity):
         if track_E >= track_Eth:
             event_tracks_withE.append((track_E, event_tracks[i]))
         else:
-            if verbosity:
-                print('    Track with energy: {:6.1f} keV  -->  Discarded'.format(track_E/units.keV))
+            msg.log(3, '    Track with energy: {:6.1f} keV  -->  Discarded'.format(track_E/units.keV))
 
     # Sorting tracks by their energies
     event_tracks_withE = sorted(event_tracks_withE, key=itemgetter(0), reverse=True)
 
     # VERBOSING
-    if verbosity:
-        print('  Sorted-Good Tracks ...')
-        for i in range(len(event_tracks_withE)):
-            print('    Track {}  energy: {:6.1f} keV'.format(i, event_tracks_withE[i][0]/units.keV))         
+    msg.log(3, '  Sorted-Good Tracks ...')
+    for i in range(len(event_tracks_withE)):
+        msg.log(3, '    Track {}  energy: {:6.1f} keV'.format(i, event_tracks_withE[i][0]/units.keV))
 
     return event_tracks_withE
 
