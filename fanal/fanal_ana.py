@@ -14,6 +14,7 @@ that will complete the previous reco information with the new data generated in 
 import os
 import sys
 import math
+import logging
 import numpy  as np
 import tables as tb
 import pandas as pd
@@ -44,7 +45,7 @@ from fanal.ana.ana_io_functions import store_events_ana_counters
 from fanal.core.mc_utilities import print_mc_event
 from fanal.core.mc_utilities import plot_mc_event
 from fanal.core.fanal_types  import DetName
-from fanal.core.messenger    import Messenger
+from fanal.core.logger       import get_logger
 
 from fanal.ana.ana_functions import get_new_energies
 from fanal.ana.ana_functions import get_voxel_track_relations
@@ -54,9 +55,9 @@ from fanal.ana.ana_functions import process_tracks
 
 #--- Configuration
 
-# GENERAL 
-VERBOSITY_LEVEL = 1
-msg = Messenger(level=VERBOSITY_LEVEL, name='Ana')
+# LOGGER
+logger = get_logger('FanalAna')
+#logger = get_logger('FanalAna', level=logging.DEBUG)
 
 # DETECTOR NAME
 DET_NAME = DetName.next100
@@ -70,7 +71,7 @@ FWHM_Qbb_perc = 0.7 * units.perCent
 SPATIAL_DEFINITION = 'Std'
 
 # CURRENT TOPOLOGY ANALYSYS
-VOXEL_E_THRESHOLD = 2 * units.keV
+VOXEL_E_THRESHOLD =  2 * units.keV
 TRACK_E_THRESHOLD = 10 * units.keV
 MAX_NUM_TRACKS = 1
 BLOB_RADIUS = 18 * units.mm
@@ -88,11 +89,12 @@ print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(FWHM_Qbb_perc / unit
 print('***** Spatial definition: {}'.format(SPATIAL_DEFINITION))
 print('***********************************************************************************\n')
 
-msg.log(1, '* Voxel Eth: {:4.1f} keV   Track Eth: {:4.1f} keV   Max Num Tracks: {}\n' \
-          .format(VOXEL_E_THRESHOLD/units.keV, TRACK_E_THRESHOLD/units.keV, MAX_NUM_TRACKS))
-msg.log(1, '* Blob radius: {:.1f} mm   Blob Eth: {:4.1f} keV\n' \
-          .format(BLOB_RADIUS, BLOB_E_THRESHOLD / units.keV))
-msg.log(1, '* ROI limits: [{:4.1f}, {:4.1f}] keV\n'.format(ROI_E_MIN/units.keV, ROI_E_MAX/units.keV))
+print('* Voxel Eth: {:4.1f} keV   Track Eth: {:4.1f} keV   Max Num Tracks: {}\n' \
+      .format(VOXEL_E_THRESHOLD/units.keV, TRACK_E_THRESHOLD/units.keV, MAX_NUM_TRACKS))
+print('* Blob radius: {:.1f} mm   Blob Eth: {:4.1f} keV\n' \
+      .format(BLOB_RADIUS, BLOB_E_THRESHOLD / units.keV))
+print('* ROI limits: [{:4.1f}, {:4.1f}] keV\n' \
+      .format(ROI_E_MIN/units.keV, ROI_E_MAX/units.keV))
 
 
 
@@ -102,8 +104,8 @@ RECO_PATH = '/Users/Javi/Development/fanalIC_NB/data/reco/'
 iFileName = get_reco_file_name(RECO_PATH, EVENT_TYPE)
 reco_group_name = get_reco_group_name(FWHM_Qbb_perc/units.perCent, SPATIAL_DEFINITION)
 
-msg.log(1, '* Input reco file name:', iFileName)
-msg.log(1, '  Reco group name: {}\n'.format(reco_group_name))
+print('* Input reco file name:', iFileName)
+print('  Reco group name: {}\n'.format(reco_group_name))
 
 
 
@@ -113,8 +115,8 @@ ANA_PATH = '/Users/Javi/Development/fanalIC_NB/data/ana/'
 oFileName = get_ana_file_name(ANA_PATH, EVENT_TYPE)
 ana_group_name = get_ana_group_name(FWHM_Qbb_perc/units.perCent, SPATIAL_DEFINITION)
 
-msg.log(1, '* Output analysis file name:', oFileName)
-msg.log(1, '  Ana group name: {}\n'.format(ana_group_name))
+print('* Output analysis file name:', oFileName)
+print('  Ana group name: {}\n'.format(ana_group_name))
 
 # Creating the output file and its groups
 oFile_filters = tb.Filters(complib='zlib', complevel=4)
@@ -153,12 +155,11 @@ voxels_df = pd.read_hdf(iFileName, reco_group_name + '/voxels')
 
 # Identifying as negligible all the voxels with energy lower than threshold
 voxels_df['negli'] = voxels_df.E < VOXEL_E_THRESHOLD
-msg.log(1, '* Total Voxels in File: {0}     Negligible Voxels (below {1:3.1f} keV): {2}\n'
-          .format(len(voxels_df), VOXEL_E_THRESHOLD/units.keV,
-            len(voxels_df[voxels_df.negli == True])))
+print('* Total Voxels in File: {0}     Negligible Voxels (below {1:3.1f} keV): {2}\n'\
+    .format(len(voxels_df), VOXEL_E_THRESHOLD/units.keV, len(voxels_df[voxels_df.negli == True])))
 
 # Analyzing only the fiducial events ...
-msg.log(1, '***** Analyzing events ...\n')
+print('* Analyzing events ...\n')
 
 # Counter of analyzed events for verbosing pourpouses
 num_analyzed_events = 0
@@ -169,7 +170,7 @@ for event_id in events_df[events_df.fid_filter].index:
     num_analyzed_events += 1
     
     # Verbosing
-    msg.log(2, '* Analyzing event Id: {0} ...'.format(event_id))
+    logger.info('Analyzing event Id: {0} ...'.format(event_id))
 
     # Getting the voxels of current event and their sizes
     event_voxels = voxels_df[voxels_df.event_id == event_id]
@@ -178,14 +179,14 @@ for event_id in events_df[events_df.fid_filter].index:
     event_data = events_df.loc[event_id]
     voxel_dimensions = (event_data.voxel_sizeX, event_data.voxel_sizeY, event_data.voxel_sizeZ)
     
-    msg.log(2, '  Total Voxels: {}   Negli. Voxels: {}   Voxels Size: ({:3.1f}, {:3.1f}, {:3.1f}) mm'\
-            .format(num_event_voxels, num_event_voxels_negli, voxel_dimensions[0],
-                    voxel_dimensions[1], voxel_dimensions[2]))
+    logger.info('  Total Voxels: {}   Negli. Voxels: {}   Voxels Size: ({:3.1f}, {:3.1f}, {:3.1f}) mm'\
+        .format(num_event_voxels, num_event_voxels_negli, voxel_dimensions[0],
+            voxel_dimensions[1], voxel_dimensions[2]))
 
     # If there is any negligible Voxel, distribute its energy between its neighbours,
     # if not, all voxels maintain their previous energies
     if num_event_voxels_negli:
-        event_voxels_newE = get_new_energies(event_voxels, msg)
+        event_voxels_newE = get_new_energies(event_voxels)
     else:
         event_voxels_newE = event_voxels.E.tolist()
     
@@ -196,7 +197,7 @@ for event_id in events_df[events_df.fid_filter].index:
     # Make tracks
     event_tracks = make_track_graphs(ic_voxels)
     num_event_tracks = len(event_tracks)
-    msg.log(2, '  Num initial tracks: {:2}'.format(num_event_tracks))
+    logger.info('  Num initial tracks: {:2}'.format(num_event_tracks))
         
     # Appending to every voxel, the track it belongs to
     event_voxels_tracks = get_voxel_track_relations(event_voxels, event_tracks)
@@ -205,7 +206,7 @@ for event_id in events_df[events_df.fid_filter].index:
     extend_voxels_ana_data(voxels_dict, event_voxels.index, event_voxels_newE, event_voxels_tracks)
 
     # Processing tracks: Getting energies, sorting and filtering ...
-    event_sorted_tracks = process_tracks(event_tracks, TRACK_E_THRESHOLD, msg)         
+    event_sorted_tracks = process_tracks(event_tracks, TRACK_E_THRESHOLD)         
     num_event_tracks = len(event_sorted_tracks)
 
     # Storing 3 hottest track info
@@ -229,7 +230,7 @@ for event_id in events_df[events_df.fid_filter].index:
     tracks_filter = ((num_event_tracks > 0) & (num_event_tracks <= MAX_NUM_TRACKS))
 
     # Verbosing
-    msg.log(2, '  Num final tracks:   {:2}  -->  tracks_filter: {}'.format(num_event_tracks, tracks_filter))
+    logger.info('  Num final tracks: {:2}  -->  tracks_filter: {}'.format(num_event_tracks, tracks_filter))
     
     # For those events NOT passing the tracks filter:
     # Storing data of NON tracks_filter vents
@@ -249,14 +250,14 @@ for event_id in events_df[events_df.fid_filter].index:
         blobs_filter = (blob2_E > BLOB_E_THRESHOLD)
         
         # Verbosing
-        msg.log(2, '  Blob 1 energy: {:4.1f} keV   Blob 2 energy: {:4.1f} keV  -->  Blobs filter: {}'\
+        logger.info('  Blob 1 energy: {:4.1f} keV   Blob 2 energy: {:4.1f} keV  -->  Blobs filter: {}'\
             .format(blob1_E/units.keV, blob2_E/units.keV, blobs_filter))
 
         # For those events NOT passing the blobs filter:
         # Storing data of NON blobs_filter vents
         if not blobs_filter:
-            extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels, track1_E,
-                                   track1_voxels, track2_E, track2_voxels, tracks_filter,
+            extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels,
+                                   track1_E, track1_voxels, track2_E, track2_voxels, tracks_filter,
                                    blob1_E = blob1_E, blob2_E = blob2_E, blobs_filter = blobs_filter)
             
         # Only for those events passing the blobs filter:
@@ -269,8 +270,8 @@ for event_id in events_df[events_df.fid_filter].index:
             roi_filter = ((event_smE >= ROI_E_MIN) & (event_smE <= ROI_E_MAX))
         
             # Verbosing
-            msg.log(2, '  Event energy: {:6.1f} keV  -->  ROI filter: {}'\
-                    .format(event_smE / units.keV, roi_filter))
+            logger.info('  Event energy: {:6.1f} keV  -->  ROI filter: {}'\
+                .format(event_smE / units.keV, roi_filter))
                 
             # Storing all the events (as this is the last filter)
             extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels,
@@ -281,7 +282,7 @@ for event_id in events_df[events_df.fid_filter].index:
 
 
 #--- Generating and storing the "events" and "voxels" DataFrame      
-msg.log(1, '***** Storing the analysis data ...\n')
+print('* Storing data in the output file ...\n  {}\n'.format(oFileName))
 store_events_ana_data(oFileName, ana_group_name, events_df, events_dict)
 store_voxels_ana_data(oFileName, ana_group_name, voxels_df, voxels_dict)
 
@@ -292,7 +293,7 @@ tracks_filter_events, blobs_filter_events, roi_filter_events = \
 # Closing the output file
 oFile.close()
 
-print('\n***** fanalIC analysis done!\n')
+print('\n***** Analysis done!\n')
 
 
 
@@ -305,13 +306,13 @@ with tb.open_file(iFileName, mode='a') as iFile:
     smE_filter_events = iFile.get_node_attr(reco_group_name, 'smE_filter_events')
     fid_filter_events = iFile.get_node_attr(reco_group_name, 'fid_filter_events')
 print('''* Event counters:
-Simulated events:     {0:8}
-Stored events:        {1:8}
-smE_filter events:    {2:8}
-fid_filter events:    {3:8}
-tracks_filter events: {4:8}
-blobs_filter events:  {5:8}
-roi_filter events:    {6:8}
+  Simulated events:     {0:8}
+  Stored events:        {1:8}
+  smE_filter events:    {2:8}
+  fid_filter events:    {3:8}
+  tracks_filter events: {4:8}
+  blobs_filter events:  {5:8}
+  roi_filter events:    {6:8}
 '''.format(simulated_events, stored_events, smE_filter_events, fid_filter_events,
 		   tracks_filter_events, blobs_filter_events, roi_filter_events))
 
