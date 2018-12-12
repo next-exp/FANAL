@@ -13,6 +13,7 @@ It generates an .h5 file containing 2 dataFrames:
 import os
 import sys
 import math
+import logging
 import numpy  as np
 import tables as tb
 import pandas as pd
@@ -29,6 +30,12 @@ from invisible_cities.evm.event_model         import MCHit
 from invisible_cities.reco.paolina_functions  import voxelize_hits
 
 # Specific fanalIC stuff
+from fanal.core.detector          import get_active_size
+from fanal.core.fanal_types       import DetName
+from fanal.core.fanal_types       import ActiveVolumeDim
+from fanal.core.logger            import get_logger
+from fanal.core.mc_utilities      import print_mc_event
+from fanal.core.mc_utilities      import plot_mc_event
 from fanal.reco.reco_io_functions import get_sim_file_names
 from fanal.reco.reco_io_functions import get_reco_file_name
 from fanal.reco.reco_io_functions import get_reco_group_name
@@ -39,23 +46,18 @@ from fanal.reco.reco_io_functions import extend_voxels_reco_data
 from fanal.reco.reco_io_functions import store_events_reco_data
 from fanal.reco.reco_io_functions import store_voxels_reco_data
 from fanal.reco.reco_io_functions import store_events_reco_counters
-from fanal.core.detector          import get_active_size
-from fanal.core.fanal_types       import DetName
-from fanal.core.fanal_types       import ActiveVolumeDim
 from fanal.reco.energy            import smear_evt_energy
 from fanal.reco.energy            import smear_hit_energies
 from fanal.reco.position          import get_voxel_size
 from fanal.reco.position          import translate_hit_positions
 from fanal.reco.position          import check_event_fiduciality
-from fanal.core.mc_utilities      import print_mc_event
-from fanal.core.mc_utilities      import plot_mc_event
 
 
 
 #--- Configuration
 
-# Verbosity level
-VERBOSITY_LEVEL = 1
+# LOGGER
+logger = get_logger('FanalReco', level=logging.WARNING)
 
 # DETECTOR NAME
 DET_NAME = DetName.next100
@@ -101,28 +103,26 @@ print('***** Detector: {}'.format(DET_NAME))
 print('***** Reconstructing {} events'.format(EVENT_TYPE))
 print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(FWHM_Qbb_perc / units.perCent))
 print('***** Spatial definition: {}'.format(SPATIAL_DEFINITION))
-print('***********************************************************************************')
+print('***********************************************************************************\n')
 
-if (VERBOSITY_LEVEL >= 1):
-    print('\n* Detector-Active dimensions [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
-        .format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max, ACTIVE_dimensions.rad))
-    print('         ... fiducial limits [mm]:  Zmin: {:4.1f}   Zmax: {:4.1f}   Rmax: {:4.1f}' \
-        .format(FID_minZ, FID_maxZ, FID_maxRAD))
-    print('\n* Sigma at Qbb: {:.3f} keV.'.format(SIGMA_Qbb / units.keV))
-    print('\n* Voxel_size: {} mm.'.format(voxel_size))
+print('* Detector-Active dimensions [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}' \
+	.format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max, ACTIVE_dimensions.rad))
+print('         ... fiducial limits [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}\n' \
+	.format(FID_minZ, FID_maxZ, FID_maxRAD))
+print('* Sigma at Qbb: {:.3f} keV.\n'.format(SIGMA_Qbb / units.keV))
+print('* Voxel_size: {} mm.\n'.format(voxel_size))
 
 
 
 #--- Input files
 
 SIM_PATH = '/Users/Javi/Development/fanalIC_NB/data/sim'
-#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
-iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
+iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE)
+#iFileNames = get_sim_file_names(SIM_PATH, EVENT_TYPE, file_range=[0,2])
 
-if (VERBOSITY_LEVEL >= 1):
-	print('\n* {0} {1} input files:'.format(len(iFileNames), EVENT_TYPE))
-	for iFileName in iFileNames:
-		print(' ', iFileName)
+print('* {0} {1} input files:'.format(len(iFileNames), EVENT_TYPE))
+for iFileName in iFileNames:
+	print(' ', iFileName)
 
 
 
@@ -133,9 +133,8 @@ RECO_PATH = '/Users/Javi/Development/fanalIC_NB/data/reco/'
 oFileName = get_reco_file_name(RECO_PATH, EVENT_TYPE)
 reco_group_name = get_reco_group_name(FWHM_Qbb_perc/units.perCent, SPATIAL_DEFINITION)
 
-if (VERBOSITY_LEVEL >= 1):
-	print('\n* Output file name:', oFileName)
-	print('  Reco group name:', reco_group_name)
+print('\n* Output file name:', oFileName)
+print('  Reco group name: {}\n'.format(reco_group_name))
 
 # Creating the output files and its groups
 oFile_filters = tb.Filters(complib='zlib', complevel=4)
@@ -179,9 +178,7 @@ for iFileName in iFileNames:
 
 	with tb.open_file(iFileName, mode='r') as iFile:
 		file_event_numbers = iFile.root.MC.extents.cols.evt_number
-
-		if (VERBOSITY_LEVEL >= 1):
-			print ('\n* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
+		print('\n* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
 		# Loading into memory all the hits in the file
 		file_mcHits = load_mchits(iFileName)
@@ -190,8 +187,7 @@ for iFileName in iFileNames:
 		for event_number in file_event_numbers:
 
 			# Verbosing
-			if (VERBOSITY_LEVEL >= 2):
-				print('\n  Reconstructing event Id: {0} ...'.format(event_number))
+			logger.info('Reconstructing event Id: {0} ...'.format(event_number))
 
 			# Getting mcHits of the event, using the event_number as the key
 			event_mcHits = file_mcHits[event_number]
@@ -208,10 +204,8 @@ for iFileName in iFileNames:
 			event_smE_filter = (E_MIN <= event_smE <= E_MAX)
             
 			# Verbosing
-			if (VERBOSITY_LEVEL >= 2):
-				print('    Num mcHits: {0:3}   mcE: {1:.1f} keV   smE: {2:.1f} keV   smE_filter: {3}' \
-					.format(num_hits, event_mcE/units.keV,
-						event_smE/units.keV, event_smE_filter))
+			logger.info('  Num mcHits: {0:3}   mcE: {1:.1f} keV   smE: {2:.1f} keV   smE_filter: {3}' \
+				.format(num_hits, event_mcE/units.keV, event_smE/units.keV, event_smE_filter))
 
 			# For those events NOT passing the smE filter:
 			# Storing data of NON smE_filter vents
@@ -260,17 +254,18 @@ for iFileName in iFileNames:
 					evt_fid_filter=fiducial_filter)
 
 				# Verbosing
-				if (VERBOSITY_LEVEL >= 2):
-					print('    Num voxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto energy: {:.1f} keV   fid_filter: {}' \
-						.format(len(event_voxels), voxels_minZ, voxels_maxZ,
-							voxels_maxRad, veto_energy / units.keV, fiducial_filter))
-				if (VERBOSITY_LEVEL >= 3):
-					for voxel in event_voxels: print('     ', voxel)
+				logger.info('  NumVoxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto_E: {:.1f} keV   fid_filter: {}' \
+					.format(len(event_voxels), voxels_minZ, voxels_maxZ, voxels_maxRad,
+						veto_energy / units.keV, fiducial_filter))
+				for voxel in event_voxels:
+					logger.debug('    Voxel pos: ({:5.1f}, {:5.1f}, {:5.1f}) mm   E: {:5.1f} keV'\
+						.format(voxel.X/units.mm, voxel.Y/units.mm, voxel.Z/units.mm,
+							voxel.E/units.keV))
 
 
 
 #--- Generating and storing the "events" and "voxels" DataFrame
-print('\n* Storing the reconstruction data ... \n')
+print('* Storing data in the output file ...\n  {}\n'.format(oFileName))
 store_events_reco_data(oFileName, reco_group_name, events_dict)
 store_voxels_reco_data(oFileName, reco_group_name, voxels_dict)
 
@@ -283,18 +278,18 @@ store_events_reco_counters(oFile, reco_group_name, simulated_events, stored_even
 # Closing the output file
 oFile.close()
 
-print('\n* fanalIC reconstruction done!\n')
+print('* Reconstruction done!\n')
 
 
 
 #--- Printing and plotting results
 
 ## Priting the event counters
-print('''* Event counters:
-Simulated events:  {0:6}
-Stored events:     {1:6}
-smE_filter events: {2:6}
-fid_filter events: {3:6}
+print('''  Event counters:
+  Simulated events:  {0:6}
+  Stored events:     {1:6}
+  smE_filter events: {2:6}
+  fid_filter events: {3:6}
 ''' .format(simulated_events, stored_events, smE_filter_events, fid_filter_events))
 
 
@@ -418,7 +413,7 @@ plt.hist(events_df_smE_True.smE, num_bins, [2.39,2.51])
 plt.xlabel('Total energy (MeV)')
 
 (mu,sigma) = norm.fit(events_df[((events_df.smE>2.445) & (events_df.smE<2.475))].smE)
-print('mean: {0:.4f} MeV  sigma: {1:.4f} MeV'.format(mu, sigma))
+print('mean: {0:.4f} MeV  sigma: {1:.4f} keV'.format(mu, sigma/units.keV))
 
 plt.show()
 
