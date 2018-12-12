@@ -9,7 +9,7 @@ def get_logger(name, level = logging.WARNING, filename = False):
 
 	# Create handlers
 	if filename:
-		handler = logging.FileHandler(filename)
+		handler = logging.FileHandler(filename, mode='w')
 	else:
 		handler = logging.StreamHandler()
 		handler.stream = sys.stdout
