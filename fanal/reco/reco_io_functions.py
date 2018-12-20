@@ -19,39 +19,39 @@ def get_reco_group_name(fwhm, spatial_def):
 
 
 
-def get_sim_file_names(path, evt_type, file_range=[0, 10000]):
-	"""
-	It returns the name of the simulation 'evt_type' files in the 'path'.
-	If a file_range is passed, only those files are returned
-	"""
-	path= os.path.join(path, evt_type)
+# def get_sim_file_names(path, evt_type, file_range=[0, 10000]):
+# 	"""
+# 	It returns the name of the simulation 'evt_type' files in the 'path'.
+# 	If a file_range is passed, only those files are returned
+# 	"""
+# 	path= os.path.join(path, evt_type)
 
-	iFileNames = []
-	for fileName in os.listdir(path):
-		if fileName.endswith('.h5'):
-			iFileNames.append(os.path.join(path, fileName))
-	iFileNames.sort()
+# 	iFileNames = []
+# 	for fileName in os.listdir(path):
+# 		if fileName.endswith('.h5'):
+# 			iFileNames.append(os.path.join(path, fileName))
+# 	iFileNames.sort()
 
-	if file_range == [0, 10000]:
-		return iFileNames
-	else:
-		return iFileNames[file_range[0]:file_range[1]]
+# 	if file_range == [0, 10000]:
+# 		return iFileNames
+# 	else:
+# 		return iFileNames[file_range[0]:file_range[1]]
 
 
 
-def get_reco_file_name(path, evt_type):
-	"""
-	It returns the name of the reconstruction file in the 'path'.
-	"""
-	try:
-		os.stat(path)
-	except:
-		os.mkdir(path)
+# def get_reco_file_name(path, evt_type):
+# 	"""
+# 	It returns the name of the reconstruction file in the 'path'.
+# 	"""
+# 	try:
+# 		os.stat(path)
+# 	except:
+# 		os.mkdir(path)
 
-	fileName = evt_type + '.reco.h5'
-	fileName = os.path.join(path, fileName)
+# 	fileName = evt_type + '.reco.h5'
+# 	fileName = os.path.join(path, fileName)
 
-	return fileName
+# 	return fileName
 
 
 
