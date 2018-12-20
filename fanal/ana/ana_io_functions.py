@@ -5,19 +5,19 @@ import pandas as pd
 
 
 
-def get_ana_file_name(path, evt_type):
-	"""
-	It returns the name of the analysis file in the 'path'.
-	"""
-	try:
-		os.stat(path)
-	except:
-		os.mkdir(path)
-
-	fileName = evt_type + '.ana.h5'
-	fileName = os.path.join(path, fileName)
-
-	return fileName
+#def get_ana_file_name(path, evt_type):
+#	"""
+#	It returns the name of the analysis file in the 'path'.
+#	"""
+#	try:
+#		os.stat(path)
+#	except:
+#		os.mkdir(path)
+#
+#	fileName = evt_type + '.ana.h5'
+#	fileName = os.path.join(path, fileName)
+#
+#	return fileName
 
 
 
