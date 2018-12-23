@@ -163,7 +163,8 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
       file_event_numbers = iFile.root.MC.extents.cols.evt_number
       print('* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
-      # Loading into memory all the hits in the file
+      # Loading into memory all the particles & hits in the file
+      file_mcParts = load_mcparticles(iFileName)
       file_mcHits = load_mchits(iFileName)
           
       # Looping through all the events in the file
@@ -177,6 +178,10 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         # Verbosing
         logger.info('Reconstructing event Id: {0} ...'.format(event_number))
   
+        # Getting mcParts of the event, using the event_number as the key
+        event_mcParts = file_mcParts[event_number]
+        num_parts = len(event_mcParts)
+
         # Getting mcHits of the event, using the event_number as the key
         event_mcHits = file_mcHits[event_number]
         active_mcHits = [hit for hit in event_mcHits if hit.label=='ACTIVE']
@@ -198,8 +203,9 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         # For those events NOT passing the smE filter:
         # Storing data of NON smE_filter vents
         if not event_smE_filter:
-          extend_events_reco_data(events_dict, event_number, evt_num_MChits=num_hits,
-            evt_mcE=event_mcE, evt_smE=event_smE, evt_smE_filter=event_smE_filter)
+          extend_events_reco_data(events_dict, event_number, evt_num_MCparts=num_parts,
+                                  evt_num_MChits=num_hits, evt_mcE=event_mcE,
+                                  evt_smE=event_smE, evt_smE_filter=event_smE_filter)
               
         # Only for those events passing the smE filter:
         else:
@@ -232,13 +238,14 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
             check_event_fiduciality(event_voxels, FID_minZ, FID_maxZ, FID_maxRAD, min_veto_e)
                   
           # Storing data of NON smE_filter vents
-          extend_events_reco_data(events_dict, event_number, evt_num_MChits=num_hits,
-            evt_mcE=event_mcE, evt_smE=event_smE, evt_smE_filter=event_smE_filter,
-            evt_num_voxels=len(event_voxels), evt_voxel_sizeX=eff_voxel_size[0],
-            evt_voxel_sizeY=eff_voxel_size[1], evt_voxel_sizeZ=eff_voxel_size[2],
-            evt_voxels_minZ=voxels_minZ, evt_voxels_maxZ=voxels_maxZ,
-            evt_voxels_maxRad=voxels_maxRad, evt_veto_energy=veto_energy,
-            evt_fid_filter=fiducial_filter)
+          extend_events_reco_data(events_dict, event_number, evt_num_MCparts=num_parts,
+                                  evt_num_MChits=num_hits, evt_mcE=event_mcE,
+                                  evt_smE=event_smE, evt_smE_filter=event_smE_filter,
+                                  evt_num_voxels=len(event_voxels), evt_voxel_sizeX=eff_voxel_size[0],
+                                  evt_voxel_sizeY=eff_voxel_size[1], evt_voxel_sizeZ=eff_voxel_size[2],
+                                  evt_voxels_minZ=voxels_minZ, evt_voxels_maxZ=voxels_maxZ,
+                                  evt_voxels_maxRad=voxels_maxRad, evt_veto_energy=veto_energy,
+                                  evt_fid_filter=fiducial_filter)
   
           # Verbosing
           logger.info('  NumVoxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto_E: {:.1f} keV   fid_filter: {}' \

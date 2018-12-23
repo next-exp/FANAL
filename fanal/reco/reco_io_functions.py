@@ -19,42 +19,6 @@ def get_reco_group_name(fwhm, spatial_def):
 
 
 
-# def get_sim_file_names(path, evt_type, file_range=[0, 10000]):
-# 	"""
-# 	It returns the name of the simulation 'evt_type' files in the 'path'.
-# 	If a file_range is passed, only those files are returned
-# 	"""
-# 	path= os.path.join(path, evt_type)
-
-# 	iFileNames = []
-# 	for fileName in os.listdir(path):
-# 		if fileName.endswith('.h5'):
-# 			iFileNames.append(os.path.join(path, fileName))
-# 	iFileNames.sort()
-
-# 	if file_range == [0, 10000]:
-# 		return iFileNames
-# 	else:
-# 		return iFileNames[file_range[0]:file_range[1]]
-
-
-
-# def get_reco_file_name(path, evt_type):
-# 	"""
-# 	It returns the name of the reconstruction file in the 'path'.
-# 	"""
-# 	try:
-# 		os.stat(path)
-# 	except:
-# 		os.mkdir(path)
-
-# 	fileName = evt_type + '.reco.h5'
-# 	fileName = os.path.join(path, fileName)
-
-# 	return fileName
-
-
-
 def get_events_reco_dict():
 	"""
 	It returns a dictionary with a key for each field to be stored per event
@@ -63,6 +27,7 @@ def get_events_reco_dict():
 	"""
 	events_dict = {
 	    'id':            [],
+	    'num_MCparts':   [],
 	    'num_MChits':    [],
 	    'mcE':           [],
 	    'smE':           [],
@@ -103,7 +68,8 @@ def get_voxels_reco_dict():
 def extend_events_reco_data(
 	events_dict,
 	event_id,
-	evt_num_MChits = np.nan,
+	evt_num_MCparts = np.nan,
+	evt_num_MChits  = np.nan,
 	evt_mcE = np.nan,
 	evt_smE = np.nan,
 	evt_smE_filter = False,
@@ -121,6 +87,7 @@ def extend_events_reco_data(
 	It stores all the data related to an event into the events_dict.
 	"""
 	events_dict['id'].extend([event_id])
+	events_dict['num_MCparts'].extend([evt_num_MCparts])
 	events_dict['num_MChits'].extend([evt_num_MChits])
 	events_dict['mcE'].extend([evt_mcE])
 	events_dict['smE'].extend([evt_smE])
