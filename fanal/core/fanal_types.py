@@ -18,9 +18,12 @@ class DetName(Enum):
     next100 = 2
     next500 = 3
 
+class SpatialDef(Enum):
+    low     = 1
+    high    = 2
+
 @dataclass
 class ActiveVolumeDim:
     z_min : float
     z_max : float
     rad   : float
-    
