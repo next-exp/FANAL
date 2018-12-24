@@ -27,10 +27,11 @@ from operator import itemgetter
 from invisible_cities.cities.components       import city
 from invisible_cities.core.configure          import configure
 from invisible_cities.core.system_of_units_c  import units
-from invisible_cities.reco.paolina_functions  import make_track_graphs
-from invisible_cities.reco.paolina_functions  import blob_energies
 from invisible_cities.evm.event_model         import Voxel
 from invisible_cities.reco.tbl_functions      import filters as tbl_filters
+from invisible_cities.reco.paolina_functions  import make_track_graphs
+from invisible_cities.reco.paolina_functions  import length as track_length
+from invisible_cities.reco.paolina_functions  import blob_energies
 
 # Specific fanalIC stuff
 from fanal.reco.reco_io_functions import get_reco_group_name
@@ -204,18 +205,21 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     if num_event_tracks >= 1:
       track0_E      = event_sorted_tracks[0][0]
       track0_voxels = len(event_sorted_tracks[0][1].nodes())
+      track0_length = track_length(event_sorted_tracks[0][1])
     else:
-      track0_E = track0_voxels = np.nan
+      track0_E = track0_voxels = track0_length = np.nan
     if num_event_tracks >= 2:
       track1_E      = event_sorted_tracks[1][0]
       track1_voxels = len(event_sorted_tracks[1][1].nodes())
+      track1_length = track_length(event_sorted_tracks[1][1])
     else:
-      track1_E = track1_voxels = np.nan
+      track1_E = track1_voxels = track1_length = np.nan
     if num_event_tracks >= 3:
       track2_E      = event_sorted_tracks[2][0]
       track2_voxels = len(event_sorted_tracks[2][1].nodes())
+      track2_length = track_length(event_sorted_tracks[2][1])
     else:
-      track2_E = track2_voxels = np.nan
+      track2_E = track2_voxels = track2_length = np.nan
         
     # Applying the tracks filter
     tracks_filter = ((num_event_tracks > 0) & (num_event_tracks <= max_num_tracks))
@@ -226,8 +230,10 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     # For those events NOT passing the tracks filter:
     # Storing data of NON tracks_filter vents
     if not tracks_filter:
-      extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels,
-                             track1_E, track1_voxels, track2_E, track2_voxels, tracks_filter)
+      extend_events_ana_data(events_dict, event_id, num_event_tracks,
+                             track0_E, track0_voxels, track0_length,
+                             track1_E, track1_voxels, track1_length,
+                             track2_E, track2_voxels, track2_length, tracks_filter)
                 
     # Only for those events passing the tracks filter:
     else:
@@ -246,8 +252,10 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
       # For those events NOT passing the blobs filter:
       # Storing data of NON blobs_filter vents
       if not blobs_filter:
-        extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels,
-                               track1_E, track1_voxels, track2_E, track2_voxels, tracks_filter,
+        extend_events_ana_data(events_dict, event_id, num_event_tracks,
+                               track0_E, track0_voxels, track0_length,
+                               track1_E, track1_voxels, track1_length,
+                               track2_E, track2_voxels,  track2_length, tracks_filter,
                                blob1_E = blob1_E, blob2_E = blob2_E, blobs_filter = blobs_filter)
           
       # Only for those events passing the blobs filter:
@@ -263,8 +271,10 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
           .format(event_smE / units.keV, roi_filter))
               
         # Storing all the events (as this is the last filter)
-        extend_events_ana_data(events_dict, event_id, num_event_tracks, track0_E, track0_voxels,
-                               track1_E, track1_voxels, track2_E, track2_voxels, tracks_filter,
+        extend_events_ana_data(events_dict, event_id, num_event_tracks,
+                               track0_E, track0_voxels, track0_length,
+                               track1_E, track1_voxels, track1_length,
+                               track2_E, track2_voxels, track2_length, tracks_filter,
                                blob1_E = blob1_E, blob2_E = blob2_E, blobs_filter = blobs_filter,
                                roi_filter = roi_filter)
         
