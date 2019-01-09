@@ -48,7 +48,7 @@ def translate_hit_positions(mcHits, drift_velocity):
 
 
 
-def check_event_fiduciality(event_voxels, fid_minZ, fid_maxZ, fid_maxRad, min_VetoE):
+def check_event_fiduciality(event_voxels, fid_dimensions, min_VetoE):
 	"""
 	"""
 
@@ -59,15 +59,16 @@ def check_event_fiduciality(event_voxels, fid_minZ, fid_maxZ, fid_maxRad, min_Ve
 	voxels_maxZ = max(voxels_Z)
 	voxels_maxRad = max(voxels_Rad)
 
-	fiducial_filter = ((voxels_minZ > fid_minZ) & (voxels_maxZ < fid_maxZ) &
-					   (voxels_maxRad < fid_maxRad))
+	fiducial_filter = ((voxels_minZ   > fid_dimensions.z_min) &
+		                 (voxels_maxZ   < fid_dimensions.z_max) &
+		                 (voxels_maxRad < fid_dimensions.rad))
 
 	veto_energy = 0.
                 
 	# If there is any voxel in veto, checking if their energies are higher than threshold
 	if not fiducial_filter:
-		veto_energy = sum(voxel.E for voxel in event_voxels if ((voxel.Z < fid_minZ) |
-			(voxel.Z < fid_maxZ) | (math.sqrt(voxel.X**2 + voxel.Y**2) > fid_maxRad)))
+		veto_energy = sum(voxel.E for voxel in event_voxels if ((voxel.Z < fid_dimensions.z_min) |
+			(voxel.Z < fid_dimensions.z_max) | (math.sqrt(voxel.X**2 + voxel.Y**2) > fid_dimensions.rad)))
         
 	if veto_energy < min_VetoE:
 		fiducial_filter = True

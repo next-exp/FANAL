@@ -47,8 +47,8 @@ from fanal.reco.position     import translate_hit_positions
 from fanal.reco.position     import check_event_fiduciality
 
 from fanal.core.detector     import get_active_size
+from fanal.core.detector     import get_fiducial_size
 from fanal.core.fanal_types  import DetName
-from fanal.core.fanal_types  import ActiveVolumeDim
 from fanal.core.fanal_types  import SpatialDef
 
 from fanal.core.logger       import get_logger
@@ -97,9 +97,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
   voxel_size = get_voxel_size(spatial_def)
 
   # Fiducial limits
-  FID_minZ   = ACTIVE_dimensions.z_min + veto_width
-  FID_maxZ   = ACTIVE_dimensions.z_max - veto_width
-  FID_maxRAD = ACTIVE_dimensions.rad   - veto_width
+  fid_dimensions = get_fiducial_size(ACTIVE_dimensions, veto_width)
 
     
   ### PRINTING GENERAL INFO
@@ -113,7 +111,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
   print('* Detector-Active dimensions [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}' \
     .format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max, ACTIVE_dimensions.rad))
   print('         ... fiducial limits [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}\n' \
-    .format(FID_minZ, FID_maxZ, FID_maxRAD))
+    .format(fid_dimensions.z_min, fid_dimensions.z_max, fid_dimensions.rad))
   print('* Sigma at Qbb: {:.3f} keV.\n'.format(sigma_Qbb / units.keV))
   print('* Voxel_size: {} mm.\n'.format(voxel_size))
     
@@ -239,7 +237,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
   
           # Check fiduciality
           voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter = \
-            check_event_fiduciality(event_voxels, FID_minZ, FID_maxZ, FID_maxRAD, min_veto_e)
+            check_event_fiduciality(event_voxels, fid_dimensions, min_veto_e)
                   
           # Storing data of NON smE_filter vents
           extend_events_reco_data(events_dict, event_number, evt_num_MCparts=num_parts,

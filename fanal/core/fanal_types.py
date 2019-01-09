@@ -26,7 +26,7 @@ class SpatialDef(Enum):
 
 
 @dataclass
-class ActiveVolumeDim:
+class VolumeDim:
 	z_min : float
 	z_max : float
 	rad   : float

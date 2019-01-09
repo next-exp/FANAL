@@ -1,5 +1,5 @@
 """
-Tests for fit_functions
+Tests for core_functions
 """
 
 import numpy as np
