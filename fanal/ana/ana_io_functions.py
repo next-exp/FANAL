@@ -1,5 +1,6 @@
-"""Module ana_io_functions.
-This module includes the functions related with input/output of data.
+"""
+Module ana_io_functions.
+This module includes the functions related with input/output of data of the analysis step.
 
 Notes
 -----
@@ -10,31 +11,33 @@ Documentation
 -------------
     Insert documentation https
 """
+
 import os
 import tables as tb
-import numpy as np
+import numpy  as np
 import pandas as pd
+
 from fanal.core.fanal_types import SpatialDef
 
-def get_ana_group_name(fwhm: float, spatial_def: SpatialDef)->str:
 
+def get_ana_group_name(fwhm: float, spatial_def: SpatialDef) -> str:
   """
   Define the ana_group: 
 
-      Parameters
-      ----------
-      fwhm:
-          A float representing FWHM at Qbb (in %).
-      SpatialDef:
-          An enum describing the level of spatial definintion ('low' or 'high').
+    Parameters
+    ----------
+    fwhm:
+      A float representing FWHM at Qbb (in %).
+    spatial_def:
+      An SpatialDef: enum describing the level of spatial definition ('low' or 'high').
 
-
-      Returns
-      -------
-          A string (the group name)
-
+    Returns
+    -------
+      A string (the group name)
   """
+
   return f"/FANALIC/ANA_{str(fwhm).replace('.', '')}fmhm_{spatial_def.name}Def"
+
 
 
 ########## EVENTS IO FUNCTIONS ##########

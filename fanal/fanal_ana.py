@@ -45,6 +45,8 @@ from fanal.ana.ana_io_functions   import store_voxels_ana_data
 from fanal.ana.ana_io_functions   import store_events_ana_counters
 
 from fanal.core.fanal_types  import DetName
+from fanal.core.fanal_types  import SpatialDef
+
 from fanal.core.logger       import get_logger
 
 from fanal.ana.ana_functions import get_new_energies
@@ -57,7 +59,7 @@ from fanal.ana.ana_functions import process_tracks
 def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
               event_type,     # Event type: 'bb0nu', 'Tl208', 'Bi214'
               fwhm,           # FWHM at Qbb
-              spatial_def,    # Spatial definition: 'Std', 'High'
+              spatial_def,    # Spatial definition: 'low', 'high'
               voxel_Eth,      # Voxel energy threshold
               track_Eth,      # Track energy threshold
               max_num_tracks, # Maximum number of tracks
@@ -77,13 +79,16 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
   ### DETECTOR NAME
   det_name = getattr(DetName, det_name)
 
+  ### SPATIAL DEFINITION
+  spatial_def = getattr(SpatialDef, spatial_def)
+    
     
   ### PRINTING GENERAL INFO
   print('\n***********************************************************************************')
-  print('***** Detector: {}'.format(det_name))
+  print('***** Detector: {}'.format(det_name.name))
   print('***** Analizing {} events'.format(event_type))
   print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(fwhm / units.perCent))
-  print('***** Spatial definition: {}'.format(spatial_def))
+  print('***** Spatial definition: {}'.format(spatial_def.name))
   print('***********************************************************************************\n')
 
   print('* Voxel Eth: {:4.1f} keV   Track Eth: {:4.1f} keV   Max Num Tracks: {}\n' \

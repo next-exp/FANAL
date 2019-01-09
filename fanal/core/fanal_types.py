@@ -1,29 +1,32 @@
 import numpy as np
 
-from typing      import Tuple
-from typing      import Dict
-from typing      import List
-from typing      import TypeVar
-from typing      import Optional
+from typing import Tuple
+from typing import Dict
+from typing import List
+from typing import TypeVar
+from typing import Optional
 
 from enum        import Enum
-
 from dataclasses import dataclass
-from pandas import DataFrame, Series
+from pandas      import DataFrame, Series
+
 Number = TypeVar('Number', int, float)
-Array = TypeVar('Array', List, np.array)
+Array  = TypeVar('Array', List, np.array)
+
 
 class DetName(Enum):
-    new     = 1
-    next100 = 2
-    next500 = 3
+	new     = 1
+	next100 = 2
+	next500 = 3
+
 
 class SpatialDef(Enum):
-    low     = 1
-    high    = 2
+	low     = 1
+	high    = 2
+
 
 @dataclass
 class ActiveVolumeDim:
-    z_min : float
-    z_max : float
-    rad   : float
+	z_min : float
+	z_max : float
+	rad   : float

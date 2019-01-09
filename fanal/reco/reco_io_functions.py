@@ -1,21 +1,41 @@
+"""
+Module reco_io_functions.
+This module includes the functions related with input/output of data of the reconstruction step.
+
+Notes
+-----
+    FANAL code depends on the IC library.
+    Public functions are documented using numpy style convention
+
+Documentation
+-------------
+    Insert documentation https
+"""
+
 import os
-import numpy as np
+import numpy  as np
 import pandas as pd
 
+from fanal.core.fanal_types import SpatialDef
 
-def get_reco_group_name(fwhm, spatial_def):
+
+def get_reco_group_name(fwhm: float, spatial_def: SpatialDef) -> str:
+  """
+  Define the reco_group: 
+
+    Parameters
+    ----------
+    fwhm:
+      A float representing FWHM at Qbb (in %).
+    spatial_def:
+      An SpatialDef: enum describing the level of spatial definition ('low' or 'high').
+
+    Returns
+    -------
+      A string (the group name)
 	"""
-	It returns the name of the reco_group where reco-data is stored.
-	fwhm: FWHM at Qbb in %
-	spatial_def: Spatial definition. ('Std' or 'High')
-	"""
-	assert spatial_def in ['Std', 'High'], '{} is not a valid Spatial Resolution' \
-		.format(spatial_def)
 
-	reco_group_name = '/FANALIC/RECO_{0}fmhm_{1}Def' \
-		.format(str(fwhm).replace('.', ''), spatial_def)
-
-	return reco_group_name
+  return f"/FANALIC/RECO_{str(fwhm).replace('.', '')}fmhm_{spatial_def.name}Def"
 
 
 

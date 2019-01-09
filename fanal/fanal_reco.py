@@ -20,8 +20,8 @@ from   matplotlib.colors import LogNorm
 from   scipy.stats       import norm
 
 # Specific IC stuff
-from invisible_cities.cities.components		  import city
-from invisible_cities.core.configure		  import configure
+from invisible_cities.cities.components       import city
+from invisible_cities.core.configure          import configure
 from invisible_cities.core.system_of_units_c  import units
 from invisible_cities.io.mcinfo_io            import load_mcparticles
 from invisible_cities.io.mcinfo_io            import load_mchits
@@ -49,6 +49,7 @@ from fanal.reco.position     import check_event_fiduciality
 from fanal.core.detector     import get_active_size
 from fanal.core.fanal_types  import DetName
 from fanal.core.fanal_types  import ActiveVolumeDim
+from fanal.core.fanal_types  import SpatialDef
 
 from fanal.core.logger       import get_logger
 
@@ -64,7 +65,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                fwhm,        # FWHM at Qbb
                e_min,       # Minimum smeared energy for energy filtering
                e_max,       # Maximum smeared energy for energy filtering
-               spatial_def, # Spatial definition: 'Std', 'High'
+               spatial_def, # Spatial definition: 'low', 'high'
                veto_width,  # Veto width for fiducial filtering
                min_veto_e,  # Minimum energy in veto for fiducial filtering
                files_in,    # Input files
@@ -89,6 +90,9 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
   sigma_Qbb = fwhm_Qbb / 2.355
   assert e_max > e_min, 'SmE_filter settings not valid. e_max must be higher than e_min.'
 
+  # Spatial definition
+  spatial_def = getattr(SpatialDef, spatial_def)    
+
   # Voxel size
   voxel_size = get_voxel_size(spatial_def)
 
@@ -100,10 +104,10 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     
   ### PRINTING GENERAL INFO
   print('\n***********************************************************************************')
-  print('***** Detector: {}'.format(det_name))
+  print('***** Detector: {}'.format(det_name.name))
   print('***** Reconstructing {} events'.format(event_type))
   print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(fwhm / units.perCent))
-  print('***** Spatial definition: {}'.format(spatial_def))
+  print('***** Spatial definition: {}'.format(spatial_def.name))
   print('***********************************************************************************\n')
 
   print('* Detector-Active dimensions [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}' \

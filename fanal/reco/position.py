@@ -1,26 +1,27 @@
 import math
 import numpy as np
 
+from typing import Tuple
+
 # Specific IC stuff
 from invisible_cities.core.system_of_units_c  import units
 
+# Specific fanal stuff
+from fanal.core.fanal_types import SpatialDef
 
 
-def get_voxel_size(spatial_def):
+
+def get_voxel_size(spatial_def: SpatialDef) -> Tuple[float, float, float]:
 	"""
 	It returns the size of voxels to use.
-	spatial_def: Spatial definition. ('Std' or 'High')
+	spatial_def: SpatialDef: enum ('low' or 'high')
 	"""
 
-	assert spatial_def in ['Std', 'High'], '{} is not a valid Spatial Resolution' \
-		.format(spatial_def)
+	if spatial_def == SpatialDef.low:
+		return (10., 10., 5.)
 
-	if spatial_def == 'Std':
-		voxel_size = (10, 10, 5)
-	elif spatial_def == 'High':
-		voxel_size = (2, 2, 2)
-
-	return voxel_size
+	elif spatial_def == SpatialDef.high:
+		return (2., 2., 2.)
 
 
 
@@ -72,13 +73,4 @@ def check_event_fiduciality(event_voxels, fid_minZ, fid_maxZ, fid_maxRad, min_Ve
 		fiducial_filter = True
         
 	return voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter
-
-
-
-#########################################################################################
-if __name__ == "__main__":
-
-	DEF  = 'Std'
-
-	print('\nVoxel Size:', get_voxel_size(DEF))
 
