@@ -10,57 +10,70 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from typing import Sequence, Union, Dict, Any
+
 from invisible_cities.core.system_of_units_c import units
-from invisible_cities.io.mcinfo_io import load_mchits
-from invisible_cities.io.mcinfo_io import load_mcparticles
-from invisible_cities.io.mcinfo_io import load_mcsensor_response
+from invisible_cities.io.mcinfo_io           import load_mchits
+from invisible_cities.io.mcinfo_io           import load_mcparticles
+from invisible_cities.io.mcinfo_io           import load_mcsensor_response
+from invisible_cities.evm.event_model        import MCHit
 
 
-def particle_mc_info(particle_dict, evt_ini_time=0., with_hits=False):
-    part_tab = ' ' * 2
-    for indx, part in particle_dict.items():
-        # General Info
-        #print(part_tab + 'Particle {0}: name = {1},   primary = {2},   mass (MeV) = ,   charge = '
-        print(part_tab + 'Particle {0}: name = {1},   primary = {2}'
-              .format(indx, part.name, part.primary))
 
-        # Creator Info
-        if not part.primary:
-            mother = particle_dict[part.mother_indx]
-            print(part_tab + 'Prod.: Process = {0},   Mother index = {1} ({2})'
-                  .format(part.process, part.mother_indx, mother.name))
+def particle_mc_info(particle_dict: Dict[int, Sequence[MCHit]],
+	                   evt_ini_time:  float = 0.,
+	                   with_hits:     bool  = False
+	                  ) -> None:
+	part_tab = ' ' * 2
+	for indx, part in particle_dict.items():
+		# General Info
+		print(part_tab + 'Particle {0}: name = {1},   primary = {2}'
+			.format(indx, part.name, part.primary))
+
+		# Creator Info
+		if not part.primary:
+			mother = particle_dict[part.mother_indx]
+			print(part_tab + 'Prod.: Process = {0},   Mother index = {1} ({2})'
+				.format(part.process, part.mother_indx, mother.name))
             
-        # Production Info
-        print(part_tab + 'Prod.: Mom = ({0:.1f}, {1:.1f}, {2:.1f}) keV,   KinE: {3:.1f} keV'
-              .format(part.p[0]/units.keV, part.p[1]/units.keV, part.p[2]/units.keV, part.E/units.keV))
-        print(part_tab + 'Prod.: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
-              .format(part.initial_volume, part.initial_vertex[0], part.initial_vertex[1], part.initial_vertex[2]))
+		# Production Info
+		print(part_tab + 'Prod.: Mom = ({0:.1f}, {1:.1f}, {2:.1f}) keV,   KinE: {3:.1f} keV'
+			.format(part.p[0]/units.keV, part.p[1]/units.keV, part.p[2]/units.keV, part.E/units.keV))
+		print(part_tab + 'Prod.: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
+			.format(part.initial_volume, part.initial_vertex[0],
+				      part.initial_vertex[1], part.initial_vertex[2]))
         
-        # Decay Info
-        print(part_tab + 'Decay: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
-              .format(part.final_volume, part.final_vertex[0], part.final_vertex[1], part.final_vertex[2]))
+		# Decay Info
+		print(part_tab + 'Decay: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
+			.format(part.final_volume, part.final_vertex[0], part.final_vertex[1], part.final_vertex[2]))
 
-        # Daughter Particles Info
-        print(part_tab + 'Daughter particles:')
-        for daugh_indx, daugh_part in particle_dict.items():
-            if daugh_part.mother_indx == indx:
-                print(part_tab*2, 'Idx: {0}   Name: {1:10},   Volume: {2}'
-                      .format(daugh_indx, daugh_part.name, daugh_part.initial_volume))
+		# Daughter Particles Info
+		print(part_tab + 'Daughter particles:')
+		for daugh_indx, daugh_part in particle_dict.items():
+			if daugh_part.mother_indx == indx:
+				print(part_tab*2, 'Idx: {0}   Name: {1:10},   Volume: {2}'
+					.format(daugh_indx, daugh_part.name, daugh_part.initial_volume))
 
-        # Hits Info
-        if with_hits:
-            print(part_tab +'{0} MC Hits:'.format(len(part.hits)))
-            for hit in part.hits:
-                print(part_tab*2, 'Detector: {0},   E: {1:5.1f} KeV   Pos: ({2:.0f}, {3:.0f}, {4:.0f}) mm,   Time: {5:.1e} us,   Evt. Time: {6:.1e} us'
-                      .format(hit.label, hit.E/units.keV, hit.X, hit.Y, hit.Z, hit.T/units.mus, (hit.T - evt_ini_time)/units.mus))
+		# Hits Info
+		if with_hits:
+			print(part_tab +'{0} MC Hits:'.format(len(part.hits)))
+			for hit in part.hits:
+				print(part_tab*2, 'Detector: {0},   E: {1:5.1f} KeV   Pos: ({2:5.0f}, {3:5.0f}, {4:5.0f}) mm,   Time: {5:.1e} us,   Evt. Time: {6:.1e} us'
+					.format(hit.label, hit.E/units.keV, hit.X, hit.Y, hit.Z, hit.T/units.mus,
+						      (hit.T - evt_ini_time)/units.mus))
         
-        print()
+		print()
 
 
 
-def print_mc_event(event_id, iFileNames, with_hits=False):
-	''' Prints the information of the event corresponding to event_id.
-	It will look for it into all the list of iFileNames passed.'''
+def print_mc_event(event_id:   int,
+	                 iFileNames: Union[str, Sequence[str]],
+	                 with_hits:  bool = False
+	                ) -> None:
+	'''
+	Prints the information of the event corresponding to event_id.
+	It will look for it into all the list of iFileNames passed.
+	'''
 
 	# In case of just the name of one input file ...
 	if type(iFileNames) == str:
@@ -100,9 +113,9 @@ def print_mc_event(event_id, iFileNames, with_hits=False):
 
 				return
 
-
 	# Event Id not found in any input file
 	print('\nEvt Id: {}  NOT FOUND in any input file.\n'.format(event_id))
+
 
 
 def plot_mc_event(event_id, iFileNames):
@@ -145,20 +158,3 @@ def plot_mc_event(event_id, iFileNames):
 
 	# Event Id not found in any input file
 	print('\nEvt Id: {}  NOT FOUND in any input file.\n'.format(event_id))
-
-
-
-#########################################################################################
-if __name__ == "__main__":
-
-	EVT_SEARCHED = 75000247
-	IFILE_NAMES  = ['/Users/Javi/Development/fanalIC/data/sim/Bi214/Bi214-000-.next.h5',
-					'/Users/Javi/Development/fanalIC/data/sim/Bi214/Bi214-030-.next.h5']
-
-	#IFILE_NAMES = '/Users/Javi/Development/fanalIC/data/sim/Bi214/Bi214-030-.next.h5'
-
-	print_mc_event (EVT_SEARCHED, IFILE_NAMES, with_hits=True)
-	#print_event (EVT_SEARCHED, IFILE_NAMES)
-
-	plot_mc_event (EVT_SEARCHED, IFILE_NAMES)
-

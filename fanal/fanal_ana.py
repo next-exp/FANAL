@@ -292,7 +292,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
 
   # Storing event counters as attributes
   tracks_filter_events, blobs_filter_events, roi_filter_events = \
-    store_events_ana_counters(file_out, ana_group_name, events_df)    
+    store_events_ana_counters(oFile, ana_group_name, events_df)    
   
   
   ### Ending ...

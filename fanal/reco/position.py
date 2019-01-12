@@ -1,19 +1,20 @@
 import math
 import numpy as np
 
-from typing import Tuple
+from typing import Tuple, List
 
 # Specific IC stuff
 from invisible_cities.core.system_of_units_c  import units
+from invisible_cities.evm.event_model         import MCHit, Voxel
 
 # Specific fanal stuff
-from fanal.core.fanal_types import SpatialDef
+from fanal.core.fanal_types import SpatialDef, VolumeDim
 
 
 
-def get_voxel_size(spatial_def: SpatialDef) -> Tuple[float, float, float]:
+def get_voxel_size(spatial_def : SpatialDef) -> Tuple[float, float, float]:
 	"""
-	It returns the size of voxels to use.
+	It returns a tuple with the size of voxels to use.
 	spatial_def: SpatialDef: enum ('low' or 'high')
 	"""
 
@@ -25,7 +26,9 @@ def get_voxel_size(spatial_def: SpatialDef) -> Tuple[float, float, float]:
 
 
 
-def translate_hit_positions(mcHits, drift_velocity):
+def translate_hit_positions(mcHits         : List[MCHit],
+	                          drift_velocity : float
+	                         ) -> List[Tuple[float, float, float]]:
 	"""
 	In MC simulations all the hits of a MC event are assigned to the same event.
 	In some special cases these events may contain hits in a period of time
@@ -48,7 +51,10 @@ def translate_hit_positions(mcHits, drift_velocity):
 
 
 
-def check_event_fiduciality(event_voxels, fid_dimensions, min_VetoE):
+def check_event_fiduciality(event_voxels   : List[Voxel],
+	                          fid_dimensions : VolumeDim,
+	                          min_VetoE      : float
+	                         ) -> Tuple[float, float, float, float, bool]:
 	"""
 	"""
 

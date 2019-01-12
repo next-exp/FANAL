@@ -15,24 +15,32 @@ Documentation
 import os
 import numpy  as np
 import pandas as pd
+import tables as tb
+
+from typing import Dict, List, Any, Tuple
+
+from invisible_cities.evm.event_model         import Voxel
 
 from fanal.core.fanal_types import SpatialDef
 
 
-def get_reco_group_name(fwhm: float, spatial_def: SpatialDef) -> str:
+
+def get_reco_group_name(fwhm        : float,
+	                      spatial_def : SpatialDef
+	                     ) -> str:
   """
-  Define the reco_group: 
+  Define the reco_group:
 
-    Parameters
-    ----------
-    fwhm:
-      A float representing FWHM at Qbb (in %).
-    spatial_def:
-      An SpatialDef: enum describing the level of spatial definition ('low' or 'high').
+  Parameters
+  ----------
+  fwhm:
+    A float representing FWHM at Qbb (in %).
+  spatial_def:
+    An SpatialDef: enum describing the level of spatial definition ('low' or 'high').
 
-    Returns
-    -------
-      A string (the group name)
+  Returns
+  -------
+    A string (the group name)
 	"""
 
   return f"/FANALIC/RECO_{str(fwhm).replace('.', '')}fmhm_{spatial_def.name}Def"
@@ -41,11 +49,10 @@ def get_reco_group_name(fwhm: float, spatial_def: SpatialDef) -> str:
 
 ########## EVENTS IO FUNCTIONS ##########
 
-def get_events_reco_dict():
+def get_events_reco_dict() -> Dict[str, List[Any]]:
 	"""
 	It returns a dictionary with a key for each field to be stored per event
 	during the fanalIC reconstruction step.
-	The values are empty lists.
 	"""
 	events_dict = {
 	    'id':            [],
@@ -70,25 +77,27 @@ def get_events_reco_dict():
 
 
 def extend_events_reco_data(
-	events_dict,
-	event_id,
-	evt_num_MCparts = np.nan,
-	evt_num_MChits  = np.nan,
-	evt_mcE = np.nan,
-	evt_smE = np.nan,
-	evt_smE_filter = False,
-	evt_num_voxels  = np.nan,
-	evt_voxel_sizeX = np.nan,
-	evt_voxel_sizeY = np.nan,
-	evt_voxel_sizeZ = np.nan,
-	evt_voxels_minZ = np.nan,
-	evt_voxels_maxZ = np.nan,
-	evt_voxels_maxRad = np.nan,
-	evt_veto_energy = np.nan,
-	evt_fid_filter = False
-	):
+	events_dict       : Dict[str, List[Any]],
+	event_id          : int,
+	evt_num_MCparts   : int   = np.nan,
+	evt_num_MChits    : int   = np.nan,
+	evt_mcE           : float = np.nan,
+	evt_smE           : float = np.nan,
+	evt_smE_filter    : bool  = False,
+	evt_num_voxels    : int   = np.nan,
+	evt_voxel_sizeX   : float = np.nan,
+	evt_voxel_sizeY   : float = np.nan,
+	evt_voxel_sizeZ   : float = np.nan,
+	evt_voxels_minZ   : float = np.nan,
+	evt_voxels_maxZ   : float = np.nan,
+	evt_voxels_maxRad : float = np.nan,
+	evt_veto_energy   : float = np.nan,
+	evt_fid_filter    : bool  = False
+	) -> None:
 	"""
 	It stores all the data related to an event into the events_dict.
+	The values not passed in the function called are set to default values
+	to fill all the dictionary fields per event.
 	"""
 	events_dict['id'].extend([event_id])
 	events_dict['num_MCparts'].extend([evt_num_MCparts])
@@ -107,7 +116,10 @@ def extend_events_reco_data(
 	events_dict['fid_filter'].extend([evt_fid_filter])
 
 # Alternative implementation (more elegant but may be slightly slower)
-#def extend_events_reco_data(events_dict, event_id, **kwargs):
+# def extend_events_reco_data(events_dict : Dict[str, List[Any]],
+# 	                          event_id    : int,
+# 	                          **kwargs    : Tuple[...]
+# 	                          ) -> None:
 #	events_dict['id']           .extend([event_id])
 #	events_dict['num_MCparts']  .extend([kwargs.get('evt_num_MCparts',   np.nan)])
 #	events_dict['num_MChits']   .extend([kwargs.get('evt_num_MChits',    np.nan)])
@@ -126,7 +138,10 @@ def extend_events_reco_data(
 
 
 
-def store_events_reco_data(file_name, group_name, events_dict):
+def store_events_reco_data(file_name   : str,
+	                         group_name  : str,
+	                         events_dict : Dict[str, List[Any]]
+	                        ) -> None:
 	"""
 	Translates the events dictionary to a dataFrame that is stored in
 	file_name / group_name / events.
@@ -143,25 +158,29 @@ def store_events_reco_data(file_name, group_name, events_dict):
 
 
 
-def store_events_reco_counters(file, group_name, simulated_events, stored_events, 
-							   smE_filter_events, fid_filter_events):
+def store_events_reco_counters(oFile             : tb.file.File,
+	                             group_name        : str,
+	                             simulated_events  : int,
+	                             stored_events     : int,
+	                             smE_filter_events : int,
+	                             fid_filter_events : int
+	                            ) -> None:
 	"""
-	Stores the event counters as attributes of file / group_name
+	Stores the event counters as attributes of oFile / group_name
 	"""
-	file.set_node_attr(group_name, 'simulated_events',  simulated_events)
-	file.set_node_attr(group_name, 'stored_events',     stored_events)
-	file.set_node_attr(group_name, 'smE_filter_events', smE_filter_events)
-	file.set_node_attr(group_name, 'fid_filter_events', fid_filter_events)
+	oFile.set_node_attr(group_name, 'simulated_events',  simulated_events)
+	oFile.set_node_attr(group_name, 'stored_events',     stored_events)
+	oFile.set_node_attr(group_name, 'smE_filter_events', smE_filter_events)
+	oFile.set_node_attr(group_name, 'fid_filter_events', fid_filter_events)
 
 
 
 ########## VOXELS IO FUNCTIONS ##########
 
-def get_voxels_reco_dict():
+def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 	"""
 	It returns a dictionary with a key for each field to be stored per voxel
 	during the fanalIC reconstruction step.
-	The values are empty lists.
 	"""
 	voxels_dict = {
     	'event_id': [],
@@ -175,7 +194,10 @@ def get_voxels_reco_dict():
 
 
 
-def extend_voxels_reco_data(voxels_dict, event_id, voxel):
+def extend_voxels_reco_data(voxels_dict : Dict[str, List[Any]],
+	                          event_id    : int,
+	                          voxel       : Voxel
+	                         ) -> None:
 	"""
 	It stores all the data related to a voxel into the voxels_dict.
 	"""
@@ -187,7 +209,10 @@ def extend_voxels_reco_data(voxels_dict, event_id, voxel):
 
 
 
-def store_voxels_reco_data(file_name, group_name, voxels_dict):
+def store_voxels_reco_data(file_name   : str,
+	                         group_name  : str,
+	                         voxels_dict : Dict[str, List[Any]]
+	                        ) -> None:
 	"""
 	Translates the voxels dictionary to a dataFrame that is stored in
 	file_name / group_name / voxels.

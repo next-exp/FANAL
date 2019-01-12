@@ -1,8 +1,11 @@
 import logging
 import sys
 
+from typing import Any
 
-def get_logger(name, level = logging.WARNING, filename = False):
+def get_logger(name     : str,
+	           level    : int = logging.WARNING,
+	           filename : str = False):
 
 	# Create the logger
 	logger = logging.getLogger(name)

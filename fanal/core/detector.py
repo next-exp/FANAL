@@ -33,7 +33,9 @@ def get_active_size(detname : DetName) -> VolumeDim:
 
 
 
-def get_fiducial_size(active_size: VolumeDim, veto_width: float) -> VolumeDim:
+def get_fiducial_size(active_size: VolumeDim,
+	                    veto_width: float
+	                   ) -> VolumeDim:
 	"""
 	Computes the dimensions of the fiducial volume.
 

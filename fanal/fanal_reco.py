@@ -212,8 +212,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         # Only for those events passing the smE filter:
         else:
           # Smearing hit energies
-          mcE_to_smE_factor = event_smE / event_mcE
-          hits_smE = smear_hit_energies(active_mcHits, mcE_to_smE_factor)
+          hits_smE = smear_hit_energies(active_mcHits, event_smE / event_mcE)
   
           # Translating hit positions
           hits_transPositions = translate_hit_positions(active_mcHits, DRIFT_VELOCITY)
