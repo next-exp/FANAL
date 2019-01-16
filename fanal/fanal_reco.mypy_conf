@@ -5,14 +5,14 @@ det_name = 'next100'
 event_type = 'Bi214'
 
 ### Energy smearing & filtering
-fwhm  = 0.7  * perCent
-e_min = 2.4 * MeV
-e_max = 2.5 * MeV
+fwhm  = 0.7
+e_min = 2.4
+e_max = 2.5
 
 ### Spatial smearing ('low', 'high') & filtering
 spatial_def = 'low'
-veto_width  = 20. * mm
-min_veto_e  = 10. * keV
+veto_width  = 20.
+min_veto_e  = 10.
 
 ### General
 files_in = '/your/path/to/files_in/files_in.h5'

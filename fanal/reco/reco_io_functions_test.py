@@ -1,5 +1,5 @@
 """
-Tests for ana_io_functions
+Tests for reco_io_functions
 """
 
 import numpy as np
@@ -21,18 +21,19 @@ from invisible_cities.core.testing_utils import float_arrays
 from invisible_cities.core.testing_utils import FLOAT_ARRAY
 from invisible_cities.core.testing_utils import random_length_float_arrays
 
-from fanal.ana.ana_io_functions import get_ana_group_name
-from fanal.core.fanal_types     import SpatialDef
+from fanal.reco.reco_io_functions import get_reco_group_name
+from fanal.core.fanal_types       import SpatialDef
 
 
 def test_raise_value_error_if_unknown_SpatialDef():
 	with pytest.raises(AttributeError):
-		x = get_ana_group_name(0.5, SpatialDef.does_not_exist)
+		x = get_reco_group_name(0.5, SpatialDef.does_not_exist)
 
 
-def test_ana_group_name():
+def test_reco_group_name():
 	fwhm = 0.5
 	spd  = SpatialDef.low
-	ana_group_name = f'/FANALIC/ANA_05fmhm_lowDef'
-	assert ana_group_name == get_ana_group_name(fwhm, spd)
+	reco_group_name = f'/FANALIC/RECO_05fmhm_lowDef'
+	assert reco_group_name == get_reco_group_name(fwhm, spd)
+
 

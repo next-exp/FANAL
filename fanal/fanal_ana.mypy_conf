@@ -7,19 +7,19 @@ event_type = 'Bi214'
 ### FROM RECONSTRUCTION ...
 # Energy smearing & filtering
 # Spatial smearing ('low', 'high') & filtering
-fwhm  = 0.7  * perCent
+fwhm  = 0.7
 spatial_def = 'low'
 
 ### TOPOLOGY ANALYSYS
-voxel_Eth = 2.  * keV
-track_Eth = 10. * keV
+voxel_Eth = 2.
+track_Eth = 10.
 max_num_tracks = 1
-blob_radius =  18. * mm
-blob_Eth    = 350. * keV
+blob_radius =  18.
+blob_Eth    = 350.
 
 ### ROI ANALYSIS
-roi_Emin = 2453 * keV
-roi_Emax = 2475 * keV
+roi_Emin = 2453
+roi_Emax = 2475
 
 ### General
 files_in = '/your/path/to/files_in/files_in.h5'
