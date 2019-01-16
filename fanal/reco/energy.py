@@ -21,7 +21,7 @@ def smear_evt_energy(mcE       : float,
 
 def smear_hit_energies(mcHits      : List[MCHit],
 	                     conv_factor : float
-	                    ) -> np.array(float):
+	                    ) -> np.array:
 	"""
 	It smears the montecarlo hit energies according to the conv_factor
 	It returns a list of the hit smeared energies.

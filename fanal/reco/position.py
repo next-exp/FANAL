@@ -18,11 +18,13 @@ def get_voxel_size(spatial_def : SpatialDef) -> Tuple[float, float, float]:
 	spatial_def: SpatialDef: enum ('low' or 'high')
 	"""
 	if spatial_def == SpatialDef.low:
-		return (10., 10., 5.)
+		size = (10., 10., 5.)
 
 	elif spatial_def == SpatialDef.high:
-		return (2., 2., 2.)
+		size = (2., 2., 2.)
 
+	return size
+	
 
 
 def translate_hit_positions(mcHits         : List[MCHit],

@@ -52,7 +52,7 @@ def get_events_ana_dict() -> Dict[str, List[Any]]:
   It returns a dictionary with a key for each field to be stored per event
   during the fanalIC analysis step.
   """
-  events_dict = {
+  events_dict : Dict[str, List[Any]] = {
 		'id':            [],
     'num_tracks':    [],
     'track0_E':      [],
@@ -164,7 +164,7 @@ def get_voxels_ana_dict() -> Dict[str, List[Any]]:
 	It returns a dictionary with a key for each field to be stored per voxel
 	during the fanalIC analysis step.
 	"""
-	voxels_dict = {
+	voxels_dict : Dict[str, List[Any]] = {
 		'indexes': [],
 		'newE':    [],
 		'trackID': []

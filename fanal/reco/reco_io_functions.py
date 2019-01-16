@@ -54,7 +54,7 @@ def get_events_reco_dict() -> Dict[str, List[Any]]:
 	It returns a dictionary with a key for each field to be stored per event
 	during the fanalIC reconstruction step.
 	"""
-	events_dict = {
+	events_dict : Dict[str, List[Any]] = {
 	    'id':            [],
 	    'num_MCparts':   [],
 	    'num_MChits':    [],
@@ -182,7 +182,7 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 	It returns a dictionary with a key for each field to be stored per voxel
 	during the fanalIC reconstruction step.
 	"""
-	voxels_dict = {
+	voxels_dict : Dict[str, List[Any]] = {
     	'event_id': [],
     	'X':        [],
     	'Y':        [],
