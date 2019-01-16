@@ -7,6 +7,10 @@ def get_logger(name     : str,
 	           level    : int = logging.WARNING,
 	           filename : str = False):
 
+	# Switching off the default logger
+	root_logger = logging.getLogger()
+	root_logger.handlers = []
+
 	# Create the logger
 	logger = logging.getLogger(name)
 
