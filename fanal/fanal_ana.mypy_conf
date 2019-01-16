@@ -1,0 +1,31 @@
+### GENERAL DATA TO ANALYZE
+# Detector name: 'new', 'next100', 'next500'
+# Event type: 'bb0nu', 'Tl208', 'Bi214', 'K40', 'Co60'
+det_name = 'next100'
+event_type = 'Bi214'
+
+### FROM RECONSTRUCTION ...
+# Energy smearing & filtering
+# Spatial smearing ('low', 'high') & filtering
+fwhm  = 0.7
+spatial_def = 'low'
+
+### TOPOLOGY ANALYSYS
+voxel_Eth = 2.
+track_Eth = 10.
+max_num_tracks = 1
+blob_radius =  18.
+blob_Eth    = 350.
+
+### ROI ANALYSIS
+roi_Emin = 2453
+roi_Emax = 2475
+
+### General
+files_in = '/your/path/to/files_in/files_in.h5'
+event_range = all
+
+file_out = '/your/path/to/file_out/file_out.h5'
+compression = 'ZLIB4'
+
+verbosity_level = 'WARNING'
