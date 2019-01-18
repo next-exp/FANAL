@@ -46,12 +46,12 @@ from fanal.reco.position    import get_voxel_size
 from fanal.reco.position    import translate_hit_positions
 from fanal.reco.position    import check_event_fiduciality
 
-from fanal.core.detector    import get_active_size
-from fanal.core.detector    import get_fiducial_size
-from fanal.core.fanal_types import DetName
-from fanal.core.fanal_types import SpatialDef
+from fanal.core.logger          import get_logger
+from fanal.core.detector        import get_active_size
+from fanal.core.detector        import get_fiducial_size
+from fanal.core.fanal_types     import DetName
+from fanal.core.fanal_types     import SpatialDef
 
-from fanal.core.logger      import get_logger
 
 
 ### GENERAL DATA NEEDED
