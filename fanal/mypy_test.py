@@ -1,5 +1,5 @@
 """
-Test for fanal_ana
+General test suite to type_check with mypy all the sw
 """
 
 import os
@@ -19,9 +19,30 @@ from hypothesis.strategies import floats
 from mypy import api
 
 
+
+os.chdir(os.path.expandvars('$FANALPATH/fanal'))
+
+
+def test_core_tye_checker():
+	mypy_result = ('', '', 0)
+	assert  mypy_result == api.run(['core'])
+
+
+def test_reco_tye_checker():
+	mypy_result = ('', '', 0)
+	assert  mypy_result == api.run(['reco'])
+
+
+def test_ana_tye_checker():
+	mypy_result = ('', '', 0)
+	assert  mypy_result == api.run(['ana'])
+
+
+def test_fanal_reco_tye_checker():
+	mypy_result = ('', '', 0)
+	assert  mypy_result == api.run(['fanal_reco.py'])
+
+
 def test_fanal_ana_tye_checker():
-	fanal_ana_path = os.path.expandvars('$FANALPATH/fanal')
-	os.chdir(fanal_ana_path)
-	
 	mypy_result = ('', '', 0)
 	assert  mypy_result == api.run(['fanal_ana.py'])
