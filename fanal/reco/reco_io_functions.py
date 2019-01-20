@@ -26,8 +26,8 @@ from fanal.core.fanal_types import SpatialDef
 
 
 def get_reco_group_name(fwhm        : float,
-	                      spatial_def : SpatialDef
-	                     ) -> str:
+                        spatial_def : SpatialDef
+                       ) -> str:
   """
   Define the reco_group:
 
@@ -119,7 +119,7 @@ def extend_events_reco_data(
 # def extend_events_reco_data(events_dict : Dict[str, List[Any]],
 # 	                          event_id    : int,
 # 	                          **kwargs    : Tuple[...]
-# 	                          ) -> None:
+# 	                         ) -> None:
 #	events_dict['id']           .extend([event_id])
 #	events_dict['num_MCparts']  .extend([kwargs.get('evt_num_MCparts',   np.nan)])
 #	events_dict['num_MChits']   .extend([kwargs.get('evt_num_MChits',    np.nan)])
@@ -139,9 +139,9 @@ def extend_events_reco_data(
 
 
 def store_events_reco_data(file_name   : str,
-	                         group_name  : str,
-	                         events_dict : Dict[str, List[Any]]
-	                        ) -> None:
+                           group_name  : str,
+                           events_dict : Dict[str, List[Any]]
+                          ) -> None:
 	"""
 	Translates the events dictionary to a dataFrame that is stored in
 	file_name / group_name / events.
@@ -151,20 +151,21 @@ def store_events_reco_data(file_name   : str,
 
 	# Formatting DF
 	events_df.sort_index()
-	
+
 	# Storing DF
-	#events_df.to_hdf(file_name, group_name + '/events', format='table')
-	events_df.to_hdf(file_name, group_name + '/events', format='table', data_columns=True)
+	#events_df.to_hdf(file_name, group_name + '/events', format = 'table')
+	events_df.to_hdf(file_name, group_name + '/events', format = 'table',
+                     data_columns = True)
 
 
 
 def store_events_reco_counters(oFile             : tb.file.File,
-	                             group_name        : str,
-	                             simulated_events  : int,
-	                             stored_events     : int,
-	                             smE_filter_events : int,
-	                             fid_filter_events : int
-	                            ) -> None:
+                               group_name        : str,
+                               simulated_events  : int,
+                               stored_events     : int,
+                               smE_filter_events : int,
+                               fid_filter_events : int
+                              ) -> None:
 	"""
 	Stores the event counters as attributes of oFile / group_name
 	"""
@@ -195,9 +196,9 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 
 
 def extend_voxels_reco_data(voxels_dict : Dict[str, List[Any]],
-	                          event_id    : int,
-	                          voxel       : Voxel
-	                         ) -> None:
+                            event_id    : int,
+                            voxel       : Voxel
+                           ) -> None:
 	"""
 	It stores all the data related to a voxel into the voxels_dict.
 	"""
@@ -210,9 +211,9 @@ def extend_voxels_reco_data(voxels_dict : Dict[str, List[Any]],
 
 
 def store_voxels_reco_data(file_name   : str,
-	                         group_name  : str,
-	                         voxels_dict : Dict[str, List[Any]]
-	                        ) -> None:
+                           group_name  : str,
+                           voxels_dict : Dict[str, List[Any]]
+                          ) -> None:
 	"""
 	Translates the voxels dictionary to a dataFrame that is stored in
 	file_name / group_name / voxels.
@@ -222,4 +223,5 @@ def store_voxels_reco_data(file_name   : str,
 
 	# Storing DF
 	#voxels_df.to_hdf(file_name, group_name + '/voxels', format='table', data_columns='event_id')
-	voxels_df.to_hdf(file_name, group_name + '/voxels', format='table', data_columns=True)
+	voxels_df.to_hdf(file_name, group_name + '/voxels', format = 'table',
+                     data_columns = True)
