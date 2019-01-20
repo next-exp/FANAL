@@ -24,12 +24,12 @@ def get_voxel_size(spatial_def : SpatialDef) -> Tuple[float, float, float]:
 		size = (2., 2., 2.)
 
 	return size
-	
+
 
 
 def translate_hit_positions(mcHits         : List[MCHit],
-	                          drift_velocity : float
-	                         ) -> List[Tuple[float, float, float]]:
+                            drift_velocity : float
+						   ) -> List[Tuple[float, float, float]]:
 	"""
 	In MC simulations all the hits of a MC event are assigned to the same event.
 	In some special cases these events may contain hits in a period of time
@@ -42,8 +42,9 @@ def translate_hit_positions(mcHits         : List[MCHit],
 
 	# Only applying to events wider than 1 micro second
 	if ((max_time-min_time) > 1.*units.mus):
-		transPositions = [(hit.X, hit.Y, hit.Z + (hit.time-min_time) * drift_velocity) \
-			for hit in mcHits]
+		transPositions = [(hit.X, hit.Y, hit.Z + \
+		                  (hit.time-min_time) * drift_velocity) \
+			              for hit in mcHits]
 	else:
 		transPositions = [(hit.X, hit.Y, hit.Z) for hit in mcHits]
 
@@ -52,9 +53,9 @@ def translate_hit_positions(mcHits         : List[MCHit],
 
 
 def check_event_fiduciality(event_voxels   : List[Voxel],
-	                          fid_dimensions : VolumeDim,
-	                          min_VetoE      : float
-	                         ) -> Tuple[float, float, float, float, bool]:
+                            fid_dimensions : VolumeDim,
+							min_VetoE      : float
+						   ) -> Tuple[float, float, float, float, bool]:
 	"""
 	Checks if an event is fiducial or notself.
 	Parameters:
@@ -75,17 +76,18 @@ def check_event_fiduciality(event_voxels   : List[Voxel],
 	voxels_Z = [voxel.Z for voxel in event_voxels]
 	voxels_Rad = [(math.sqrt(voxel.X**2 + voxel.Y**2)) for voxel in event_voxels]
 
-	voxels_minZ = min(voxels_Z)
-	voxels_maxZ = max(voxels_Z)
+	voxels_minZ   = min(voxels_Z)
+	voxels_maxZ   = max(voxels_Z)
 	voxels_maxRad = max(voxels_Rad)
 
 	fiducial_filter = ((voxels_minZ   > fid_dimensions.z_min) &
-		                 (voxels_maxZ   < fid_dimensions.z_max) &
-		                 (voxels_maxRad < fid_dimensions.rad))
+	                   (voxels_maxZ   < fid_dimensions.z_max) &
+					   (voxels_maxRad < fid_dimensions.rad))
 
 	veto_energy = 0.
 
-	# If there is any voxel in veto, checking if their energies are higher than threshold
+	# If there is any voxel in veto
+	# checking if their energies are higher than threshold
 	if not fiducial_filter:
 		veto_energy = sum(voxel.E for voxel in event_voxels \
 		                  if ((voxel.Z < fid_dimensions.z_min) |

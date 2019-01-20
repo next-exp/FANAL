@@ -66,12 +66,18 @@ voxels_dict['Y']        = [30., 30., 60., 60., 60., 60., 20.]
 voxels_dict['Z']        = [30., 40., 30., 60., 70., 80., 80.]
 voxels_dict['E']        = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.001]
 voxels_df2 = pd.DataFrame(voxels_dict)
+
 voxel_Eth = 0.005
 voxels_df2['negli'] = voxels_df2.E < voxel_Eth
+
 voxel_dimensions = (10., 10., 10.)
-ic_voxels = [Voxel(voxels_df2.iloc[i].X, voxels_df2.iloc[i].Y, voxels_df2.iloc[i].Z,
-                   voxels_df2.iloc[i].E, voxel_dimensions) for i in range(len(voxels_df2))]
+ic_voxels = [Voxel(voxels_df2.iloc[i].X, voxels_df2.iloc[i].Y,
+                   voxels_df2.iloc[i].Z,
+                   voxels_df2.iloc[i].E, voxel_dimensions) \
+             for i in range(len(voxels_df2))]
+
 event_tracks = make_track_graphs(ic_voxels)
+
 
 
 def test_get_voxel_track_relations():

@@ -7,9 +7,9 @@ from invisible_cities.evm.event_model  import MCHit
 
 
 def smear_evt_energy(mcE       : float,
-	                   sigma_Qbb : float,
-	                   Qbb       : float
-	                  ) -> float:
+                     sigma_Qbb : float,
+					 Qbb       : float
+					) -> float:
 	"""
 	It smears and returns the montecarlo energy of the event (mcE) according to:
 	the sigma at Qbb (sigma_Qbb) in absolute values (keV).
@@ -20,8 +20,8 @@ def smear_evt_energy(mcE       : float,
 
 
 def smear_hit_energies(mcHits      : List[MCHit],
-	                     conv_factor : float
-	                    ) -> np.array:
+                       conv_factor : float
+					  ) -> np.array:
 	"""
 	It smears the montecarlo hit energies according to the conv_factor
 	It returns a list of the hit smeared energies.

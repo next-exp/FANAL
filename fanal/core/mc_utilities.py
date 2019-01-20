@@ -35,7 +35,7 @@ def particle_mc_info(particle_dict : Mapping[int, MCParticle],
 			mother = particle_dict[part.mother_indx]
 			print(part_tab + 'Prod.: Process = {0},   Mother index = {1} ({2})'
 				             .format(part.process, part.mother_indx, mother.name))
-            
+
 		# Production Info
 		print(part_tab + 'Prod.: Mom = ({0:.1f}, {1:.1f}, {2:.1f}) keV,   KinE: {3:.1f} keV'
 			             .format(part.p[0]/units.keV, part.p[1]/units.keV,
@@ -43,7 +43,7 @@ def particle_mc_info(particle_dict : Mapping[int, MCParticle],
 		print(part_tab + 'Prod.: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
 			             .format(part.initial_volume, part.initial_vertex[0],
 			             	     part.initial_vertex[1], part.initial_vertex[2]))
-        
+
 		# Decay Info
 		print(part_tab + 'Decay: Volume = {0},   Vertex = ({1:.1f}, {2:.1f}, {3:.1f}) mm'
 			             .format(part.final_volume, part.final_vertex[0],
@@ -54,16 +54,17 @@ def particle_mc_info(particle_dict : Mapping[int, MCParticle],
 		for daugh_indx, daugh_part in particle_dict.items():
 			if daugh_part.mother_indx == indx:
 				print(part_tab*2, 'Idx: {0}   Name: {1:10},   Volume: {2}'
-					.format(daugh_indx, daugh_part.name, daugh_part.initial_volume))
+				                  .format(daugh_indx, daugh_part.name,
+								          daugh_part.initial_volume))
 
 		# Hits Info
 		if with_hits:
 			print(part_tab +'{0} MC Hits:'.format(len(part.hits)))
 			for hit in part.hits:
 				print(part_tab*2, 'Detector: {0},   E: {1:5.1f} KeV   Pos: ({2:5.0f}, {3:5.0f}, {4:5.0f}) mm,   Time: {5:.1e} us,   Evt. Time: {6:.1e} us'
-					              .format(hit.label, hit.E/units.keV, hit.X, hit.Y, hit.Z,
-					              	      hit.T/units.mus, (hit.T - evt_ini_time)/units.mus))
-        
+					              .format(hit.label, hit.E/units.keV,
+								          hit.X, hit.Y, hit.Z, hit.T/units.mus,
+										  (hit.T - evt_ini_time)/units.mus))
 		print()
 
 
@@ -83,7 +84,8 @@ def print_mc_event(event_id:   int,
 			extents_df = pd.read_hdf(iFileName, '/MC/extents', mode='r')
 
 			if event_id in extents_df['evt_number'].tolist():
-				print('\nEvt Id: {}  contained in {}\n'.format(event_id, iFileName))
+				print('\nEvt Id: {}  contained in {}\n'
+				      .format(event_id, iFileName))
 
 				event_index = extents_df[extents_df.evt_number == event_id].index[0]
 
@@ -96,12 +98,13 @@ def print_mc_event(event_id:   int,
 				evt_mcHits = mcEvtHits[event_id]
 
 				tot_dep_energy = sum([h.E for h in evt_mcHits])
-				print('  Event deposited energy = {0:.6f} MeV'.format(tot_dep_energy))
+				print('  Event deposited energy = {0:.6f} MeV'
+				      .format(tot_dep_energy))
 
 				ini_time  = min([h.time for h in evt_mcHits])
 				last_time = max([h.time for h in evt_mcHits])
 				print('  Event initial time = {0:.3e} us,   Time width: {1:.3e} us'
-					.format(ini_time/units.mus, (ini_time-last_time)/units.mus))
+					  .format(ini_time/units.mus, (ini_time-last_time)/units.mus))
 
 				print('  Event has {} MC Particles'.format(len(evt_mcParticles)))
 				print('  Event has {} MC Hits'.format(len(evt_mcHits)))
@@ -129,7 +132,8 @@ def plot_mc_event(event_id   : int,
 			extents_df = pd.read_hdf(iFileName, '/MC/extents', mode='r')
 
 			if event_id in extents_df['evt_number'].tolist():
-				print('\nEvt Id: {}  contained in {}\n'.format(event_id, iFileName))
+				print('\nEvt Id: {}  contained in {}\n'
+				      .format(event_id, iFileName))
 
 				event_index = extents_df[extents_df.evt_number == event_id].index[0]
 
