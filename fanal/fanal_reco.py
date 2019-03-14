@@ -238,7 +238,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
                     # Voxelizing using the active_smHits ...
                     event_voxels = voxelize_hits(active_smHits, voxel_size,
-                                                 strict_voxel_size = True)
+                                                 strict_voxel_size = False)
                     eff_voxel_size = event_voxels[0].size
 
                     # Storing voxels info
