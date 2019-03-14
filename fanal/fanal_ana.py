@@ -253,9 +253,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
         # Only for those events passing the tracks filter:
         else:
             # Getting the blob energies of the track with highest energy
-            blobs_E = blob_energies(event_sorted_tracks[0][1], blob_radius)
-            blob1_E = blobs_E[1]
-            blob2_E = blobs_E[0]
+            blob1_E, blob2_E = blob_energies(event_sorted_tracks[0][1], blob_radius)
 
             # Applying the blobs filter
             blobs_filter = (blob2_E > blob_Eth)
