@@ -20,9 +20,9 @@ from matplotlib.colors import LogNorm
 from scipy.stats       import norm
 
 # Specific IC stuff
+import invisible_cities.core.system_of_units as units
 from invisible_cities.cities.components      import city
 from invisible_cities.core.configure         import configure
-from invisible_cities.core.system_of_units_c import units
 from invisible_cities.io.mcinfo_io           import load_mcparticles
 from invisible_cities.io.mcinfo_io           import load_mchits
 from invisible_cities.evm.event_model        import MCHit

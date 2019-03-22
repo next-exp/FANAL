@@ -22,8 +22,8 @@ from invisible_cities.core.testing_utils import float_arrays
 from invisible_cities.core.testing_utils import FLOAT_ARRAY
 from invisible_cities.core.testing_utils import random_length_float_arrays
 
+import invisible_cities.core.system_of_units as units
 from invisible_cities.evm.event_model        import MCHit, Voxel
-from invisible_cities.core.system_of_units_c import units
 from invisible_cities.reco.paolina_functions import make_track_graphs
 
 
@@ -38,15 +38,14 @@ from fanal.ana.ana_functions import process_tracks
 # Voxel collection with the 5th one having negligible energy,
 # and being the 2nd voxel, its closest neighbour.
 voxels_dict = get_voxels_reco_dict()
-voxels_dict['event_id'] = [ 1 ,  2 ,  3 ,  4 ,  5 ]
-voxels_dict['X']        = [30., 30., 30., 30., 30.]
-voxels_dict['Y']        = [30., 30., 30., 30., 40.]
-voxels_dict['Z']        = [30., 40., 50., 60., 40.]
-voxels_dict['E']        = [0.1, 0.1, 0.1, 0.1, 0.001]
+voxel_Eth   = 0.005
+voxels_dict['event_id'] = [ 1 ,    2 ,    3 ,    4 ,    5 ]
+voxels_dict['X']        = [30.,   30.,   30.,   30.,   30.]
+voxels_dict['Y']        = [30.,   30.,   30.,   30.,   40.]
+voxels_dict['Z']        = [30.,   40.,   50.,   60.,   40.]
+voxels_dict['E']        = [0.1,   0.1,   0.1,   0.1,   0.001]
+voxels_dict['negli']    = [False, False, False, False, True]
 voxels_df1 = pd.DataFrame(voxels_dict)
-voxel_Eth = 0.005
-voxels_df1['negli'] = voxels_df1.E < voxel_Eth
-
 
 def test_get_new_energies():
     new_energies = [0.1, 0.101, 0.1, 0.1, 0.]
@@ -60,15 +59,14 @@ def test_get_new_energies():
 # 3rd track with the following 3 voxels, and energy > track_Eth (highest)
 # And finally a negligible voxel
 voxels_dict = get_voxels_reco_dict()
-voxels_dict['event_id'] = [ 1 ,  2 ,  3 ,  4 ,  5 ,  6 ,  7 ]
-voxels_dict['X']        = [30., 30., 60., 60., 60., 60., 20.]
-voxels_dict['Y']        = [30., 30., 60., 60., 60., 60., 20.]
-voxels_dict['Z']        = [30., 40., 30., 60., 70., 80., 80.]
-voxels_dict['E']        = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.001]
+voxel_Eth   = 0.005
+voxels_dict['event_id'] = [ 1 ,    2 ,    3 ,    4 ,    5 ,    6 ,    7 ]
+voxels_dict['X']        = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
+voxels_dict['Y']        = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
+voxels_dict['Z']        = [30.,   40.,   30.,   60.,   70.,   80.,   80.]
+voxels_dict['E']        = [0.1,   0.1,   0.1,   0.1,   0.1,   0.1,   0.001]
+voxels_dict['negli']    = [False, False, False, False, False, False, True]
 voxels_df2 = pd.DataFrame(voxels_dict)
-
-voxel_Eth = 0.005
-voxels_df2['negli'] = voxels_df2.E < voxel_Eth
 
 voxel_dimensions = (10., 10., 10.)
 ic_voxels = [Voxel(voxels_df2.iloc[i].X, voxels_df2.iloc[i].Y,

@@ -12,7 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from typing import Sequence, Union, Dict, Any, List, Mapping
 
-from invisible_cities.core.system_of_units_c import units
+import invisible_cities.core.system_of_units as units
 from invisible_cities.io.mcinfo_io           import load_mchits
 from invisible_cities.io.mcinfo_io           import load_mcparticles
 from invisible_cities.io.mcinfo_io           import load_mcsensor_response

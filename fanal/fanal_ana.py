@@ -24,9 +24,9 @@ from   matplotlib.colors import LogNorm
 from operator import itemgetter
 
 # Specific IC stuff
+import invisible_cities.core.system_of_units as units
 from invisible_cities.cities.components       import city
 from invisible_cities.core.configure          import configure
-from invisible_cities.core.system_of_units_c  import units
 from invisible_cities.evm.event_model         import Voxel
 from invisible_cities.reco.tbl_functions      import filters as tbl_filters
 from invisible_cities.reco.paolina_functions  import make_track_graphs

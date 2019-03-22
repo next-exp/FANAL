@@ -4,7 +4,7 @@ import numpy as np
 from typing import Tuple, List
 
 # Specific IC stuff
-from invisible_cities.core.system_of_units_c  import units
+import invisible_cities.core.system_of_units as units
 from invisible_cities.evm.event_model         import MCHit, Voxel
 
 # Specific fanal stuff

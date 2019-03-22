@@ -21,8 +21,8 @@ from invisible_cities.core.testing_utils import float_arrays
 from invisible_cities.core.testing_utils import FLOAT_ARRAY
 from invisible_cities.core.testing_utils import random_length_float_arrays
 
+import invisible_cities.core.system_of_units as units
 from invisible_cities.evm.event_model        import MCHit
-from invisible_cities.core.system_of_units_c import units
 
 from fanal.reco.energy import smear_evt_energy
 from fanal.reco.energy import smear_hit_energies
