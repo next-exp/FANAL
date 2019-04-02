@@ -8,20 +8,13 @@ that will complete the previous reco information with the new data generated in 
 'voxels' storing all the voxels info
 """
 
-
-#---- imports
-
+# General importings
 import os
 import sys
-import logging
 import math
 import numpy  as np
 import tables as tb
 import pandas as pd
-import matplotlib.pyplot as plt
-from   matplotlib.colors import LogNorm
-
-from operator import itemgetter
 
 # Specific IC stuff
 import invisible_cities.core.system_of_units as units

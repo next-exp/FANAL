@@ -9,15 +9,10 @@ It generates an .h5 file containing 2 dataFrames:
 # General importings
 import os
 import sys
-import logging
 import math
 import numpy  as np
 import tables as tb
 import pandas as pd
-import matplotlib.pyplot as plt
-
-from matplotlib.colors import LogNorm
-from scipy.stats       import norm
 
 # Specific IC stuff
 import invisible_cities.core.system_of_units as units
