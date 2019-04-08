@@ -142,20 +142,22 @@ def store_events_reco_data(file_name   : str,
                            group_name  : str,
                            events_dict : Dict[str, List[Any]]
                           ) -> None:
-	"""
-	Translates the events dictionary to a dataFrame that is stored in
-	file_name / group_name / events.
-	"""
-	# Creating the df
-	events_df = pd.DataFrame(events_dict, index = events_dict['id'])
+    """
+    Translates the events dictionary to a dataFrame that is stored in
+    file_name / group_name / events.
+    """
+    # Creating the df
+    events_df = pd.DataFrame(events_dict, index = events_dict['id'])
 
-	# Formatting DF
-	events_df.sort_index()
+    # Formatting DF
+    events_df.sort_index()
 
-	# Storing DF
-	#events_df.to_hdf(file_name, group_name + '/events', format = 'table')
-	events_df.to_hdf(file_name, group_name + '/events', format = 'table',
+    # Storing DF
+    #events_df.to_hdf(file_name, group_name + '/events', format = 'table')
+    events_df.to_hdf(file_name, group_name + '/events', format = 'table',
                      data_columns = True)
+
+    print('  Total Events in File: {}'.format(len(events_df)))
 
 
 
@@ -188,7 +190,8 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
     	'X':        [],
     	'Y':        [],
     	'Z':        [],
-    	'E':        []
+    	'E':        [],
+        'negli':    []
 	}
 
 	return voxels_dict
@@ -197,16 +200,18 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 
 def extend_voxels_reco_data(voxels_dict : Dict[str, List[Any]],
                             event_id    : int,
-                            voxel       : Voxel
+                            voxel       : Voxel,
+                            voxel_Eth   : float
                            ) -> None:
-	"""
-	It stores all the data related to a voxel into the voxels_dict.
-	"""
-	voxels_dict['event_id'].extend([event_id])
-	voxels_dict['X'].extend([voxel.X])
-	voxels_dict['Y'].extend([voxel.Y])
-	voxels_dict['Z'].extend([voxel.Z])
-	voxels_dict['E'].extend([voxel.E])
+    """
+    It stores all the data related to a voxel into the voxels_dict.
+    """
+    voxels_dict['event_id'].extend([event_id])
+    voxels_dict['X'].extend([voxel.X])
+    voxels_dict['Y'].extend([voxel.Y])
+    voxels_dict['Z'].extend([voxel.Z])
+    voxels_dict['E'].extend([voxel.E])
+    voxels_dict['negli'].extend([voxel.E < voxel_Eth])
 
 
 
@@ -214,14 +219,18 @@ def store_voxels_reco_data(file_name   : str,
                            group_name  : str,
                            voxels_dict : Dict[str, List[Any]]
                           ) -> None:
-	"""
-	Translates the voxels dictionary to a dataFrame that is stored in
-	file_name / group_name / voxels.
-	"""
-	# Creating the df
-	voxels_df = pd.DataFrame(voxels_dict)
+    """
+    Translates the voxels dictionary to a dataFrame that is stored in
+    file_name / group_name / voxels.
+    """
+    # Creating the df
+    voxels_df = pd.DataFrame(voxels_dict)
 
-	# Storing DF
-	#voxels_df.to_hdf(file_name, group_name + '/voxels', format='table', data_columns='event_id')
-	voxels_df.to_hdf(file_name, group_name + '/voxels', format = 'table',
+    # Storing DF
+    #voxels_df.to_hdf(file_name, group_name + '/voxels', format='table', data_columns='event_id')
+    voxels_df.to_hdf(file_name, group_name + '/voxels', format = 'table',
                      data_columns = True)
+
+    print('  Total Voxels in File: {}   (Negligible: {})\n'
+          .format(len(voxels_df), len(voxels_df[voxels_df.negli == True])))
+

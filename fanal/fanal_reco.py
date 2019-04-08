@@ -55,12 +55,14 @@ DRIFT_VELOCITY = 1. * units.mm / units.mus
 
 
 @city
+#@profile
 def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                event_type,  # Event type: 'bb0nu', 'Tl208', 'Bi214'
                fwhm,        # FWHM at Qbb
                e_min,       # Minimum smeared energy for energy filtering
                e_max,       # Maximum smeared energy for energy filtering
                spatial_def, # Spatial definition: 'low', 'high'
+               voxel_Eth,   # Voxel energy threshold
                veto_width,  # Veto width for fiducial filtering
                min_veto_e,  # Minimum energy in veto for fiducial filtering
                files_in,    # Input files
@@ -110,7 +112,8 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     print('         ... fiducial limits [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}\n'
           .format(fid_dimensions.z_min, fid_dimensions.z_max, fid_dimensions.rad))
     print('* Sigma at Qbb: {:.3f} keV.\n'.format(sigma_Qbb / units.keV))
-    print('* Voxel_size: {} mm.\n'.format(voxel_size))
+    print('* Voxel_size: {} mm.'.format(voxel_size))
+    print('  Voxel Eth:  {:4.1f} keV\n'.format(voxel_Eth/units.keV))
 
     print('* {0} {1} input files:'.format(len(files_in), event_type))
     for iFileName in files_in:
@@ -133,6 +136,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     oFile.set_node_attr(reco_group_name, 'input_sim_files', files_in)
     oFile.set_node_attr(reco_group_name, 'event_type', event_type)
     oFile.set_node_attr(reco_group_name, 'energy_resolution', fwhm/units.perCent)
+    oFile.set_node_attr(reco_group_name, 'voxel_Eth', voxel_Eth)
     oFile.set_node_attr(reco_group_name, 'smE_filter_Emin', e_min)
     oFile.set_node_attr(reco_group_name, 'smE_filter_Emax', e_max)
     oFile.set_node_attr(reco_group_name, 'fiducial_filter_VetoWidth', veto_width)
@@ -238,7 +242,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
                     # Storing voxels info
                     for voxel in event_voxels:
-                        extend_voxels_reco_data(voxels_dict, event_number, voxel)
+                        extend_voxels_reco_data(voxels_dict, event_number, voxel, voxel_Eth)
 
                     # Check fiduciality
                     voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter = \
@@ -274,7 +278,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
     ### STORING DATA
     # Storing events and voxels dataframes
-    print('\n* Storing data in the output file ...\n  {}\n'.format(file_out))
+    print('\n* Storing data in the output file: {}'.format(file_out))
     store_events_reco_data(file_out, reco_group_name, events_dict)
     store_voxels_reco_data(file_out, reco_group_name, voxels_dict)
 
