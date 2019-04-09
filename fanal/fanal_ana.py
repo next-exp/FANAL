@@ -8,25 +8,18 @@ that will complete the previous reco information with the new data generated in 
 'voxels' storing all the voxels info
 """
 
-
-#---- imports
-
+# General importings
 import os
 import sys
-import logging
 import math
 import numpy  as np
 import tables as tb
 import pandas as pd
-import matplotlib.pyplot as plt
-from   matplotlib.colors import LogNorm
-
-from operator import itemgetter
 
 # Specific IC stuff
+import invisible_cities.core.system_of_units as units
 from invisible_cities.cities.components       import city
 from invisible_cities.core.configure          import configure
-from invisible_cities.core.system_of_units_c  import units
 from invisible_cities.evm.event_model         import Voxel
 from invisible_cities.reco.tbl_functions      import filters as tbl_filters
 from invisible_cities.reco.paolina_functions  import make_track_graphs
@@ -60,7 +53,6 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
               event_type,     # Event type: 'bb0nu', 'Tl208', 'Bi214'
               fwhm,           # FWHM at Qbb
               spatial_def,    # Spatial definition: 'low', 'high'
-              voxel_Eth,      # Voxel energy threshold
               track_Eth,      # Track energy threshold
               max_num_tracks, # Maximum number of tracks
               blob_radius,    # Blob radius
@@ -92,8 +84,8 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     print('***** Spatial definition: {}'.format(spatial_def.name))
     print('***********************************************************************************\n')
 
-    print('* Voxel Eth: {:4.1f} keV   Track Eth: {:4.1f} keV   Max Num Tracks: {}\n'
-          .format(voxel_Eth/units.keV, track_Eth/units.keV, max_num_tracks))
+    print('* Track Eth: {:4.1f} keV   Max Num Tracks: {}\n'
+          .format(track_Eth/units.keV, max_num_tracks))
     print('* Blob radius: {:.1f} mm   Blob Eth: {:4.1f} keV\n'
           .format(blob_radius, blob_Eth / units.keV))
     print('* ROI limits: [{:4.1f}, {:4.1f}] keV\n'
@@ -123,7 +115,6 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     oFile.set_node_attr(ana_group_name, 'input_reco_group', reco_group_name)
     oFile.set_node_attr(ana_group_name, 'event_type', event_type)
     oFile.set_node_attr(ana_group_name, 'energy_resolution', fwhm / units.perCent)
-    oFile.set_node_attr(ana_group_name, 'voxel_Eth', voxel_Eth)
     oFile.set_node_attr(ana_group_name, 'track_Eth', track_Eth)
     oFile.set_node_attr(ana_group_name, 'max_num_tracks', max_num_tracks)
     oFile.set_node_attr(ana_group_name, 'blob_radius', blob_radius)
@@ -147,12 +138,6 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     # And this is the fastest option requiring more memory
     events_df = pd.read_hdf(files_in[0], reco_group_name + '/events')
     voxels_df = pd.read_hdf(files_in[0], reco_group_name + '/voxels')
-
-    # Identifying as negligible all the voxels with energy lower than threshold
-    voxels_df['negli'] = voxels_df.E < voxel_Eth
-    print('* Total Voxels in File: {0}     Negligible Voxels (below {1:3.1f} keV): {2}\n'
-          .format(len(voxels_df), voxel_Eth / units.keV,
-                  len(voxels_df[voxels_df.negli == True])))
 
     # Analyzing only the fiducial events ...
     print('* Analyzing events ...\n')
@@ -253,9 +238,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
         # Only for those events passing the tracks filter:
         else:
             # Getting the blob energies of the track with highest energy
-            blobs_E = blob_energies(event_sorted_tracks[0][1], blob_radius)
-            blob1_E = blobs_E[1]
-            blob2_E = blobs_E[0]
+            blob1_E, blob2_E = blob_energies(event_sorted_tracks[0][1], blob_radius)
 
             # Applying the blobs filter
             blobs_filter = (blob2_E > blob_Eth)
@@ -298,7 +281,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
 
     ### STORING DATA
     # Storing events and voxels dataframes
-    print('\n* Storing data in the output file ...\n  {}\n'.format(file_out))
+    print('\n* Storing data in the output file:  {}'.format(file_out))
     store_events_ana_data(file_out, ana_group_name, events_df, events_dict)
     store_voxels_ana_data(file_out, ana_group_name, voxels_df, voxels_dict)
 

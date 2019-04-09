@@ -7,7 +7,7 @@ from networkx import Graph
 from operator import itemgetter
 from typing   import List, Sequence, Tuple
 
-from invisible_cities.core.system_of_units_c  import units
+import invisible_cities.core.system_of_units as units
 
 logger = logging.getLogger('FanalAna')
 

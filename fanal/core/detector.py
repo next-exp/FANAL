@@ -1,6 +1,6 @@
 import os
 
-from invisible_cities.core.system_of_units_c  import units
+import invisible_cities.core.system_of_units as units
 
 from fanal.core.fanal_types      import DetName
 from fanal.core.fanal_types      import VolumeDim

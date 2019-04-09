@@ -15,7 +15,7 @@ from hypothesis									 import given, settings
 from hypothesis.strategies       import integers
 from hypothesis.strategies       import floats
 
-from invisible_cities.core.system_of_units_c  import units
+import invisible_cities.core.system_of_units as units
 
 from fanal.core.fanal_exceptions import DetectorNameNotDefined
 from fanal.core.fanal_types      import DetName

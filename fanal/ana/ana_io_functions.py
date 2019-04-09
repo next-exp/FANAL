@@ -138,6 +138,9 @@ def store_events_ana_data(file_name   : str,
     events_df.to_hdf(file_name, group_name + '/events',
                      format='table', data_columns=True)
 
+    print('  Total Events in File: {}'.format(len(events_df)))
+
+
 
 
 def store_events_ana_counters(oFile      : tb.file.File,
@@ -196,15 +199,18 @@ def store_voxels_ana_data(file_name   : str,
                           voxels_df   : pd.DataFrame,
                           voxels_dict : Dict[str, List[Any]]
                          ) -> None:
-	"""
+    """
     Adds the voxels new data (coming in voxels_dict), to the pre-existing data
     only for the corresponding voxels (those whose voxel_id's are listed in the
     incoming dict).
     Then dataFrame is stored in	file_name / group_name / voxels.
-	"""
-	voxels_df.loc[voxels_dict['indexes'], 'newE'] = voxels_dict['newE']
-	voxels_df.loc[voxels_dict['indexes'], 'track_id'] = voxels_dict['trackID']
-	#voxels_df.to_hdf(file_name, group_name + '/voxels', format='table',
-    #                 data_columns='evt_id')
-	voxels_df.to_hdf(file_name, group_name + '/voxels', format='table',
-                     data_columns=True)
+    """
+    voxels_df.loc[voxels_dict['indexes'], 'newE'] = voxels_dict['newE']
+    voxels_df.loc[voxels_dict['indexes'], 'track_id'] = voxels_dict['trackID']
+    #voxels_df.to_hdf(file_name, group_name + '/voxels',
+    #                 format='table', data_columns='evt_id')
+    voxels_df.to_hdf(file_name, group_name + '/voxels',
+                     format='table', data_columns=True)
+
+    print('  Total Voxels in File: {}\n'.format(len(voxels_df)))
+
