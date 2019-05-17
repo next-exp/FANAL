@@ -1,6 +1,7 @@
 """
 Module reco_io_functions.
-This module includes the functions related with input/output of data of the reconstruction step.
+This module includes the functions related with input/output data
+from the reconstruction step.
 
 Notes
 -----
@@ -17,11 +18,9 @@ import numpy  as np
 import pandas as pd
 import tables as tb
 
-from typing import Dict, List, Any, Tuple
-
-from invisible_cities.evm.event_model         import Voxel
-
-from fanal.core.fanal_types import SpatialDef
+from typing                              import Dict, List, Any, Tuple
+from invisible_cities.evm.event_model    import Voxel
+from fanal.core.fanal_types              import SpatialDef
 
 
 
@@ -116,25 +115,25 @@ def extend_events_reco_data(
 	events_dict['fid_filter'].extend([evt_fid_filter])
 
 # Alternative implementation (more elegant but may be slightly slower)
-# def extend_events_reco_data(events_dict : Dict[str, List[Any]],
-# 	                          event_id    : int,
-# 	                          **kwargs    : Tuple[...]
-# 	                         ) -> None:
-#	events_dict['id']           .extend([event_id])
-#	events_dict['num_MCparts']  .extend([kwargs.get('evt_num_MCparts',   np.nan)])
-#	events_dict['num_MChits']   .extend([kwargs.get('evt_num_MChits',    np.nan)])
-#	events_dict['mcE']          .extend([kwargs.get('evt_mcE',           np.nan)])
-#	events_dict['smE']          .extend([kwargs.get('evt_smE',           np.nan)])
-#	events_dict['smE_filter']   .extend([kwargs.get('evt_smE_filter',    False)])
-#	events_dict['num_voxels']   .extend([kwargs.get('evt_num_voxels',    np.nan)])
-#	events_dict['voxel_sizeX']  .extend([kwargs.get('evt_voxel_sizeX',   np.nan)])
-#	events_dict['voxel_sizeY']  .extend([kwargs.get('evt_voxel_sizeY',   np.nan)])
-#	events_dict['voxel_sizeZ']  .extend([kwargs.get('evt_voxel_sizeZ',   np.nan)])
-#	events_dict['voxels_minZ']  .extend([kwargs.get('evt_voxels_minZ',   np.nan)])
-#	events_dict['voxels_maxZ']  .extend([kwargs.get('evt_voxels_maxZ',   np.nan)])
-#	events_dict['voxels_maxRad'].extend([kwargs.get('evt_voxels_maxRad', np.nan)])
-#	events_dict['veto_energy']  .extend([kwargs.get('evt_veto_energy',   np.nan)])
-#	events_dict['fid_filter']   .extend([kwargs.get('evt_fid_filter',    False)])
+#def extend_events_reco_data(events_dict : Dict[str, List[Any]],
+#                            event_id    : int,
+#                            **kwargs    : Tuple[Any]
+#                            ) -> None:
+#    events_dict['id']           .extend([event_id])
+#    events_dict['num_MCparts']  .extend([kwargs.get('evt_num_MCparts',   np.nan)])
+#    events_dict['num_MChits']   .extend([kwargs.get('evt_num_MChits',    np.nan)])
+#    events_dict['mcE']          .extend([kwargs.get('evt_mcE',           np.nan)])
+#    events_dict['smE']          .extend([kwargs.get('evt_smE',           np.nan)])
+#    events_dict['smE_filter']   .extend([kwargs.get('evt_smE_filter',    False)])
+#    events_dict['num_voxels']   .extend([kwargs.get('evt_num_voxels',    np.nan)])
+#    events_dict['voxel_sizeX']  .extend([kwargs.get('evt_voxel_sizeX',   np.nan)])
+#    events_dict['voxel_sizeY']  .extend([kwargs.get('evt_voxel_sizeY',   np.nan)])
+#    events_dict['voxel_sizeZ']  .extend([kwargs.get('evt_voxel_sizeZ',   np.nan)])
+#    events_dict['voxels_minZ']  .extend([kwargs.get('evt_voxels_minZ',   np.nan)])
+#    events_dict['voxels_maxZ']  .extend([kwargs.get('evt_voxels_maxZ',   np.nan)])
+#    events_dict['voxels_maxRad'].extend([kwargs.get('evt_voxels_maxRad', np.nan)])
+#    events_dict['veto_energy']  .extend([kwargs.get('evt_veto_energy',   np.nan)])
+#    events_dict['fid_filter']   .extend([kwargs.get('evt_fid_filter',    False)])
 
 
 

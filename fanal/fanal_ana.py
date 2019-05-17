@@ -17,7 +17,7 @@ import tables as tb
 import pandas as pd
 
 # Specific IC stuff
-import invisible_cities.core.system_of_units as units
+import invisible_cities.core.system_of_units  as units
 from invisible_cities.cities.components       import city
 from invisible_cities.core.configure          import configure
 from invisible_cities.evm.event_model         import Voxel

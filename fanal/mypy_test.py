@@ -38,6 +38,11 @@ def test_ana_tye_checker():
 	assert  mypy_result == api.run(['ana'])
 
 
+def test_ana_tye_checker():
+	mypy_result = ('', '', 0)
+	assert  mypy_result == api.run(['mc'])
+
+
 def test_fanal_reco_tye_checker():
 	mypy_result = ('', '', 0)
 	assert  mypy_result == api.run(['fanal_reco.py'])
