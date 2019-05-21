@@ -9,7 +9,6 @@ import invisible_cities.core.system_of_units  as units
 def load_mc_hits(iFileName: str) -> pd.DataFrame :
 
     # Loading data
-    events    = pd.read_hdf(iFileName, 'MC/events', index_col = 'evt_number')
     extents   = pd.read_hdf(iFileName, 'MC/extents')
 
     with tb.open_file(iFileName ,mode='r') as iFile:
@@ -42,7 +41,6 @@ def load_mc_hits(iFileName: str) -> pd.DataFrame :
 def load_mc_particles(iFileName: str) -> pd.DataFrame :
 
     # Loading data
-    events    = pd.read_hdf(iFileName, 'MC/events', index_col = 'evt_number')
     extents   = pd.read_hdf(iFileName, 'MC/extents')
 
     with tb.open_file(iFileName ,mode='r') as iFile:

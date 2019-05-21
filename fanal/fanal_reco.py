@@ -60,13 +60,12 @@ DRIFT_VELOCITY = 1. * units.mm / units.mus
 
 
 @city
-@profile
 def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                event_type,  # Event type: 'bb0nu', 'Tl208', 'Bi214'
                fwhm,        # FWHM at Qbb
                e_min,       # Minimum smeared energy for energy filtering
                e_max,       # Maximum smeared energy for energy filtering
-               spatial_def, # Spatial definition: 'low', 'high'
+               spatial_def, # Spatial definition: 'low', 'std', high'
                voxel_Eth,   # Voxel energy threshold
                veto_width,  # Veto width for fiducial filtering
                min_veto_e,  # Minimum energy in veto for fiducial filtering
@@ -235,25 +234,24 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 #for i, hit in active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max].iterrows():
                 #    IChit = MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE')
                 #    IChits.append(IChit)
-
                 IChits = active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max] \
                     .apply(lambda hit: MCHit((hit.x, hit.y, hit.shifted_z),
                                              hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
-
 
                 # Voxelizing using the IChits ...
                 event_voxels = voxelize_hits(IChits, voxel_size, strict_voxel_size=False)
                 eff_voxel_size = event_voxels[0].size
 
                 # Storing voxels info
-                for voxel in event_voxels:
-                    extend_voxels_reco_data(voxels_dict, event_number, voxel, voxel_Eth)
+                for voxel_id in range(len(event_voxels)):
+                    extend_voxels_reco_data(voxels_dict, event_number,
+                                            voxel_id, event_voxels[voxel_id], voxel_Eth)
 
                 # Check fiduciality
                 voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter = \
                 check_event_fiduciality(event_voxels, fid_dimensions, min_veto_e)
 
-                # Storing data of NON smE_filter vents
+                # Storing data of events passing the smE_filter events
                 extend_events_reco_data(events_dict, event_number,
                                         evt_num_MCparts   = evt_num_parts,
                                         evt_num_MChits    = evt_num_hits,
@@ -278,6 +276,9 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                     logger.debug('    Voxel pos: ({:5.1f}, {:5.1f}, {:5.1f}) mm   E: {:5.1f} keV'\
                                  .format(voxel.X/units.mm, voxel.Y/units.mm, voxel.Z/units.mm, voxel.E/units.keV))
 
+
+    # Verbosing
+    print('\n* Total analyzed events: {}'.format(analyzed_events))
 
     ### STORING DATA
     # Storing events and voxels dataframes
