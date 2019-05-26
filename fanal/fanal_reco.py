@@ -24,13 +24,14 @@ from invisible_cities.reco.tbl_functions     import filters as tbl_filters
 
 # Specific fanalIC stuff
 from fanal.reco.reco_io_functions import get_reco_group_name
+from fanal.reco.reco_io_functions import get_event_reco_data
 from fanal.reco.reco_io_functions import get_events_reco_dict
-from fanal.reco.reco_io_functions import get_voxels_reco_dict
-from fanal.reco.reco_io_functions import extend_events_reco_data
-from fanal.reco.reco_io_functions import extend_voxels_reco_data
-from fanal.reco.reco_io_functions import store_events_reco_data
-from fanal.reco.reco_io_functions import store_voxels_reco_data
+from fanal.reco.reco_io_functions import extend_events_reco_dict
+from fanal.reco.reco_io_functions import store_events_reco_dict
 from fanal.reco.reco_io_functions import store_events_reco_counters
+from fanal.reco.reco_io_functions import get_voxels_reco_dict
+from fanal.reco.reco_io_functions import extend_voxels_reco_dict
+from fanal.reco.reco_io_functions import store_voxels_reco_dict
 
 from fanal.reco.energy        import smear_evt_energy
 from fanal.reco.energy        import smear_hit_energies
@@ -170,64 +171,53 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         # Getting event numbers
         file_extents = pd.read_hdf(iFileName, '/MC/extents', mode='r')
         file_event_numbers = file_extents.evt_number
-        #file_event_numbers = file_mcHits.index.get_level_values(0).unique()
 
         print('* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
         # Getting mc hits
         file_mcHits  = load_mc_hits(iFileName)
 
-
         # Looping through all the events in iFile
         for event_number in file_event_numbers:
+
             # Updating counter of analyzed events
             analyzed_events += 1
-            if (not(analyzed_events % toUpdate_events)):
-                print('* Num analyzed events: {}'.format(analyzed_events))
-            if (analyzed_events == (10 * toUpdate_events)): toUpdate_events *= 10
-
-            # Verbosing
             logger.info('Reconstructing event Id: {0} ...'.format(event_number))
 
-            # Getting event info
+            # Getting event data
+            event_data = get_event_reco_data()
+            event_data['event_indx'] = event_number
+            
             event_mcHits  = file_mcHits.loc[event_number, :]
             active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
 
-            evt_num_parts = get_num_mc_particles(file_extents, event_number)
-            evt_num_hits  = len(active_mcHits)
-
+            event_data['num_MCparts'] = get_num_mc_particles(file_extents, event_number)
+            event_data['num_MChits']  = len(active_mcHits)
+            
             # The event mc energy is the sum of the energy of all the hits
-            event_mcE = active_mcHits.E.sum()
+            event_data['mcE'] = active_mcHits.E.sum()
                 
             # Smearing the event energy
-            event_smE = smear_evt_energy(event_mcE, sigma_Qbb, Qbb)
+            event_data['smE'] = smear_evt_energy(event_data['mcE'], sigma_Qbb, Qbb)
 
             # Applying the smE filter
-            event_smE_filter = (e_min <= event_smE <= e_max)
+            event_data['smE_filter'] = (e_min <= event_data['smE'] <= e_max)
 
             # Verbosing
             logger.info('  Num mcHits: {0:3}   mcE: {1:.1f} keV   smE: {2:.1f} keV   smE_filter: {3}' \
-                        .format(evt_num_hits, event_mcE/units.keV, event_smE/units.keV, event_smE_filter))
+                        .format(event_data['num_MChits'], event_data['mcE']/units.keV,
+                                event_data['smE']/units.keV, event_data['smE_filter']))
                 
-            # For those events NOT passing the smE filter:
-            # Storing data of NON smE_filter events
-            if not event_smE_filter:
-                extend_events_reco_data(events_dict, event_number,
-                                        evt_num_MCparts = evt_num_parts,
-                                        evt_num_MChits  = evt_num_hits,
-                                        evt_mcE         = event_mcE,
-                                        evt_smE         = event_smE,
-                                        evt_smE_filter  = event_smE_filter)
+            # For those events passing the smE filter:
+            if event_data['smE_filter']:
 
-            # Only for those events passing the smE filter:
-            else:
                 # Smearing hit energies
-                smearing_factor = event_smE / event_mcE
+                smearing_factor = event_data['smE'] / event_data['mcE']
                 active_mcHits['smE'] = active_mcHits['E'] * smearing_factor
 
                 # Translating hit Z positions from delayed hits
                 translate_hit_positions(active_mcHits, DRIFT_VELOCITY)
- 
+
                 # Creating the IChits with the smeared energies and translated Z positions
                 # to be passed to paolina functions
                 #IChits = []
@@ -240,51 +230,50 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
                 # Voxelizing using the IChits ...
                 event_voxels = voxelize_hits(IChits, voxel_size, strict_voxel_size=False)
-                eff_voxel_size = event_voxels[0].size
+                event_data['num_voxels'] = len(event_voxels)
 
+                eff_voxel_size = event_voxels[0].size
+                event_data['voxel_sizeX'] = eff_voxel_size[0]
+                event_data['voxel_sizeY'] = eff_voxel_size[1]
+                event_data['voxel_sizeZ'] = eff_voxel_size[2]
+    
                 # Storing voxels info
                 for voxel_id in range(len(event_voxels)):
-                    extend_voxels_reco_data(voxels_dict, event_number,
-                                            voxel_id, event_voxels[voxel_id], voxel_Eth)
-
+                    extend_voxels_reco_dict(voxels_dict, event_number, voxel_id,
+                                            event_voxels[voxel_id], voxel_Eth)
+                    
                 # Check fiduciality
-                voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter = \
+                event_data['voxels_minZ'], event_data['voxels_maxZ'], \
+                event_data['voxels_maxRad'], event_data['veto_energy'], \
+                event_data['fid_filter'] = \
                 check_event_fiduciality(event_voxels, fid_dimensions, min_veto_e)
-
-                # Storing data of events passing the smE_filter events
-                extend_events_reco_data(events_dict, event_number,
-                                        evt_num_MCparts   = evt_num_parts,
-                                        evt_num_MChits    = evt_num_hits,
-                                        evt_mcE           = event_mcE,
-                                        evt_smE           = event_smE,
-                                        evt_smE_filter    = event_smE_filter,
-                                        evt_num_voxels    = len(event_voxels),
-                                        evt_voxel_sizeX   = eff_voxel_size[0],
-                                        evt_voxel_sizeY   = eff_voxel_size[1],
-                                        evt_voxel_sizeZ   = eff_voxel_size[2],
-                                        evt_voxels_minZ   = voxels_minZ,
-                                        evt_voxels_maxZ   = voxels_maxZ,
-                                        evt_voxels_maxRad = voxels_maxRad,
-                                        evt_veto_energy   = veto_energy,
-                                        evt_fid_filter    = fiducial_filter)
-
+                   
                 # Verbosing
                 logger.info('  NumVoxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto_E: {:.1f} keV   fid_filter: {}' \
-                            .format(len(event_voxels), voxels_minZ, voxels_maxZ, voxels_maxRad,
-                                    veto_energy / units.keV, fiducial_filter))
+                            .format(event_data['num_voxels'], event_data['voxels_minZ'],
+                                    event_data['voxels_maxZ'], event_data['voxels_maxRad'],
+                                    event_data['veto_energy'] / units.keV,
+                                    event_data['fid_filter']))
+                
                 for voxel in event_voxels:
                     logger.debug('    Voxel pos: ({:5.1f}, {:5.1f}, {:5.1f}) mm   E: {:5.1f} keV'\
-                                 .format(voxel.X/units.mm, voxel.Y/units.mm, voxel.Z/units.mm, voxel.E/units.keV))
+                                 .format(voxel.X/units.mm, voxel.Y/units.mm,
+                                         voxel.Z/units.mm, voxel.E/units.keV))
 
+            # Storing event_data
+            extend_events_reco_dict(events_dict, event_data)
 
-    # Verbosing
-    print('\n* Total analyzed events: {}'.format(analyzed_events))
+            # Verbosing
+            if (not(analyzed_events % toUpdate_events)):
+                print('* Num analyzed events: {}'.format(analyzed_events))
+            if (analyzed_events == (10 * toUpdate_events)): toUpdate_events *= 10
+            
 
-    ### STORING DATA
+    ### STORING RECONSTRUCTION DATA
     # Storing events and voxels dataframes
     print('\n* Storing data in the output file: {}'.format(file_out))
-    store_events_reco_data(file_out, reco_group_name, events_dict)
-    store_voxels_reco_data(file_out, reco_group_name, voxels_dict)
+    store_events_reco_dict(file_out, reco_group_name, events_dict)
+    store_voxels_reco_dict(file_out, reco_group_name, voxels_dict)
 
     # Storing event counters as attributes
     smE_filter_events = sum(events_dict['smE_filter'])

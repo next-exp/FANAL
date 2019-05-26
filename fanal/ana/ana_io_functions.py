@@ -45,78 +45,68 @@ def get_ana_group_name(fwhm        : float,
 
 
 
-########## EVENTS IO FUNCTIONS ##########
+############### EVENTS IO FUNCTIONS ###############
 
-def get_events_ana_dict() -> Dict[str, List[Any]]:
+def get_event_ana_data() -> Dict[str, Any]:
     """
     It returns a dictionary with a key for each field to be stored per event
     during the fanalIC analysis step.
     """
-    events_dict : Dict[str, List[Any]] = {
-	    'id':            [],
-        'num_tracks':    [],
-        'track0_E':      [],
-        'track0_voxels': [],
-        'track0_length': [],
-        'track1_E':      [],
-        'track1_voxels': [],
-        'track1_length': [],
-        'track2_E':      [],
-        'track2_voxels': [],
-        'track2_length': [],
-        'tracks_filter': [],
-        'blob1_E':       [],
-        'blob2_E':       [],
-        'blobs_filter':  [],
-        'roi_filter':    []
+    event_data : Dict[str, Any] = {
+        'id'           : np.nan,
+        'num_tracks'   : np.nan,
+        'track0_E'     : np.nan,
+        'track0_voxels': np.nan,
+        'track0_length': np.nan,
+        'track1_E'     : np.nan,
+        'track1_voxels': np.nan,
+        'track1_length': np.nan,
+        'track2_E'     : np.nan,
+        'track2_voxels': np.nan,
+        'track2_length': np.nan,
+        'tracks_filter': False,
+        'blob1_E'      : np.nan,
+        'blob2_E'      : np.nan,
+        'blobs_filter' : False,
+        'roi_filter'   : False
     }
+    
+    return event_data
+
+
+
+def get_events_ana_dict() -> Dict[str, List[Any]]:
+    """
+    It returns the dictionary to store the analysis data from all the events.
+    """
+    
+    event_data  = get_event_ana_data()    
+
+    events_dict : Dict[str, List[Any]] = {}    
+    for key in event_data.keys():
+        events_dict[key] = []
+    
     return events_dict
 
 
 
-def extend_events_ana_data(events_dict   : Dict[str, List[Any]],
-                           event_id      : int,
-                           num_tracks    : int,
-                           track0_E      : float,
-                           track0_voxels : int,
-                           track0_length : float,
-                           track1_E      : float,
-                           track1_voxels : int,
-                           track1_length : float,
-                           track2_E      : float,
-                           track2_voxels : int,
-                           track2_length : float,
-                           tracks_filter : bool,
-                           blob1_E       : float = np.nan,
-                           blob2_E       : float = np.nan,
-                           blobs_filter  : bool  = False,
-                           roi_filter    : bool  = False
-                          ) -> None:
+def extend_events_ana_dict(    
+    events_dict : Dict[str, List[Any]],
+    event_data  : Dict[str, Any]) -> None:
     """
-    It stores all the event data from the analysis into the events_dict.
+    It stores all the data related to an event into the events_dict.
     The values not passed in the function called are set to default values
     to fill all the dictionary fields per event.
     """
-    events_dict['id'].extend([event_id])
-    events_dict['num_tracks'].extend([num_tracks])
-    events_dict['track0_E'].extend([track0_E])
-    events_dict['track0_voxels'].extend([track0_voxels])
-    events_dict['track0_length'].extend([track0_length])
-    events_dict['track1_E'].extend([track1_E])
-    events_dict['track1_voxels'].extend([track1_voxels])
-    events_dict['track1_length'].extend([track1_length])
-    events_dict['track2_E'].extend([track2_E])
-    events_dict['track2_voxels'].extend([track2_voxels])
-    events_dict['track2_length'].extend([track2_length])
-    events_dict['tracks_filter'].extend([tracks_filter])
-    events_dict['blob1_E'].extend([blob1_E])
-    events_dict['blob2_E'].extend([blob2_E])
-    events_dict['blobs_filter'].extend([blobs_filter])
-    events_dict['roi_filter'].extend([roi_filter])
+    
+    assert type(event_data['id']) == int, "event id is mandatory"
+    
+    for key in event_data.keys():
+        events_dict[key].extend([event_data[key]])
 
 
 
-def store_events_ana_data(file_name   : str,
+def store_events_ana_dict(file_name   : str,
                           group_name  : str,
                           events_df   : pd.DataFrame,
                           events_dict : Dict[str, List[Any]]
@@ -179,7 +169,7 @@ def store_events_ana_counters(oFile                : tb.file.File,
 
 
 
-########## VOXELS IO FUNCTIONS ##########
+############### VOXELS IO FUNCTIONS ###############
 
 def get_voxels_ana_dict() -> Dict[str, List[Any]]:
 	"""
@@ -197,7 +187,7 @@ def get_voxels_ana_dict() -> Dict[str, List[Any]]:
 
 
 
-def extend_voxels_ana_data(voxels_dict    : Dict[str, List[Any]],
+def extend_voxels_ana_dict(voxels_dict    : Dict[str, List[Any]],
                            event_id       : int,
                            voxel_indx     : List[int],
                            voxels_newE    : List[float],
@@ -220,7 +210,7 @@ def extend_voxels_ana_data(voxels_dict    : Dict[str, List[Any]],
 
 
 
-def store_voxels_ana_data(file_name   : str,
+def store_voxels_ana_dict(file_name   : str,
                           group_name  : str,
                           voxels_df   : pd.DataFrame,
                           voxels_dict : Dict[str, List[Any]]
