@@ -1,5 +1,6 @@
 import math
-import numpy as np
+import numpy  as np
+import pandas as pd
 
 from typing import Tuple, List
 
@@ -13,42 +14,42 @@ from fanal.core.fanal_types import SpatialDef, VolumeDim
 
 
 def get_voxel_size(spatial_def : SpatialDef) -> Tuple[float, float, float]:
-	"""
-	It returns a tuple with the size of voxels to use.
-	spatial_def: SpatialDef: enum ('low' or 'high')
-	"""
-	if spatial_def == SpatialDef.low:
-		size = (10., 10., 5.)
+    """
+    It returns a tuple with the size of voxels to use.
+    spatial_def: SpatialDef: enum ('low' or 'high')
+    """
+    if spatial_def == SpatialDef.low:
+        size = (15., 15., 15.)
 
-	elif spatial_def == SpatialDef.high:
-		size = (2., 2., 2.)
+    elif spatial_def == SpatialDef.std:
+        size = (10., 10., 10.)
 
-	return size
+    elif spatial_def == SpatialDef.high:
+        size = (3., 3., 3.)
+
+    return size
 
 
 
-def translate_hit_positions(mcHits         : List[MCHit],
-                            drift_velocity : float
-						   ) -> List[Tuple[float, float, float]]:
-	"""
-	In MC simulations all the hits of a MC event are assigned to the same event.
-	In some special cases these events may contain hits in a period of time
-	much longer than the corresponding to an event.
-	Some of them occur with a delay that make them being reconstructed in shifted-Zs.
-	This functions accomplish all these situations.
-	"""
-	mc_times = np.array([hit.time for hit in mcHits])
-	min_time, max_time = min(mc_times), max(mc_times)
-
-	# Only applying to events wider than 1 micro second
-	if ((max_time-min_time) > 1.*units.mus):
-		transPositions = [(hit.X, hit.Y, hit.Z + \
-		                  (hit.time-min_time) * drift_velocity) \
-			              for hit in mcHits]
-	else:
-		transPositions = [(hit.X, hit.Y, hit.Z) for hit in mcHits]
-
-	return transPositions
+def translate_hit_positions(active_mcHits : pd.DataFrame,
+                            drift_velocity: float) -> None:
+    """
+    In MC simulations all the hits of a MC event are assigned to the same event.
+    In some special cases these events may contain hits in a period of time
+    much longer than the corresponding to an event.
+    Some of them occur with a delay that make them being reconstructed in shifted-Zs.
+    This functions accomplish all these situations.
+    """
+    
+    hit_times = active_mcHits.time
+    min_time, max_time = hit_times.min(), hit_times.max()
+    
+    # Only applying to events wider than 1 micro second
+    if ((max_time - min_time) > 1.*units.mus):
+        active_mcHits['shifted_z'] = active_mcHits['z'] + \
+                                     (active_mcHits['time'] - min_time) * drift_velocity
+    else:
+        active_mcHits['shifted_z'] = active_mcHits['z']
 
 
 

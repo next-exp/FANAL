@@ -9,6 +9,7 @@ from typing   import List, Sequence, Tuple
 
 import invisible_cities.core.system_of_units as units
 
+
 logger = logging.getLogger('FanalAna')
 
 
@@ -34,17 +35,16 @@ def get_new_energies(event_voxels : pd.DataFrame) -> List[float]:
 
     negl_neig_pairs = []
     neig_index = []
-    for i in negl_voxels.index:
-        negl_voxel = event_voxels.loc[i]
 
+    for i, negl_voxel in negl_voxels.iterrows():
         # looking the closest neighbour of every negligible voxel
         min_dist = 1000
         closest_index = i
-        for j in event_voxels.index:
+        for j, event_voxel in event_voxels.iterrows():
             if ((i != j) & (j not in negl_voxels.index)):
-                dist = np.sqrt((negl_voxel.X-event_voxels.loc[j].X)**2 +
-                               (negl_voxel.Y-event_voxels.loc[j].Y)**2 +
-                               (negl_voxel.Z-event_voxels.loc[j].Z)**2)
+                dist = np.sqrt((negl_voxel.X-event_voxel.X)**2 +
+                               (negl_voxel.Y-event_voxel.Y)**2 +
+                               (negl_voxel.Z-event_voxel.Z)**2)
                 if dist < min_dist:
                     min_dist = dist
                     closest_index = j
@@ -57,20 +57,20 @@ def get_new_energies(event_voxels : pd.DataFrame) -> List[float]:
 
     # Generating the list of new energies
     new_energies = []
-    for i in event_voxels.index:
+    for i, event_voxel in event_voxels.iterrows():
         # if negligible voxel -> new energy = 0
         if i in negl_voxels.index:
             new_energies.append(0.)
         # if voxel is the closest neigh. of any voxel ->
         # new energy = old_energy + negligibles
         elif i in neig_index:
-            new_voxelE = event_voxels.loc[i].E
+            new_voxelE = event_voxel.E
             extraE = sum(event_voxels.loc[pair[0]].E for pair in negl_neig_pairs \
                      if i == pair[1])
             new_energies.append(new_voxelE + extraE)
         # The rest of voxels maintain their energies
         else:
-            new_energies.append(event_voxels.loc[i].E)
+            new_energies.append(event_voxel.E)
 
     return new_energies
 
@@ -94,10 +94,10 @@ def get_voxel_track_relations(event_voxels : pd.DataFrame,
     A list with the track id each voxel belongs to.
     """
     voxel_tracks = []
-    for i in event_voxels.index:
-        if not event_voxels.loc[i].negli:
+    for i, event_voxel in event_voxels.iterrows():
+        if not event_voxel.negli:
             found = False
-            voxel_pos = (event_voxels.loc[i].X, event_voxels.loc[i].Y, event_voxels.loc[i].Z)
+            voxel_pos = (event_voxel.X, event_voxel.Y, event_voxel.Z)
             # Look into each track
             for j in range(len(event_tracks)):
                 for node in event_tracks[j].nodes():

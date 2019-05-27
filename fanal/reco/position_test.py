@@ -2,7 +2,8 @@
 Tests for position
 """
 
-import numpy as np
+import numpy  as np
+import pandas as pd
 import pytest
 
 from pytest        import mark
@@ -43,14 +44,17 @@ def test_get_voxel_size():
 
 
 def test_translate_hit_positions():
-    mcHits = [MCHit(pos = (0., 0., 0.), E = 1., t =  0. * units.mus, l = 'test'),
-              MCHit(pos = (0., 0., 0.), E = 1., t = 10. * units.mus, l = 'test'),
-              MCHit(pos = (0., 0., 0.), E = 1., t = 20. * units.mus, l = 'test')]
+    mcHits = [{'label': 'test', 'time':  0 * units.mus, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': 10 * units.mus, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': 20 * units.mus, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01}]
+    mcHits = pd.DataFrame(mcHits, columns = ('label', 'time', 'x', 'y', 'z', 'E'))
+
     drift_velocity = 1. * units.mm / units.mus
-    new_positions = [(0., 0.,  0.),
-                     (0., 0., 10.),
-                     (0., 0., 20.)]
-    assert new_positions == translate_hit_positions(mcHits, drift_velocity)
+    translate_hit_positions(mcHits, drift_velocity)
+
+    OK_shifted_z = [0., 10., 20.]
+
+    assert_array_equal(OK_shifted_z, mcHits.shifted_z)
 
 
 

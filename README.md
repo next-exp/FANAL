@@ -8,9 +8,8 @@ Directory structure:
 
 core/ (General functions)
 
-sim/ (To add simulation stuff)
+mc/ (To add montecarlo stuff)
 
 reco/ (To add reconstruction stuff)
 
 ana/ (To add analysis stuff)
-

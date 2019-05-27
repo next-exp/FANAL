@@ -21,8 +21,10 @@ class DetName(Enum):
 
 
 class SpatialDef(Enum):
-	low     = 1
-	high    = 2
+	# Correspondig xoxel sizes defined in reco/position.py
+	low  = 1
+	std  = 2
+	high = 3
 
 
 @dataclass
