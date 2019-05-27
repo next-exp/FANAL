@@ -54,7 +54,7 @@ def get_event_reco_data() -> Dict[str, Any]:
     during the fanalIC reconstruction step.
     """
     event_data : Dict[str, Any] = {
-        'event_indx'   : np.nan,
+        'event_id'     : np.nan,
         'num_MCparts'  : np.nan, 
         'num_MChits'   : np.nan,  
         'mcE'          : np.nan,
@@ -98,7 +98,7 @@ def extend_events_reco_dict(
     to fill all the dictionary fields per event.
     """
     
-    assert type(event_data['event_indx']) == int, "event_index is mandatory"
+    assert type(event_data['event_id']) == int, "event_id is mandatory"
     
     for key in event_data.keys():
         events_dict[key].extend([event_data[key]])
@@ -117,7 +117,7 @@ def store_events_reco_dict(file_name   : str,
     events_df = pd.DataFrame(events_dict)
 
     # Formatting DF
-    events_df.set_index('event_indx', inplace = True)
+    events_df.set_index('event_id', inplace = True)
     events_df.sort_index()
 
     # Storing DF
@@ -154,13 +154,13 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 	during the fanalIC reconstruction step.
 	"""
 	voxels_dict : Dict[str, List[Any]] = {
-        'event_indx': [],
-        'voxel_indx': [],
-        'X'         : [],
-        'Y'         : [],
-        'Z'         : [],
-        'E'         : [],
-        'negli'     : []
+        'event_id': [],
+        'voxel_id': [],
+        'X'       : [],
+        'Y'       : [],
+        'Z'       : [],
+        'E'       : [],
+        'negli'   : []
     }
 
 	return voxels_dict
@@ -168,21 +168,21 @@ def get_voxels_reco_dict() -> Dict[str, List[Any]]:
 
 
 def extend_voxels_reco_dict(voxels_dict : Dict[str, List[Any]],
-                            event_indx  : int,
-                            voxel_indx  : int,
+                            event_id    : int,
+                            voxel_id    : int,
                             voxel       : Voxel,
                             voxel_Eth   : float
                            ) -> None:
     """
     It stores all the data related to a voxel into the voxels_dict.
     """
-    voxels_dict['event_indx'].extend([event_indx])
-    voxels_dict['voxel_indx'].extend([voxel_indx])
-    voxels_dict['X']         .extend([voxel.X])
-    voxels_dict['Y']         .extend([voxel.Y])
-    voxels_dict['Z']         .extend([voxel.Z])
-    voxels_dict['E']         .extend([voxel.E])
-    voxels_dict['negli']     .extend([voxel.E < voxel_Eth])
+    voxels_dict['event_id'].extend([event_id])
+    voxels_dict['voxel_id'].extend([voxel_id])
+    voxels_dict['X']       .extend([voxel.X])
+    voxels_dict['Y']       .extend([voxel.Y])
+    voxels_dict['Z']       .extend([voxel.Z])
+    voxels_dict['E']       .extend([voxel.E])
+    voxels_dict['negli']   .extend([voxel.E < voxel_Eth])
 
 
 
@@ -198,11 +198,12 @@ def store_voxels_reco_dict(file_name   : str,
     voxels_df = pd.DataFrame(voxels_dict)
 
     # Formatting DF
-    voxels_df.set_index(['event_indx', 'voxel_indx'], inplace = True)
+    voxels_df.set_index(['event_id', 'voxel_id'], inplace = True)
     voxels_df.sort_index()
 
     # Storing DF
-    #voxels_df.to_hdf(file_name, group_name + '/voxels', format='table', data_columns='event_indx')
+    #voxels_df.to_hdf(file_name, group_name + '/voxels', format='table',
+    #                 data_columns='event_id')
     voxels_df.to_hdf(file_name, group_name + '/voxels',
                      format = 'table', data_columns = True)
 

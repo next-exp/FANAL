@@ -170,17 +170,17 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
         print('* Processing {} ...'.format(iFileName))
 
         ### Looping through all the events that passed the fiducial filter
-        for event_id, event_df in file_events[file_events.fid_filter].iterrows():        
+        for event_number, event_df in file_events[file_events.fid_filter].iterrows():        
 
             # Updating counter of analyzed events
             analyzed_events += 1
-            logger.info('Analyzing event Id: {0} ...'.format(event_id))
+            logger.info('Analyzing event Id: {0} ...'.format(event_number))
 
             # Getting event data
             event_data = get_event_ana_data()
-            event_data['id'] = event_id
+            event_data['event_id'] = event_number
             
-            event_voxels = file_voxels.loc[event_id]
+            event_voxels = file_voxels.loc[event_number]
             num_event_voxels = len(event_voxels)
             num_event_voxels_negli = len(event_voxels[event_voxels.negli == True])
             voxel_dimensions = (event_df.voxel_sizeX,
@@ -215,7 +215,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
             event_voxels_tracks = get_voxel_track_relations(event_voxels, event_tracks)
 
             # Appending ana-info to this event voxels
-            extend_voxels_ana_dict(voxels_dict, event_id, event_voxels.index.tolist(),
+            extend_voxels_ana_dict(voxels_dict, event_number, event_voxels.index.tolist(),
                                    event_voxels_newE, event_voxels_tracks)
 
             # Processing tracks: Getting energies, sorting and filtering ...
@@ -265,7 +265,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
                 if event_data['blobs_filter']:
 
                     # Getting the total event smeared energy
-                    event_smE = file_events.loc[event_id].smE
+                    event_smE = file_events.loc[event_number].smE
                     
                     # Applying the ROI filter
                     event_data['roi_filter'] = ((event_smE >= roi_Emin) & (event_smE <= roi_Emax))

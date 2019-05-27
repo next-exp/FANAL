@@ -15,24 +15,24 @@ def load_mc_hits(iFileName: str) -> pd.DataFrame :
         hits_tb  = iFile.root.MC.hits
     
         # Generating hits DataFrame
-        hits = pd.DataFrame({'hit_indx'      : hits_tb.col('hit_indx'),
-                             'particle_indx' : hits_tb.col('particle_indx'),
-                             'label'         : hits_tb.col('label').astype('U13'),
-                             'time'          : hits_tb.col('hit_time'),
-                             'x'             : hits_tb.col('hit_position')[:, 0],
-                             'y'             : hits_tb.col('hit_position')[:, 1],
-                             'z'             : hits_tb.col('hit_position')[:, 2],
-                             'E'             : hits_tb.col('hit_energy')})
+        hits = pd.DataFrame({'hit_id'      : hits_tb.col('hit_indx'),
+                             'particle_id' : hits_tb.col('particle_indx'),
+                             'label'       : hits_tb.col('label').astype('U13'),
+                             'time'        : hits_tb.col('hit_time'),
+                             'x'           : hits_tb.col('hit_position')[:, 0],
+                             'y'           : hits_tb.col('hit_position')[:, 1],
+                             'z'           : hits_tb.col('hit_position')[:, 2],
+                             'E'           : hits_tb.col('hit_energy')})
                 
         evt_hit_df = extents[['last_hit', 'evt_number']]
         evt_hit_df.set_index('last_hit', inplace = True)
         hits = hits.merge(evt_hit_df, left_index=True, right_index=True, how='left')
-        hits.rename(columns={"evt_number": "event_indx"}, inplace = True)
-        hits.event_indx.fillna(method='bfill', inplace = True)
-        hits.event_indx = hits.event_indx.astype(int)
+        hits.rename(columns={"evt_number": "event_id"}, inplace = True)
+        hits.event_id.fillna(method='bfill', inplace = True)
+        hits.event_id = hits.event_id.astype(int)
 
         # Setting the indexes
-        hits.set_index(['event_indx', 'particle_indx', 'hit_indx'], inplace=True)
+        hits.set_index(['event_id', 'particle_id', 'hit_id'], inplace=True)
         
     return hits
 
@@ -47,10 +47,10 @@ def load_mc_particles(iFileName: str) -> pd.DataFrame :
         parts_tb = iFile.root.MC.particles
     
         # Generating parts DataFrame
-        parts = pd.DataFrame({'particle_indx'  : parts_tb.col('particle_indx'),
+        parts = pd.DataFrame({'particle_id'    : parts_tb.col('particle_indx'),
                               'name'           : parts_tb.col('particle_name').astype('U20'),
                               'primary'        : parts_tb.col('primary').astype('bool'),
-                              'mother_indx'    : parts_tb.col('mother_indx'),
+                              'mother_id'      : parts_tb.col('mother_indx'),
                               'ini_x'          : parts_tb.col('initial_vertex')[:, 0],
                               'ini_y'          : parts_tb.col('initial_vertex')[:, 1],
                               'ini_z'          : parts_tb.col('initial_vertex')[:, 2],
@@ -71,12 +71,12 @@ def load_mc_particles(iFileName: str) -> pd.DataFrame :
         evt_part_df = extents[['last_particle', 'evt_number']]
         evt_part_df.set_index('last_particle', inplace = True)
         parts = parts.merge(evt_part_df, left_index=True, right_index=True, how='left')
-        parts.rename(columns={"evt_number": "event_indx"}, inplace = True)
-        parts.event_indx.fillna(method='bfill', inplace = True)
-        parts.event_indx = parts.event_indx.astype(int)
+        parts.rename(columns={"evt_number": "event_id"}, inplace = True)
+        parts.event_id.fillna(method='bfill', inplace = True)
+        parts.event_id = parts.event_id.astype(int)
 
         # Setting the indexes
-        parts.set_index(['event_indx', 'particle_indx'], inplace=True)
+        parts.set_index(['event_id', 'particle_id'], inplace=True)
 
     return parts
 

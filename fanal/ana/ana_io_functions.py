@@ -53,7 +53,7 @@ def get_event_ana_data() -> Dict[str, Any]:
     during the fanalIC analysis step.
     """
     event_data : Dict[str, Any] = {
-        'id'           : np.nan,
+        'event_id'     : np.nan,
         'num_tracks'   : np.nan,
         'track0_E'     : np.nan,
         'track0_voxels': np.nan,
@@ -99,7 +99,7 @@ def extend_events_ana_dict(
     to fill all the dictionary fields per event.
     """
     
-    assert type(event_data['id']) == int, "event id is mandatory"
+    assert type(event_data['event_id']) == int, "event_id is mandatory"
     
     for key in event_data.keys():
         events_dict[key].extend([event_data[key]])
@@ -122,8 +122,7 @@ def store_events_ana_dict(file_name   : str,
     new_data_df = pd.DataFrame(events_dict)
 
     # Formatting the new DF        
-    new_data_df.rename(columns={"id": "event_indx"}, inplace = True)
-    new_data_df.set_index('event_indx', inplace=True)
+    new_data_df.set_index('event_id', inplace=True)
 
     # Merging reco data with new ana data
     events_df = events_df.merge(new_data_df, left_index=True,
@@ -177,21 +176,21 @@ def get_voxels_ana_dict() -> Dict[str, List[Any]]:
 	during the fanalIC analysis step.
 	"""
 	voxels_dict : Dict[str, List[Any]] = {
-        'event_indx': [],
-        'voxel_indx': [],
-		'newE'      : [],
-		'trackID'   : []
+        'event_id' : [],
+        'voxel_id' : [],
+		'newE'     : [],
+		'track_id' : []
 	}
 
 	return voxels_dict
 
 
 
-def extend_voxels_ana_dict(voxels_dict    : Dict[str, List[Any]],
-                           event_id       : int,
-                           voxel_indx     : List[int],
-                           voxels_newE    : List[float],
-                           voxels_trackID : List[int]
+def extend_voxels_ana_dict(voxels_dict     : Dict[str, List[Any]],
+                           event_id        : int,
+                           voxel_id        : List[int],
+                           voxels_newE     : List[float],
+                           voxels_track_id : List[int]
                           ) -> None:
     """
     It stores all the data related with the analysis of voxels
@@ -199,14 +198,14 @@ def extend_voxels_ana_dict(voxels_dict    : Dict[str, List[Any]],
     """
 
     # Checking all Lists have the same length
-    assert (len(voxel_indx) == len(voxels_newE) == len(voxels_trackID)), \
+    assert (len(voxel_id) == len(voxels_newE) == len(voxels_track_id)), \
         "extend_voxels_ana_data. All the lists must have the same length. {} {} {}" \
-        .format(len(voxel_indx), len(voxels_newE), len(voxels_trackID))
+        .format(len(voxel_id), len(voxels_newE), len(voxels_track_id))
 
-    voxels_dict['event_indx'].extend([event_id] * len(voxel_indx))
-    voxels_dict['voxel_indx'].extend(voxel_indx)
-    voxels_dict['newE']      .extend(voxels_newE)
-    voxels_dict['trackID']   .extend(voxels_trackID)
+    voxels_dict['event_id'].extend([event_id] * len(voxel_id))
+    voxels_dict['voxel_id'].extend(voxel_id)
+    voxels_dict['newE']    .extend(voxels_newE)
+    voxels_dict['track_id'].extend(voxels_track_id)
 
 
 
@@ -226,7 +225,7 @@ def store_voxels_ana_dict(file_name   : str,
     new_data_df = pd.DataFrame(voxels_dict)
 
     # Formatting the new DF        
-    new_data_df.set_index(['event_indx', 'voxel_indx'], inplace=True)
+    new_data_df.set_index(['event_id', 'voxel_id'], inplace=True)
 
     # Merging reco data with new ana data
     voxels_df = voxels_df.merge(new_data_df, left_index=True,

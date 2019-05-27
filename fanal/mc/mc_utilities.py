@@ -30,9 +30,7 @@ def print_mc_particles(mcParticles:  pd.DataFrame,
     
     part_tab = ' ' * 2
     
-    for part_id in mcParticles.index.get_level_values(0):
-        part = mcParticles.loc[part_id, :]
-        
+    for part_id, part in mcParticles.iterrows():
         # General Info
         print()
         print(part_tab + 'Particle {0}: name = {1},   primary = {2}'
@@ -40,9 +38,9 @@ def print_mc_particles(mcParticles:  pd.DataFrame,
         
         # Creator Info
         if not part.primary:
-            mother_part = mcParticles.loc[part.mother_indx, :]
+            mother_part = mcParticles.loc[part.mother_id, :]
             print(part_tab + 'Prod.: Process = {0},   Mother index = {1} ({2})'
-                  .format(part.creator_proc, part.mother_indx, mother_part['name']))
+                  .format(part.creator_proc, part.mother_id, mother_part['name']))
 
         # Production Info
         print(part_tab + 'Prod.: Mom = ({0:.1f}, {1:.1f}, {2:.1f}) keV,   KinE: {3:.1f} keV'
@@ -56,10 +54,9 @@ def print_mc_particles(mcParticles:  pd.DataFrame,
               .format(part.final_volume, part.final_x, part.final_y, part.final_z))
 
         # Daughter Particles Info
-        daughter_parts = mcParticles[mcParticles.mother_indx == part_id]
+        daughter_parts = mcParticles[mcParticles.mother_id == part_id]
         print(part_tab + '{} daughter particles:'.format(len(daughter_parts)))
-        for daugh_id in daughter_parts.index.get_level_values(0):
-            daugh_part = daughter_parts.loc[daugh_id, :]
+        for daugh_id, daugh_part in daughter_parts.iterrows():
             print(part_tab*2, 'Part {0}   Name: {1:10},   Volume: {2}'.format(daugh_id,
                                                                               daugh_part['name'],
                                                                               daugh_part.initial_volume))
@@ -69,14 +66,16 @@ def print_mc_particles(mcParticles:  pd.DataFrame,
             if (part_id in mcHits.index.get_level_values(0)):
                 part_hits = mcHits.loc[part_id, :]
                 print(part_tab +'{} MC Hits:'.format(len(part_hits)))
-                for hit_id in part_hits.index.get_level_values(0):
-                    hit = part_hits.loc[hit_id, :]
+
+
+                print(part_hits)
+                for hit_id, hit in part_hits.iterrows():
                     print(part_tab*2, 'Hit {:2}   Det: {},   E: {:5.1f} KeV   ({:5.0f}, {:5.0f}, {:5.0f}) mm,   t: {:.1e} us,   Evt. t: {:.1e} us'
                           .format(hit_id, hit.label, hit.E/units.keV, hit.x, hit.y, hit.z,
                                   hit.time/units.mus, (hit.time - evt_ini_time)/units.mus))
+
             else:
                 print(part_tab +'0 MC Hits')
-
 
 
 
@@ -85,7 +84,7 @@ def print_mc_event(event_id:   int,
                    with_hits:  bool = False
                   ) -> None:
     """Prints the information of the event corresponding to event_id.
-It will look for it into all the list of iFileNames passed."""
+    It will look for it into all the list of iFileNames passed."""
     
     # Going through all the input files
     for iFileName in iFileNames:

@@ -39,15 +39,15 @@ from fanal.ana.ana_functions import process_tracks
 # and being the 2nd voxel, its closest neighbour.
 voxels_dict = get_voxels_reco_dict()
 voxel_Eth   = 0.005
-voxels_dict['event_indx'] = [ 1 ,    1 ,    1 ,    1 ,    1 ]
-voxels_dict['voxel_indx'] = [ 1 ,    2 ,    3 ,    4 ,    5 ]
-voxels_dict['X']          = [30.,   30.,   30.,   30.,   30.]
-voxels_dict['Y']          = [30.,   30.,   30.,   30.,   40.]
-voxels_dict['Z']          = [30.,   40.,   50.,   60.,   40.]
-voxels_dict['E']          = [0.1,   0.1,   0.1,   0.1,   0.001]
-voxels_dict['negli']      = [False, False, False, False, True]
+voxels_dict['event_id'] = [ 1 ,    1 ,    1 ,    1 ,    1 ]
+voxels_dict['voxel_id'] = [ 1 ,    2 ,    3 ,    4 ,    5 ]
+voxels_dict['X']        = [30.,   30.,   30.,   30.,   30.]
+voxels_dict['Y']        = [30.,   30.,   30.,   30.,   40.]
+voxels_dict['Z']        = [30.,   40.,   50.,   60.,   40.]
+voxels_dict['E']        = [0.1,   0.1,   0.1,   0.1,   0.001]
+voxels_dict['negli']    = [False, False, False, False, True]
 voxels_df1 = pd.DataFrame(voxels_dict)
-voxels_df1.set_index(['event_indx', 'voxel_indx'], inplace=True)
+voxels_df1.set_index(['event_id', 'voxel_id'], inplace=True)
 
 
 def test_get_new_energies():
@@ -63,15 +63,15 @@ def test_get_new_energies():
 # And finally a negligible voxel
 voxels_dict = get_voxels_reco_dict()
 voxel_Eth   = 0.005
-voxels_dict['event_indx'] = [ 1 ,    1 ,    1 ,    1 ,    1 ,    1 ,    1 ]
-voxels_dict['voxel_indx'] = [ 1 ,    2 ,    3 ,    4 ,    5 ,    6 ,    7 ]
-voxels_dict['X']          = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
-voxels_dict['Y']          = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
-voxels_dict['Z']          = [30.,   40.,   30.,   60.,   70.,   80.,   80.]
-voxels_dict['E']          = [0.1,   0.1,   0.1,   0.1,   0.1,   0.1,   0.001]
-voxels_dict['negli']      = [False, False, False, False, False, False, True]
+voxels_dict['event_id'] = [ 1 ,    1 ,    1 ,    1 ,    1 ,    1 ,    1 ]
+voxels_dict['voxel_id'] = [ 1 ,    2 ,    3 ,    4 ,    5 ,    6 ,    7 ]
+voxels_dict['X']        = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
+voxels_dict['Y']        = [30.,   30.,   60.,   60.,   60.,   60.,   20.]
+voxels_dict['Z']        = [30.,   40.,   30.,   60.,   70.,   80.,   80.]
+voxels_dict['E']        = [0.1,   0.1,   0.1,   0.1,   0.1,   0.1,   0.001]
+voxels_dict['negli']    = [False, False, False, False, False, False, True]
 voxels_df2 = pd.DataFrame(voxels_dict)
-voxels_df2.set_index(['event_indx', 'voxel_indx'], inplace=True)
+voxels_df2.set_index(['event_id', 'voxel_id'], inplace=True)
 
 voxel_dimensions = (10., 10., 10.)
 ic_voxels = [Voxel(voxels_df2.iloc[i].X, voxels_df2.iloc[i].Y,

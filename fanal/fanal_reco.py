@@ -175,7 +175,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         print('* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
         # Getting mc hits
-        file_mcHits  = load_mc_hits(iFileName)
+        file_mcHits = load_mc_hits(iFileName)
 
         # Looping through all the events in iFile
         for event_number in file_event_numbers:
@@ -186,7 +186,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
             # Getting event data
             event_data = get_event_reco_data()
-            event_data['event_indx'] = event_number
+            event_data['event_id'] = event_number
             
             event_mcHits  = file_mcHits.loc[event_number, :]
             active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
