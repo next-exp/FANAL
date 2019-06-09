@@ -33,7 +33,7 @@ def test_raise_value_error_if_unknown_SpatialDef():
 def test_reco_group_name():
 	fwhm = 0.5
 	spd  = SpatialDef.low
-	reco_group_name = f'/FANALIC/RECO_05fmhm_lowDef'
+	reco_group_name = f'/FANALIC/RECO_05fwhm_lowDef'
 	assert reco_group_name == get_reco_group_name(fwhm, spd)
 
 

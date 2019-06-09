@@ -33,6 +33,6 @@ def test_raise_value_error_if_unknown_SpatialDef():
 def test_ana_group_name():
     fwhm = 0.5
     spd  = SpatialDef.low
-    ana_group_name = '/FANALIC/ANA_05fmhm_lowDef'
+    ana_group_name = '/FANALIC/ANA_05fwhm_lowDef'
     assert ana_group_name == get_ana_group_name(fwhm, spd)
 

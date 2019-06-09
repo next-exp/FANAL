@@ -13,9 +13,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from typing import Sequence, Union, Dict, Any, List, Mapping
 
 import invisible_cities.core.system_of_units as units
-from invisible_cities.io.mcinfo_io           import load_mchits
-from invisible_cities.io.mcinfo_io           import load_mcparticles
-from invisible_cities.io.mcinfo_io           import load_mcsensor_response
 from invisible_cities.evm.event_model        import MCParticle
 
 from fanal.mc.mc_io_functions  import load_mc_particles
@@ -67,8 +64,6 @@ def print_mc_particles(mcParticles:  pd.DataFrame,
                 part_hits = mcHits.loc[part_id, :]
                 print(part_tab +'{} MC Hits:'.format(len(part_hits)))
 
-
-                print(part_hits)
                 for hit_id, hit in part_hits.iterrows():
                     print(part_tab*2, 'Hit {:2}   Det: {},   E: {:5.1f} KeV   ({:5.0f}, {:5.0f}, {:5.0f}) mm,   t: {:.1e} us,   Evt. t: {:.1e} us'
                           .format(hit_id, hit.label, hit.E/units.keV, hit.x, hit.y, hit.z,

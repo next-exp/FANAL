@@ -42,7 +42,7 @@ def get_reco_group_name(fwhm        : float,
     A string (the group name)
 	"""
 
-  return f"/FANALIC/RECO_{str(fwhm).replace('.', '')}fmhm_{spatial_def.name}Def"
+  return f"/FANALIC/RECO_{str(fwhm).replace('.', '')}fwhm_{spatial_def.name}Def"
 
 
 
