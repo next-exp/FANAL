@@ -21,19 +21,15 @@ from invisible_cities.core.testing_utils import float_arrays
 from invisible_cities.core.testing_utils import FLOAT_ARRAY
 from invisible_cities.core.testing_utils import random_length_float_arrays
 
-from fanal.reco.reco_io_functions import get_reco_group_name
-from fanal.core.fanal_types       import SpatialDef
+import invisible_cities.core.system_of_units  as     units
+from fanal.reco.reco_io_functions             import get_reco_group_name
 
-
-def test_raise_value_error_if_unknown_SpatialDef():
-	with pytest.raises(AttributeError):
-		x = get_reco_group_name(0.5, SpatialDef.does_not_exist)
 
 
 def test_reco_group_name():
-	fwhm = 0.5
-	spd  = SpatialDef.low
-	reco_group_name = f'/FANALIC/RECO_05fwhm_lowDef'
-	assert reco_group_name == get_reco_group_name(fwhm, spd)
+    fwhm = 0.51
+    voxel_size = (12. * units.mm, .5 * units.cm, 6.)
+    reco_group_name = '/FANALIC/RECO_fwhm_051_voxel_1256'
+    assert reco_group_name == get_reco_group_name(fwhm, voxel_size)
 
 

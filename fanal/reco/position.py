@@ -5,29 +5,11 @@ import pandas as pd
 from typing import Tuple, List
 
 # Specific IC stuff
-import invisible_cities.core.system_of_units as units
-from invisible_cities.evm.event_model         import MCHit, Voxel
+import invisible_cities.core.system_of_units as     units
+from   invisible_cities.evm.event_model      import MCHit, Voxel
 
 # Specific fanal stuff
-from fanal.core.fanal_types import SpatialDef, VolumeDim
-
-
-
-def get_voxel_size(spatial_def : SpatialDef) -> Tuple[float, float, float]:
-    """
-    It returns a tuple with the size of voxels to use.
-    spatial_def: SpatialDef: enum ('low' or 'high')
-    """
-    if spatial_def == SpatialDef.low:
-        size = (15., 15., 15.)
-
-    elif spatial_def == SpatialDef.std:
-        size = (10., 10., 10.)
-
-    elif spatial_def == SpatialDef.high:
-        size = (3., 3., 3.)
-
-    return size
+from fanal.core.fanal_types                  import VolumeDim
 
 
 

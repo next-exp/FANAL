@@ -27,7 +27,7 @@ from invisible_cities.core.testing_utils import random_length_float_arrays
 import invisible_cities.core.system_of_units as units
 from invisible_cities.evm.event_model        import MCHit, Voxel
 
-from fanal.core.fanal_types import SpatialDef, VolumeDim
+from fanal.core.fanal_types   import VolumeDim
 
 from fanal.mc.mc_io_functions import load_mc_hits
 from fanal.mc.mc_io_functions import load_mc_particles
