@@ -21,8 +21,8 @@ from typing   import List, Sequence, Tuple, Dict, Any
 
 
 
-def get_ana_group_name(fwhm        : float,
-                       voxel_size  : Tuple[float, float, float]
+def get_ana_group_name(fwhm       : float,
+                       voxel_size : Tuple[float, float, float]
                       ) -> str:
     """
     Define the ana_group:
@@ -39,9 +39,9 @@ def get_ana_group_name(fwhm        : float,
     A string (the group name)
     """
     fwhm_str  = 'fwhm_' + str(fwhm).replace('.', '')
-    voxel_str = 'voxel_{}{}{}'.format(int(voxel_size[0]),
-                                      int(voxel_size[1]),
-                                      int(voxel_size[2]))
+    voxel_str = 'voxel_{}x{}x{}'.format(int(voxel_size[0]),
+                                        int(voxel_size[1]),
+                                        int(voxel_size[2]))
     return '/FANALIC/ANA_' + fwhm_str + '_' + voxel_str
 
 
@@ -91,9 +91,8 @@ def get_events_ana_dict() -> Dict[str, List[Any]]:
 
 
 
-def extend_events_ana_dict(    
-    events_dict : Dict[str, List[Any]],
-    event_data  : Dict[str, Any]) -> None:
+def extend_events_ana_dict(events_dict : Dict[str, List[Any]],
+                           event_data  : Dict[str, Any]) -> None:
     """
     It stores all the data related to an event into the events_dict.
     The values not passed in the function called are set to default values

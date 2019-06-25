@@ -23,8 +23,8 @@ from invisible_cities.evm.event_model    import Voxel
 
 
 
-def get_reco_group_name(fwhm        : float,
-                        voxel_size  : Tuple[float, float, float]
+def get_reco_group_name(fwhm       : float,
+                        voxel_size : Tuple[float, float, float]
                        ) -> str:
     """
     Define the reco_group:
@@ -41,9 +41,9 @@ def get_reco_group_name(fwhm        : float,
     A string (the group name)
     """
     fwhm_str  = 'fwhm_' + str(fwhm).replace('.', '')
-    voxel_str = 'voxel_{}{}{}'.format(int(voxel_size[0]),
-                                      int(voxel_size[1]),
-                                      int(voxel_size[2]))
+    voxel_str = 'voxel_{}x{}x{}'.format(int(voxel_size[0]),
+                                        int(voxel_size[1]),
+                                        int(voxel_size[2]))
     return '/FANALIC/RECO_' + fwhm_str + '_' + voxel_str
 
 
