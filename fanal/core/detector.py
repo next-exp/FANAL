@@ -32,24 +32,36 @@ def get_active_size(detname : DetName) -> VolumeDim:
 
 
 
-def get_fiducial_size(active_size: VolumeDim,
-                      veto_width: float
-					 ) -> VolumeDim:
-	"""
-	Computes the dimensions of the fiducial volume.
+def get_fiducial_size(detname    : DetName,
+                      veto_width : float
+                     ) -> VolumeDim:
+    """
+    Computes the dimensions of the fiducial volume.
 
-	Parameters
- 	----------
-  	active_size:
-      A VolumeDim representing the dimensions of the detector ACTIVE volume.
-  	veto_width:
-      A float with the width of the veto region.
+    Parameters
+    ----------
+    detname    : DetName
+        Name of the detector.
+    veto_width : float
+        Width of the veto region.
 
-  	Returns
-  	-------
+    Returns
+    -------
     A VolumeDim with the dimensions of the fiducial volume
-	"""
+    """
 
-	return VolumeDim(z_min = active_size.z_min + veto_width,
-	                 z_max = active_size.z_max - veto_width,
-					 rad   = active_size.rad   - veto_width)
+    active_size = get_active_size(detname)
+    return VolumeDim(z_min = active_size.z_min + veto_width,
+                     z_max = active_size.z_max - veto_width,
+                     rad   = active_size.rad   - veto_width)
+
+
+
+def is_detector_symmetric(detname : DetName) -> bool:
+    """
+    Returns a bool value depending if the detector is symmetric or not.
+    """
+    if detname == DetName.next500:
+        return True
+    else:
+        return False

@@ -83,6 +83,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     ### DETECTOR NAME & its ACTIVE dimensions
     det_name = getattr(DetName, det_name)
     ACTIVE_dimensions = get_active_size(det_name)
+    fid_dimensions    = get_fiducial_size(det_name, veto_width)
 
 
     ### RECONSTRUCTION DATA
@@ -90,9 +91,6 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     fwhm_Qbb  = fwhm * Qbb
     sigma_Qbb = fwhm_Qbb / 2.355
     assert e_max > e_min, 'SmE_filter settings not valid. e_max must be higher than e_min.'
-
-    # Fiducial limits
-    fid_dimensions = get_fiducial_size(ACTIVE_dimensions, veto_width)
 
 
     ### PRINTING GENERAL INFO
@@ -217,7 +215,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 active_mcHits['smE'] = active_mcHits['E'] * smearing_factor
 
                 # Translating hit Z positions from delayed hits
-                translate_hit_positions(active_mcHits, DRIFT_VELOCITY)
+                translate_hit_positions(det_name, active_mcHits, DRIFT_VELOCITY)
 
                 # Creating the IChits with the smeared energies and translated Z positions
                 # to be passed to paolina functions
@@ -225,7 +223,8 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 #for i, hit in active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max].iterrows():
                 #    IChit = MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE')
                 #    IChits.append(IChit)
-                IChits = active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max] \
+                IChits = active_mcHits[(active_mcHits.shifted_z < ACTIVE_dimensions.z_max) &
+                                       (active_mcHits.shifted_z > ACTIVE_dimensions.z_min)] \
                     .apply(lambda hit: MCHit((hit.x, hit.y, hit.shifted_z),
                                              hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
 
@@ -247,7 +246,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 event_data['voxels_minZ'], event_data['voxels_maxZ'], \
                 event_data['voxels_maxRad'], event_data['veto_energy'], \
                 event_data['fid_filter'] = \
-                check_event_fiduciality(event_voxels, fid_dimensions, min_veto_e)
+                check_event_fiduciality(det_name, veto_width, min_veto_e, event_voxels)
                    
                 # Verbosing
                 logger.info('  NumVoxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto_E: {:.1f} keV   fid_filter: {}' \
