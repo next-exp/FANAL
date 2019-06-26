@@ -36,7 +36,6 @@ from fanal.reco.reco_io_functions import store_voxels_reco_dict
 from fanal.reco.energy        import smear_evt_energy
 from fanal.reco.energy        import smear_hit_energies
 
-from fanal.reco.position      import get_voxel_size
 from fanal.reco.position      import translate_hit_positions
 from fanal.reco.position      import check_event_fiduciality
 
@@ -44,7 +43,6 @@ from fanal.core.logger        import get_logger
 from fanal.core.detector      import get_active_size
 from fanal.core.detector      import get_fiducial_size
 from fanal.core.fanal_types   import DetName
-from fanal.core.fanal_types   import SpatialDef
 
 from fanal.mc.mc_io_functions import load_mc_particles
 from fanal.mc.mc_io_functions import load_mc_hits
@@ -66,7 +64,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                fwhm,        # FWHM at Qbb
                e_min,       # Minimum smeared energy for energy filtering
                e_max,       # Maximum smeared energy for energy filtering
-               spatial_def, # Spatial definition: 'low', 'std', high'
+               voxel_size,  # Voxel size (x, y, z)
                voxel_Eth,   # Voxel energy threshold
                veto_width,  # Veto width for fiducial filtering
                min_veto_e,  # Minimum energy in veto for fiducial filtering
@@ -85,6 +83,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     ### DETECTOR NAME & its ACTIVE dimensions
     det_name = getattr(DetName, det_name)
     ACTIVE_dimensions = get_active_size(det_name)
+    fid_dimensions    = get_fiducial_size(det_name, veto_width)
 
 
     ### RECONSTRUCTION DATA
@@ -93,32 +92,29 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     sigma_Qbb = fwhm_Qbb / 2.355
     assert e_max > e_min, 'SmE_filter settings not valid. e_max must be higher than e_min.'
 
-    # Spatial definition
-    spatial_def = getattr(SpatialDef, spatial_def)
-
-    # Voxel size
-    voxel_size = get_voxel_size(spatial_def)
-
-    # Fiducial limits
-    fid_dimensions = get_fiducial_size(ACTIVE_dimensions, veto_width)
-
 
     ### PRINTING GENERAL INFO
     print('\n***********************************************************************************')
     print('***** Detector: {}'.format(det_name.name))
     print('***** Reconstructing {} events'.format(event_type))
-    print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(fwhm / units.perCent))
-    print('***** Spatial definition: {}'.format(spatial_def.name))
+    print('***** Energy Resolution: {:.2f}% fwhm at Qbb'.format(fwhm / units.perCent))
+    print('***** Voxel Size: ({}, {}, {}) mm'.format(voxel_size[0] / units.mm,
+                                                     voxel_size[1] / units.mm,
+                                                     voxel_size[2] / units.mm))
     print('***********************************************************************************\n')
+
+    print('* Sigma at Qbb: {:.3f} keV.\n'.format(sigma_Qbb / units.keV))
+
+    print('* Voxel_size: ({}, {}, {}) mm'.format(voxel_size[0] / units.mm,
+                                                 voxel_size[1] / units.mm,
+                                                 voxel_size[2] / units.mm))
+    print('  Voxel Eth:  {:4.1f} keV\n'.format(voxel_Eth/units.keV))
 
     print('* Detector-Active dimensions [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}'
           .format(ACTIVE_dimensions.z_min, ACTIVE_dimensions.z_max,
                   ACTIVE_dimensions.rad))
     print('         ... fiducial limits [mm]:  Zmin: {:7.1f}   Zmax: {:7.1f}   Rmax: {:7.1f}\n'
           .format(fid_dimensions.z_min, fid_dimensions.z_max, fid_dimensions.rad))
-    print('* Sigma at Qbb: {:.3f} keV.\n'.format(sigma_Qbb / units.keV))
-    print('* Voxel_size: {} mm.'.format(voxel_size))
-    print('  Voxel Eth:  {:4.1f} keV\n'.format(voxel_Eth/units.keV))
 
     print('* {0} {1} input files:'.format(len(files_in), event_type))
     for iFileName in files_in:
@@ -130,7 +126,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     oFile = tb.open_file(file_out, 'w', filters = tbl_filters(compression))
 
     # Reco group Name
-    reco_group_name = get_reco_group_name(fwhm/units.perCent, spatial_def)
+    reco_group_name = get_reco_group_name(fwhm/units.perCent, voxel_size)
     oFile.create_group('/', 'FANALIC')
     oFile.create_group('/FANALIC', reco_group_name[9:])
 
@@ -138,14 +134,17 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     print('  Reco group name:  {}\n'.format(reco_group_name))
 
     # Attributes
-    oFile.set_node_attr(reco_group_name, 'input_sim_files', files_in)
-    oFile.set_node_attr(reco_group_name, 'event_type', event_type)
-    oFile.set_node_attr(reco_group_name, 'energy_resolution', fwhm/units.perCent)
-    oFile.set_node_attr(reco_group_name, 'voxel_Eth', voxel_Eth)
-    oFile.set_node_attr(reco_group_name, 'smE_filter_Emin', e_min)
-    oFile.set_node_attr(reco_group_name, 'smE_filter_Emax', e_max)
+    oFile.set_node_attr(reco_group_name, 'input_sim_files',           files_in)
+    oFile.set_node_attr(reco_group_name, 'event_type',                event_type)
+    oFile.set_node_attr(reco_group_name, 'energy_resolution',         fwhm/units.perCent)
+    oFile.set_node_attr(reco_group_name, 'voxel_sizeX',               voxel_size[0])
+    oFile.set_node_attr(reco_group_name, 'voxel_sizeY',               voxel_size[1])
+    oFile.set_node_attr(reco_group_name, 'voxel_sizeZ',               voxel_size[2])
+    oFile.set_node_attr(reco_group_name, 'voxel_Eth',                 voxel_Eth)
+    oFile.set_node_attr(reco_group_name, 'smE_filter_Emin',           e_min)
+    oFile.set_node_attr(reco_group_name, 'smE_filter_Emax',           e_max)
     oFile.set_node_attr(reco_group_name, 'fiducial_filter_VetoWidth', veto_width)
-    oFile.set_node_attr(reco_group_name, 'fiducial_filter_MinVetoE', min_veto_e)
+    oFile.set_node_attr(reco_group_name, 'fiducial_filter_MinVetoE',  min_veto_e)
 
 
     ### DATA TO STORE
@@ -216,7 +215,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 active_mcHits['smE'] = active_mcHits['E'] * smearing_factor
 
                 # Translating hit Z positions from delayed hits
-                translate_hit_positions(active_mcHits, DRIFT_VELOCITY)
+                translate_hit_positions(det_name, active_mcHits, DRIFT_VELOCITY)
 
                 # Creating the IChits with the smeared energies and translated Z positions
                 # to be passed to paolina functions
@@ -224,7 +223,8 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 #for i, hit in active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max].iterrows():
                 #    IChit = MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE')
                 #    IChits.append(IChit)
-                IChits = active_mcHits[active_mcHits.shifted_z < ACTIVE_dimensions.z_max] \
+                IChits = active_mcHits[(active_mcHits.shifted_z < ACTIVE_dimensions.z_max) &
+                                       (active_mcHits.shifted_z > ACTIVE_dimensions.z_min)] \
                     .apply(lambda hit: MCHit((hit.x, hit.y, hit.shifted_z),
                                              hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
 
@@ -246,7 +246,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
                 event_data['voxels_minZ'], event_data['voxels_maxZ'], \
                 event_data['voxels_maxRad'], event_data['veto_energy'], \
                 event_data['fid_filter'] = \
-                check_event_fiduciality(event_voxels, fid_dimensions, min_veto_e)
+                check_event_fiduciality(det_name, veto_width, min_veto_e, event_voxels)
                    
                 # Verbosing
                 logger.info('  NumVoxels: {:3}   minZ: {:.1f} mm   maxZ: {:.1f} mm   maxR: {:.1f} mm   veto_E: {:.1f} keV   fid_filter: {}' \

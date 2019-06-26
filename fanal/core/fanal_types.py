@@ -20,13 +20,6 @@ class DetName(Enum):
 	next500 = 3
 
 
-class SpatialDef(Enum):
-	# Correspondig xoxel sizes defined in reco/position.py
-	low  = 1
-	std  = 2
-	high = 3
-
-
 @dataclass
 class VolumeDim:
 	z_min : float

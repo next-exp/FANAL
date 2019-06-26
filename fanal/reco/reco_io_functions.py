@@ -20,29 +20,31 @@ import tables as tb
 
 from typing                              import Dict, List, Any, Tuple
 from invisible_cities.evm.event_model    import Voxel
-from fanal.core.fanal_types              import SpatialDef
 
 
 
-def get_reco_group_name(fwhm        : float,
-                        spatial_def : SpatialDef
+def get_reco_group_name(fwhm       : float,
+                        voxel_size : Tuple[float, float, float]
                        ) -> str:
-  """
-  Define the reco_group:
+    """
+    Define the reco_group:
 
-  Parameters
-  ----------
-  fwhm:
-    A float representing FWHM at Qbb (in %).
-  spatial_def:
-    An SpatialDef: enum describing the level of spatial definition ('low' or 'high').
+    Parameters
+    ----------
+    fwhm:
+        A float representing FWHM at Qbb (in %).
+    spatial_def:
+        Voxel size: Tuple with the voxel size (x,y,z).
 
-  Returns
-  -------
+    Returns
+    -------
     A string (the group name)
-	"""
-
-  return f"/FANALIC/RECO_{str(fwhm).replace('.', '')}fmhm_{spatial_def.name}Def"
+    """
+    fwhm_str  = 'fwhm_' + str(fwhm).replace('.', '')
+    voxel_str = 'voxel_{}x{}x{}'.format(int(voxel_size[0]),
+                                        int(voxel_size[1]),
+                                        int(voxel_size[2]))
+    return '/FANALIC/RECO_' + fwhm_str + '_' + voxel_str
 
 
 

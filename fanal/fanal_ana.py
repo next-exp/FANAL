@@ -39,8 +39,6 @@ from fanal.ana.ana_io_functions   import extend_voxels_ana_dict
 from fanal.ana.ana_io_functions   import store_voxels_ana_dict
 
 from fanal.core.fanal_types  import DetName
-from fanal.core.fanal_types  import SpatialDef
-
 from fanal.core.logger       import get_logger
 
 from fanal.ana.ana_functions import get_new_energies
@@ -53,7 +51,7 @@ from fanal.ana.ana_functions import process_tracks
 def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
               event_type,     # Event type: 'bb0nu', 'Tl208', 'Bi214'
               fwhm,           # FWHM at Qbb
-              spatial_def,    # Spatial definition: 'low', 'std', high'
+              voxel_size,     # Voxel size (x, y, z)
               track_Eth,      # Track energy threshold
               max_num_tracks, # Maximum number of tracks
               blob_radius,    # Blob radius
@@ -73,16 +71,15 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     ### DETECTOR NAME
     det_name = getattr(DetName, det_name)
 
-    ### SPATIAL DEFINITION
-    spatial_def = getattr(SpatialDef, spatial_def)
-
 
     ### PRINTING GENERAL INFO
     print('\n***********************************************************************************')
     print('***** Detector: {}'.format(det_name.name))
     print('***** Analizing {} events'.format(event_type))
     print('***** Energy Resolution: {:.2f}% FWFM at Qbb'.format(fwhm / units.perCent))
-    print('***** Spatial definition: {}'.format(spatial_def.name))
+    print('***** Voxel Size: ({}, {}, {}) mm'.format(voxel_size[0] / units.mm,
+                                                     voxel_size[1] / units.mm,
+                                                     voxel_size[2] / units.mm))
     print('***********************************************************************************\n')
 
     print('* Track Eth: {:4.1f} keV   Max Num Tracks: {}\n'
@@ -94,7 +91,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
 
 
     ### INPUT RECONSTRUCTION FILE AND GROUP
-    reco_group_name = get_reco_group_name(fwhm/units.perCent, spatial_def)
+    reco_group_name = get_reco_group_name(fwhm/units.perCent, voxel_size)
     print('* {} {} input reco file names:'.format(len(files_in), event_type))
     for iFileName in files_in: print(' ', iFileName)
     print('  Reco group name: {}\n'.format(reco_group_name))    
@@ -105,7 +102,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     oFile = tb.open_file(file_out, 'w', filters=tbl_filters(compression))
 
     # Analysis group Name
-    ana_group_name = get_ana_group_name(fwhm/units.perCent, spatial_def)
+    ana_group_name = get_ana_group_name(fwhm/units.perCent, voxel_size)
     oFile.create_group('/', 'FANALIC')
     oFile.create_group('/FANALIC', ana_group_name[9:])
 
