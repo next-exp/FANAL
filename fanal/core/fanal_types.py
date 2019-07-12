@@ -15,9 +15,12 @@ Array  = TypeVar('Array', List, np.array)
 
 
 class DetName(Enum):
-	new     = 1
-	next100 = 2
-	next500 = 3
+    new      = 1
+    next100  = 2
+    next500  = 3
+    next_2x2 = 4
+    next_3x3 = 5
+    next_hd  = 6
 
 
 @dataclass
