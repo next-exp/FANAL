@@ -27,6 +27,21 @@ def get_active_size(detname : DetName) -> VolumeDim:
 		                 z_max =  1000. * units.mm,
 						 rad   =  1000. * units.mm)
 
+	elif detname == DetName.next_2x2:
+		return VolumeDim(z_min = -1000. * units.mm,
+		                 z_max =  1000. * units.mm,
+						 rad   =  1000. * units.mm)
+
+	elif detname == DetName.next_3x3:
+		return VolumeDim(z_min = -1500. * units.mm,
+		                 z_max =  1500. * units.mm,
+						 rad   =  1500. * units.mm)
+
+	elif detname == DetName.next_hd:
+		return VolumeDim(z_min = -1300. * units.mm,
+		                 z_max =  1300. * units.mm,
+						 rad   =  1300. * units.mm)
+
 	else:
 		raise DetectorNameNotDefined
 
@@ -61,7 +76,10 @@ def is_detector_symmetric(detname : DetName) -> bool:
     """
     Returns a bool value depending if the detector is symmetric or not.
     """
-    if detname == DetName.next500:
+    if ((detname == DetName.next500)  or
+        (detname == DetName.next_2x2) or
+        (detname == DetName.next_3x3) or
+        (detname == DetName.next_hd)):
         return True
     else:
         return False

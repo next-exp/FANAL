@@ -48,6 +48,9 @@ def test_get_fiducial_size():
 
 
 def test_is_detector_symmetric():
-	assert is_detector_symmetric(DetName.new)     == False
-	assert is_detector_symmetric(DetName.next100) == False
-	assert is_detector_symmetric(DetName.next500) == True
+	assert is_detector_symmetric(DetName.new)      == False
+	assert is_detector_symmetric(DetName.next100)  == False
+	assert is_detector_symmetric(DetName.next500)  == True
+	assert is_detector_symmetric(DetName.next_2x2) == True
+	assert is_detector_symmetric(DetName.next_3x3) == True
+	assert is_detector_symmetric(DetName.next_hd)  == True
