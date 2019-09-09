@@ -33,6 +33,7 @@ from fanal.reco.reco_io_functions import get_voxels_reco_dict
 from fanal.reco.reco_io_functions import extend_voxels_reco_dict
 from fanal.reco.reco_io_functions import store_voxels_reco_dict
 
+from fanal.reco.energy        import get_mc_energy
 from fanal.reco.energy        import smear_evt_energy
 from fanal.reco.energy        import smear_hit_energies
 
@@ -193,8 +194,12 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
             event_data['num_MCparts'] = get_num_mc_particles(file_extents, event_number)
             event_data['num_MChits']  = len(active_mcHits)
             
-            # The event mc energy is the sum of the energy of all the hits
-            event_data['mcE'] = active_mcHits.E.sum()
+            # The event mc energy is the sum of the energy of all the hits except
+            # for Bi214 events, in which the number of S1 in the event is considered
+            if (event_type == 'Bi214'):
+                event_data['mcE'] = get_mc_energy(active_mcHits)
+            else:
+                event_data['mcE'] = active_mcHits.E.sum()
                 
             # Smearing the event energy
             event_data['smE'] = smear_evt_energy(event_data['mcE'], sigma_Qbb, Qbb)

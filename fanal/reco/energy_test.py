@@ -3,6 +3,7 @@ Tests for energy
 """
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from pytest        import mark
@@ -24,8 +25,46 @@ from invisible_cities.core.testing_utils import random_length_float_arrays
 import invisible_cities.core.system_of_units as units
 from invisible_cities.evm.event_model        import MCHit
 
+from fanal.reco.energy import get_mc_energy
 from fanal.reco.energy import smear_evt_energy
 from fanal.reco.energy import smear_hit_energies
+from fanal.reco.energy import S1_Eth, S1_WIDTH, EVT_WIDTH
+
+
+def test_get_mc_energy():
+    # Collection of hits within 1 S1
+    mcHits = [{'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.10},
+              {'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.05}]
+    mcHits = pd.DataFrame(mcHits, columns = ('label', 'time', 'x', 'y', 'z', 'E'))
+    evt_mcE = get_mc_energy(mcHits)
+    assert evt_mcE == 0.16
+
+    # Collection of hits within 2 S1s in 1 single event recorded time
+    mcHits = [{'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.10},
+              {'label': 'test', 'time': 2 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': (S1_WIDTH + 1) * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.05}]
+    mcHits = pd.DataFrame(mcHits, columns = ('label', 'time', 'x', 'y', 'z', 'E'))
+    evt_mcE = get_mc_energy(mcHits)
+    assert evt_mcE == 0.0
+
+    # Collection of hits within 2 S1s in >1 single event recorded time
+    mcHits = [{'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.10},
+              {'label': 'test', 'time': 2 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': (EVT_WIDTH + 1) * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.05}]
+    mcHits = pd.DataFrame(mcHits, columns = ('label', 'time', 'x', 'y', 'z', 'E'))
+    evt_mcE = get_mc_energy(mcHits)
+    assert evt_mcE == 0.11
+
+    # Collection of hits within 2 S1s in 1 single event recorded time
+    # But second S1 with energy lower than threshold
+    mcHits = [{'label': 'test', 'time': 1 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.10},
+              {'label': 'test', 'time': 2 * units.ns, 'x': 0., 'y': 0., 'z': 0., 'E': 0.01},
+              {'label': 'test', 'time': (S1_WIDTH + 1) * units.ns,
+               'x': 0., 'y': 0., 'z': 0., 'E': S1_Eth - 5. * units.keV}]
+    mcHits = pd.DataFrame(mcHits, columns = ('label', 'time', 'x', 'y', 'z', 'E'))
+    evt_mcE = get_mc_energy(mcHits)
+    assert evt_mcE == (0.11 + S1_Eth - 5. * units.keV)
 
 
 
