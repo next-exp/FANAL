@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 
 import tables as tb
 import numpy  as np
@@ -10,24 +11,24 @@ from fanal.ana.ana_io_functions   import get_ana_group_name
 ##### SOME GLOBAL VARIABLES #####
 VERBOSE       = True
 BASE_PATH     = '/n/holylfs02/LABS/guenette_lab/data/NEXT/TON_SCALE'
-NEXUS_VERSION = 'p5_00_02'
+NEXUS_VERSION = 'p5_05_00'
 FANAL_VERSION = '1_01_00'
 
-# ISOTOPE / SOURCE options
+# SOURCE / ISOTOPE options
 OPTIONS_SRC_ISO = {
     'ACTIVE':          ['bb0nu', 'Xe137'],
     'READOUT_PLANE':   ['Tl208', 'Bi214'],
-    'CATHODE':         ['Tl208', 'Bi214'],
+    'CATHODE':         ['Bi214'],
     'FIELD_CAGE':      ['Tl208', 'Bi214'],
     'INNER_SHIELDING': ['Tl208', 'Bi214']
 }
 
 # FWFM / VOXEL_SIZE options
 OPTIONS_FWHM_VXL = {
-    0.7: [[3,3,3], [10,10,10]],
-    0.5: [[3,3,3], [10,10,10]],
-#    0.7: [[10,10,10]],
-#    0.5: [[3,3,3]]
+#    0.7: [[3,3,3], [10,10,10]],
+#    0.5: [[3,3,3], [10,10,10]],
+    0.7: [[10,10,10]],
+    0.5: [[3,3,3]]
 }
 
 
@@ -42,8 +43,7 @@ def get_input_path(det_name, isotope, source, fwhm, voxel_size):
     iPATH += "/FWHM_" + str(fwhm).replace('.','')
     iPATH += f"/Voxel_{voxel_size[0]}x{voxel_size[1]}x{voxel_size[2]}"
     iPATH += "/Output"
-    #return iPATH
-    return "/Users/Javi/Development/fanalIC/data/ana/Bi214" # XXXXXXXX
+    return iPATH
 
 
 
@@ -54,16 +54,40 @@ def get_rej_factor(path, group_name):
     It is expected that all the input files inside the path, represent
     a single set of source - isotope - energyRes and spatialDef.
     '''
-    group_name = "/FANALIC/ANA_fwhm_07_voxel_10x10x10" # XXXXXXXX
+    sim_events = stored_events = smE_events = fid_events = 0.
+    tracks_events = blobs_events = roi_events = 0.
 
-    sim_events = roi_events = 0.
-    for iFile_name in os.listdir(path):
-        iFile_name = os.path.join(path, iFile_name)
-        with tb.open_file(iFile_name, mode='r') as iFile:
-            sim_events += iFile.get_node_attr(group_name, 'simulated_events')
-            roi_events += iFile.get_node_attr(group_name, 'roi_filter_events')
+    for iFile_name in glob.glob(path + '/*.h5'):
+        try:
+            with tb.open_file(iFile_name, mode='r') as iFile:
+                sim_events    += iFile.get_node_attr(group_name, 'simulated_events')
+                stored_events += iFile.get_node_attr(group_name, 'stored_events')
+                smE_events    += iFile.get_node_attr(group_name, 'smE_filter_events')
+                fid_events    += iFile.get_node_attr(group_name, 'fid_filter_events')
+                tracks_events += iFile.get_node_attr(group_name, 'tracks_filter_events')
+                blobs_events  += iFile.get_node_attr(group_name, 'blobs_filter_events')
+                roi_events    += iFile.get_node_attr(group_name, 'roi_filter_events')
+        except AttributeError:
+            print(f"AttributeError in {iFile_name}")
+            continue
+        except tb.HDF5ExtError:
+            print(f"HDF5ExtError in {iFile_name}")
+            continue
 
-    return roi_events / sim_events
+    if VERBOSE:
+        print("")
+        print(f"          sim_events:    {int(sim_events)}")
+        print(f"          stored_events: {int(stored_events)}")
+        print(f"          smE_events:    {int(smE_events)}")
+        print(f"          fid_events:    {int(fid_events)}")
+        print(f"          tracks_events: {int(tracks_events)}")
+        print(f"          blobs_events:  {int(blobs_events)}")
+        print(f"          roi_events:    {int(roi_events)}")
+
+    if not sim_events:
+        return np.nan
+    else:
+        return roi_events / sim_events
 
 
 
@@ -77,7 +101,7 @@ except IndexError:
     sys.exit()
 
 # Output csv file name
-oFileName = f"rejection_factors.{det_name}.csv"
+oFileName = f"rejection_factors.{det_name.lower()}.csv"
 
 csv_content = f"##### {det_name} rejection factors #####"
 csv_content += "\nsource,energyRes,spatialDef"
@@ -92,18 +116,15 @@ for source in OPTIONS_SRC_ISO.keys():
 for isotope in all_isotopes:
     csv_content += f",{isotope}"
 
-
-if VERBOSE:
-    print(f"\n*** Generating the rejection factors of {det_name} ...")
-    print(f"*   Input analysis files are expected to be in: {BASE_PATH}/{det_name}")
-    print(f"*   cvs output file: {oFileName}")
+print(f"\n*** Generating the rejection factors of {det_name} ...")
+print(f"*   Input analysis files are expected to be in: {BASE_PATH}/{det_name}")
+print(f"*   cvs output file: {oFileName}")
 
 
 # Passing through all options
 for source in OPTIONS_SRC_ISO.keys():
     csv_content += f"\n\n# {source}"
-    if VERBOSE:
-        print(f"*   Source: {source} ...")
+    print(f"\n*   Source: {source} ...")
     for energyRes in OPTIONS_FWHM_VXL.keys():
         for spatialDef in OPTIONS_FWHM_VXL[energyRes]:
 
@@ -118,8 +139,7 @@ for source in OPTIONS_SRC_ISO.keys():
                                            energyRes, spatialDef)
                     rej_factor = get_rej_factor(iPATH, ana_group_name)
                     rej_factors_str += f",{rej_factor}"
-                    if VERBOSE:
-                        print(f"    {energyRes} - {spatialDef} - {isotope}: {rej_factor:8}")
+                    print(f"    {energyRes} - {spatialDef} - {isotope}: {rej_factor:8}")
                 else:
                     rej_factors_str += ","
 
