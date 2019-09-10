@@ -9,9 +9,10 @@ from typing   import List, Sequence, Tuple
 
 import invisible_cities.core.system_of_units as units
 
+from invisible_cities.reco.paolina_functions  import length as track_length
+
 
 logger = logging.getLogger('FanalAna')
-
 
 
 def get_new_energies(event_voxels : pd.DataFrame) -> List[float]:
@@ -118,10 +119,11 @@ def get_voxel_track_relations(event_voxels : pd.DataFrame,
 
 def process_tracks(event_tracks : Sequence[Graph],
                    track_Eth    : float
-                  ) -> List[Tuple[float, Graph]]:
+                  ) -> List[Tuple[float, float, Graph]]:
     """
-    It calculates the tracks energies and filters those with energy
-    lower than threshold.
+    It calculates tracks energies.
+    It filters tracks with length smaller than 2 times the blob_radius.
+    It filters tracks with energy lower than threshold.
 
     Parameters
     ----------
@@ -132,8 +134,9 @@ def process_tracks(event_tracks : Sequence[Graph],
 
     Returns
     -------
-    A list of tuples containing (track energy, track) for all the tracks
-    with energy higher than threshold, ordered per track energy.
+    A list of tuples containing (track_energy, track_length, track)
+    for all the tracks with energy higher than threshold,
+    ordered per track energy.
     """
 
     event_tracks_withE = []
@@ -146,7 +149,8 @@ def process_tracks(event_tracks : Sequence[Graph],
         # If track energy >= threshold, append (track_E, track) to list
         # If not, iscarding tracks with track_E < threshold
         if track_E >= track_Eth:
-            event_tracks_withE.append((track_E, event_tracks[i]))
+            track_l = track_length(event_tracks[i])
+            event_tracks_withE.append((track_E, track_l, event_tracks[i]))
         else:
             logger.debug('    Track with energy: {:6.1f} keV  -->  Discarded'
                          .format(track_E/units.keV))
@@ -157,7 +161,8 @@ def process_tracks(event_tracks : Sequence[Graph],
     # VERBOSING
     logger.debug('  Sorted-Good Tracks ...')
     for i in range(len(event_tracks_withE)):
-        logger.debug('    Track {}  energy: {:6.1f} keV'
-                     .format(i, event_tracks_withE[i][0]/units.keV))
+        logger.debug('    Track {}  energy: {:6.1f} keV   length: {:6.1f} mm'
+                     .format(i, event_tracks_withE[i][0]/units.keV,
+                             event_tracks_withE[i][1]/units.mm))
 
     return event_tracks_withE

@@ -90,12 +90,17 @@ def test_get_voxel_track_relations():
 
 
 def test_process_tracks():
-    track_Eth = 0.15
-    tracks_E  = [0.3, 0.2]
+    track_Eth      = 0.15
+    tracks_E       = [0.3, 0.2]
+    tracks_length  = [20.0, 10.0]
+
     sorted_tracks = process_tracks(event_tracks, track_Eth)
 
     assert tracks_E[0] == pytest.approx(sorted_tracks[0][0])
     assert tracks_E[1] == pytest.approx(sorted_tracks[1][0])
 
-    assert event_tracks[2] == sorted_tracks[0][1]
-    assert event_tracks[0] == sorted_tracks[1][1]
+    assert tracks_length[0] == sorted_tracks[0][1]
+    assert tracks_length[1] == sorted_tracks[1][1]
+
+    assert event_tracks[2] == sorted_tracks[0][2]
+    assert event_tracks[0] == sorted_tracks[1][2]

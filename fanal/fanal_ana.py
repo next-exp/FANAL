@@ -23,7 +23,6 @@ from invisible_cities.core.configure          import configure
 from invisible_cities.evm.event_model         import Voxel
 from invisible_cities.reco.tbl_functions      import filters as tbl_filters
 from invisible_cities.reco.paolina_functions  import make_track_graphs
-from invisible_cities.reco.paolina_functions  import length as track_length
 from invisible_cities.reco.paolina_functions  import blob_energies
 
 # Specific fanalIC stuff
@@ -179,7 +178,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
             
             event_voxels = file_voxels.loc[event_number]
             num_event_voxels = len(event_voxels)
-            num_event_voxels_negli = len(event_voxels[event_voxels.negli == True])
+            num_event_voxels_negli = len(event_voxels[event_voxels.negli])
             voxel_dimensions = (event_df.voxel_sizeX,
                                 event_df.voxel_sizeY,
                                 event_df.voxel_sizeZ)
@@ -222,21 +221,24 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
             # Getting 3 hottest tracks info
             if event_data['num_tracks'] >= 1:
                 event_data['track0_E']      = event_sorted_tracks[0][0]
-                event_data['track0_voxels'] = len(event_sorted_tracks[0][1].nodes())
-                event_data['track0_length'] = track_length(event_sorted_tracks[0][1])
+                event_data['track0_length'] = event_sorted_tracks[0][1]
+                event_data['track0_voxels'] = len(event_sorted_tracks[0][2].nodes())
             if event_data['num_tracks'] >= 2:
                 event_data['track1_E']      = event_sorted_tracks[1][0]
-                event_data['track1_voxels'] = len(event_sorted_tracks[1][1].nodes())
-                event_data['track1_length'] = track_length(event_sorted_tracks[1][1])
+                event_data['track1_length'] = event_sorted_tracks[1][1]
+                event_data['track1_voxels'] = len(event_sorted_tracks[1][2].nodes())
             if event_data['num_tracks'] >= 3:
                 event_data['track2_E']      = event_sorted_tracks[2][0]
-                event_data['track2_voxels'] = len(event_sorted_tracks[2][1].nodes())
-                event_data['track2_length'] = track_length(event_sorted_tracks[2][1])
+                event_data['track2_length'] = event_sorted_tracks[2][1]
+                event_data['track2_voxels'] = len(event_sorted_tracks[2][2].nodes())
             
-            # Applying the tracks filter
-            event_data['tracks_filter'] = ((event_data['num_tracks'] > 0) &
-                                           (event_data['num_tracks'] <= max_num_tracks))
-        
+            # Applying the tracks filter consisting on:
+            # 0 < num tracks < max_num_tracks
+            # the track length must be longer than 2 times the blob_radius
+            event_data['tracks_filter'] = ((event_data['num_tracks'] >  0) &
+                                           (event_data['num_tracks'] <= max_num_tracks) &
+                                           (event_data['track0_length'] >=  2. * blob_radius))
+       
             # Verbosing
             logger.info('  Num final tracks: {:2}  -->  tracks_filter: {}' \
                         .format(event_data['num_tracks'], event_data['tracks_filter']))
@@ -247,7 +249,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
 
                 # Getting the blob energies of the track with highest energy
                 event_data['blob1_E'], event_data['blob2_E'] = \
-                blob_energies(event_sorted_tracks[0][1], blob_radius)
+                    blob_energies(event_sorted_tracks[0][2], blob_radius)
                 
                 # Applying the blobs filter
                 event_data['blobs_filter'] = (event_data['blob2_E'] > blob_Eth)
