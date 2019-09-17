@@ -74,15 +74,15 @@ def get_rej_factor(path, group_name):
             print(f"HDF5ExtError in {iFile_name}")
             continue
 
-    if VERBOSE:
+    if (VERBOSE and sim_events>0):
         print("")
-        print(f"          sim_events:    {int(sim_events)}")
-        print(f"          stored_events: {int(stored_events)}")
-        print(f"          smE_events:    {int(smE_events)}")
-        print(f"          fid_events:    {int(fid_events)}")
-        print(f"          tracks_events: {int(tracks_events)}")
-        print(f"          blobs_events:  {int(blobs_events)}")
-        print(f"          roi_events:    {int(roi_events)}")
+        print(f"          sim_events:    {int(sim_events):8}  ->  {(sim_events/sim_events):8}")
+        print(f"          stored_events: {int(stored_events):8}  ->  {(stored_events/sim_events):8}")
+        print(f"          smE_events:    {int(smE_events):8}  ->  {(smE_events/sim_events):8}")
+        print(f"          fid_events:    {int(fid_events):8}  ->  {(fid_events/sim_events):8}")
+        print(f"          tracks_events: {int(tracks_events):8}  ->  {(tracks_events/sim_events):8}")
+        print(f"          blobs_events:  {int(blobs_events):8}  ->  {(blobs_events/sim_events):8}")
+        print(f"          roi_events:    {int(roi_events):8}  ->  {(roi_events/sim_events):8}")
 
     if not sim_events:
         return np.nan
