@@ -17,10 +17,10 @@ FANAL_VERSION = '1_01_00'
 # SOURCE / ISOTOPE options
 OPTIONS_SRC_ISO = {
     'ACTIVE':          ['bb0nu', 'Xe137'],
-    'READOUT_PLANE':   ['Tl208', 'Bi214'],
+    'READOUT_PLANE':   ['Bi214', 'Tl208'],
     'CATHODE':         ['Bi214'],
-    'FIELD_CAGE':      ['Tl208', 'Bi214'],
-    'INNER_SHIELDING': ['Tl208', 'Bi214']
+    'FIELD_CAGE':      ['Bi214', 'Tl208'],
+    'INNER_SHIELDING': ['Bi214', 'Tl208']
 }
 
 # FWFM / VOXEL_SIZE options
@@ -76,18 +76,18 @@ def get_rej_factor(path, group_name):
 
     if (VERBOSE and sim_events>0):
         print("")
-        print(f"          sim_events:    {int(sim_events):8}  ->  {(sim_events/sim_events):8}")
-        print(f"          stored_events: {int(stored_events):8}  ->  {(stored_events/sim_events):8}")
-        print(f"          smE_events:    {int(smE_events):8}  ->  {(smE_events/sim_events):8}")
-        print(f"          fid_events:    {int(fid_events):8}  ->  {(fid_events/sim_events):8}")
-        print(f"          tracks_events: {int(tracks_events):8}  ->  {(tracks_events/sim_events):8}")
-        print(f"          blobs_events:  {int(blobs_events):8}  ->  {(blobs_events/sim_events):8}")
-        print(f"          roi_events:    {int(roi_events):8}  ->  {(roi_events/sim_events):8}")
+        print(f"          sim_events:    {int(sim_events):8}  ->  {(sim_events/sim_events):.3e}")
+        print(f"          stored_events: {int(stored_events):8}  ->  {(stored_events/sim_events):.3e}")
+        print(f"          smE_events:    {int(smE_events):8}  ->  {(smE_events/sim_events):.3e}")
+        print(f"          fid_events:    {int(fid_events):8}  ->  {(fid_events/sim_events):.3e}")
+        print(f"          tracks_events: {int(tracks_events):8}  ->  {(tracks_events/sim_events):.3e}")
+        print(f"          blobs_events:  {int(blobs_events):8}  ->  {(blobs_events/sim_events):.3e}")
+        print(f"          roi_events:    {int(roi_events):8}  ->  {(roi_events/sim_events):.3e}")
 
     if not sim_events:
-        return np.nan
+        return np.nan, np.nan
     else:
-        return roi_events / sim_events
+        return (roi_events / sim_events) , (roi_events**.5 / sim_events)
 
 
 
@@ -114,7 +114,7 @@ for source in OPTIONS_SRC_ISO.keys():
             all_isotopes.append(isotope)
 
 for isotope in all_isotopes:
-    csv_content += f",{isotope}"
+    csv_content += f",{isotope},{isotope}_err"
 
 print(f"\n*** Generating the rejection factors of {det_name} ...")
 print(f"*   Input analysis files are expected to be in: {BASE_PATH}/{det_name}")
@@ -137,11 +137,11 @@ for source in OPTIONS_SRC_ISO.keys():
                 if isotope in OPTIONS_SRC_ISO[source]:
                     iPATH = get_input_path(det_name, isotope, source,
                                            energyRes, spatialDef)
-                    rej_factor = get_rej_factor(iPATH, ana_group_name)
-                    rej_factors_str += f",{rej_factor}"
-                    print(f"    {energyRes} - {spatialDef} - {isotope}: {rej_factor:8}")
+                    rej_factor, rej_factor_err = get_rej_factor(iPATH, ana_group_name)
+                    rej_factors_str     += f",{rej_factor},{rej_factor_err}"
+                    print(f"    {energyRes} - {spatialDef} - {isotope}: {rej_factor:.3e}  error: {rej_factor_err:.3e}")
                 else:
-                    rej_factors_str += ","
+                    rej_factors_str += ",,"
 
             # Storing the rejection factors
             csv_content += rej_factors_str
