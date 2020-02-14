@@ -89,20 +89,37 @@ def print_mc_event(event_id:   int,
             if event_id in file_extents['evt_number'].tolist():
                 print('\nEvt Id: {}  contained in {}\n'.format(event_id, iFileName))
 
-                # Getting the mcParticles and mcHits of the right file
-                file_mcHits  = load_mc_hits(iFileName)
+#                # Getting the mcParticles and mcHits of the right file
+#                file_mcHits  = load_mc_hits(iFileName)
+#                file_mcParts = load_mc_particles(iFileName)
+#
+#                # Getting the mcParticles and mcHits of the right event
+#                event_mcHits       = file_mcHits.loc[event_id, :]
+#                active_mcHits      = event_mcHits[event_mcHits.label == 'ACTIVE']
+#                event_mcParticles  = file_mcParts.loc[event_id, :]
+#
+#                #Getting relevant info from the event
+#                event_mcE = active_mcHits.E.sum()
+#                ini_time  = active_mcHits.time.min()
+#                end_time  = active_mcHits.time.max()
+                
+                # Getting the mcParticles
                 file_mcParts = load_mc_particles(iFileName)
-
-                # Getting the mcParticles and mcHits of the right event
-                event_mcHits       = file_mcHits.loc[event_id, :]
-                active_mcHits      = event_mcHits[event_mcHits.label == 'ACTIVE']
                 event_mcParticles  = file_mcParts.loc[event_id, :]
 
-                #Getting relevant info from the event
-                event_mcE = active_mcHits.E.sum()
-                ini_time  = active_mcHits.time.min()
-                end_time  = active_mcHits.time.max()
-                
+                # Getting the mcHits and info related
+                if (with_hits):
+                    file_mcHits   = load_mc_hits(iFileName)
+                    event_mcHits  = file_mcHits.loc[event_id, :]
+                    active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE']
+                    # Getting relevant info from the event
+                    event_mcE = active_mcHits.E.sum()
+                    ini_time  = active_mcHits.time.min()
+                    end_time  = active_mcHits.time.max()
+                else:
+                    event_mcHits = []
+                    event_mcE = ini_time = end_time = 0.
+                                    
                 # General event info
                 print('  Event deposited energy = {0:.6f} MeV'.format(event_mcE))
                 print('  Event initial time = {0:.3e} us,   Time width: {1:.3e} us'
