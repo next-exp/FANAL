@@ -29,6 +29,6 @@ from fanal.ana.ana_io_functions               import get_ana_group_name
 def test_ana_group_name():
     fwhm = 0.74
     voxel_size = (10. * units.mm, 3. * units.cm, 15.)
-    ana_group_name = '/FANALIC/ANA_fwhm_074_voxel_10x30x15'
+    ana_group_name = '/FANAL/ANA_fwhm_074_voxel_10x30x15'
     assert ana_group_name == get_ana_group_name(fwhm, voxel_size)
 

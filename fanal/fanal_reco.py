@@ -128,8 +128,8 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
     # Reco group Name
     reco_group_name = get_reco_group_name(fwhm/units.perCent, voxel_size)
-    oFile.create_group('/', 'FANALIC')
-    oFile.create_group('/FANALIC', reco_group_name[9:])
+    oFile.create_group('/', 'FANAL')
+    oFile.create_group('/FANAL', reco_group_name[9:])
 
     print('\n* Output file name:', file_out)
     print('  Reco group name:  {}\n'.format(reco_group_name))

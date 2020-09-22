@@ -102,8 +102,8 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
 
     # Analysis group Name
     ana_group_name = get_ana_group_name(fwhm/units.perCent, voxel_size)
-    oFile.create_group('/', 'FANALIC')
-    oFile.create_group('/FANALIC', ana_group_name[9:])
+    oFile.create_group('/', 'FANAL')
+    oFile.create_group('/FANAL', ana_group_name[9:])
 
     print('* Output analysis file name:', file_out)
     print('  Ana group name: {}\n'.format(ana_group_name))

@@ -42,7 +42,7 @@ def get_ana_group_name(fwhm       : float,
     voxel_str = 'voxel_{}x{}x{}'.format(int(voxel_size[0]),
                                         int(voxel_size[1]),
                                         int(voxel_size[2]))
-    return '/FANALIC/ANA_' + fwhm_str + '_' + voxel_str
+    return '/FANAL/ANA_' + fwhm_str + '_' + voxel_str
 
 
 

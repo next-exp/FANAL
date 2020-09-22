@@ -29,7 +29,7 @@ from fanal.reco.reco_io_functions             import get_reco_group_name
 def test_reco_group_name():
     fwhm = 0.51
     voxel_size = (12. * units.mm, .5 * units.cm, 6.)
-    reco_group_name = '/FANALIC/RECO_fwhm_051_voxel_12x5x6'
+    reco_group_name = '/FANAL/RECO_fwhm_051_voxel_12x5x6'
     assert reco_group_name == get_reco_group_name(fwhm, voxel_size)
 
 

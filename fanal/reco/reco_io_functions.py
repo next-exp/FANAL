@@ -44,7 +44,7 @@ def get_reco_group_name(fwhm       : float,
     voxel_str = 'voxel_{}x{}x{}'.format(int(voxel_size[0]),
                                         int(voxel_size[1]),
                                         int(voxel_size[2]))
-    return '/FANALIC/RECO_' + fwhm_str + '_' + voxel_str
+    return '/FANAL/RECO_' + fwhm_str + '_' + voxel_str
 
 
 
