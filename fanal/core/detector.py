@@ -13,9 +13,9 @@ def get_active_size(detname : DetName) -> VolumeDim:
 	z_min, z_max, rad grouped into a VolumeDim.
 	"""
 	if detname == DetName.next100:
-		return VolumeDim(z_min =    0.  * units.mm,
-		                 z_max = 1300.  * units.mm,
-						 rad   =  534.5 * units.mm)
+		return VolumeDim(z_min =    0.   * units.mm,
+		                 z_max = 1204.95 * units.mm,
+						 rad   =  492.   * units.mm)
 
 	elif detname == DetName.next100_alaHD:
 		return VolumeDim(z_min = -650.  * units.mm,
@@ -25,7 +25,7 @@ def get_active_size(detname : DetName) -> VolumeDim:
 	elif detname == DetName.new:
 		return VolumeDim(z_min =   0. * units.mm,
 		                 z_max = 532. * units.mm,
-						 rad   = 198. * units.mm)
+						 rad   = 208. * units.mm)
 
 	elif detname == DetName.next500:
 		return VolumeDim(z_min = -1000. * units.mm,
