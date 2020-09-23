@@ -1,5 +1,5 @@
 """
-This SCRIPT runs the analysis step of fanalIC.
+This SCRIPT runs the analysis step of FANAL.
 The analysis deals with the topology and the energy of the events.
 The topology will consider the number of tracks, and the blobs of the hottest track.
 It loads the data from a 'reco' .h5 file and generates an .h5 file containing 2 dataFrames
@@ -9,15 +9,12 @@ that will complete the previous reco information with the new data generated in 
 """
 
 # General importings
-import os
 import sys
-import math
-import numpy  as np
 import tables as tb
 import pandas as pd
 
 # Specific IC stuff
-import invisible_cities.core.system_of_units  as units
+import invisible_cities.core.system_of_units      as units
 from invisible_cities.cities.components       import city
 from invisible_cities.core.configure          import configure
 from invisible_cities.evm.event_model         import Voxel
@@ -25,7 +22,7 @@ from invisible_cities.reco.tbl_functions      import filters as tbl_filters
 from invisible_cities.reco.paolina_functions  import make_track_graphs
 from invisible_cities.reco.paolina_functions  import blob_energies
 
-# Specific fanalIC stuff
+# Specific FANAL stuff
 from fanal.reco.reco_io_functions import get_reco_group_name
 from fanal.ana.ana_io_functions   import get_ana_group_name
 from fanal.ana.ana_io_functions   import get_event_ana_data
@@ -103,7 +100,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
     # Analysis group Name
     ana_group_name = get_ana_group_name(fwhm/units.perCent, voxel_size)
     oFile.create_group('/', 'FANAL')
-    oFile.create_group('/FANAL', ana_group_name[9:])
+    oFile.create_group('/FANAL', ana_group_name[7:])
 
     print('* Output analysis file name:', file_out)
     print('  Ana group name: {}\n'.format(ana_group_name))
@@ -194,7 +191,7 @@ def fanal_ana(det_name,       # Detector name: 'new', 'next100', 'next500'
             else:
                 event_voxels_newE = event_voxels.E.tolist()
         
-            # Translate fanalIC voxels info to IC voxels to make tracks
+            # Translate FANAL voxels info to IC voxels to make tracks
             #ic_voxels = [Voxel(event_voxels.iloc[i].X, event_voxels.iloc[i].Y, event_voxels.iloc[i].Z,
             #                   event_voxels_newE[i], voxel_dimensions) for i in range(num_event_voxels)]
             ic_voxels = []
