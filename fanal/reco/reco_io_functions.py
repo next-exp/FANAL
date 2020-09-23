@@ -100,7 +100,7 @@ def extend_events_reco_dict(
     to fill all the dictionary fields per event.
     """
     
-    assert type(event_data['event_id']) == int, "event_id is mandatory"
+    #assert type(event_data['event_id']) == int, "event_id is mandatory"
     
     for key in event_data.keys():
         events_dict[key].extend([event_data[key]])

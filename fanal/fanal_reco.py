@@ -7,20 +7,20 @@ It generates an .h5 file containing 2 dataFrames:
 """
 
 # General importings
-import os
 import sys
-import math
-import numpy  as np
 import tables as tb
 import pandas as pd
 
 # Specific IC stuff
-import invisible_cities.core.system_of_units as units
+import invisible_cities.core.system_of_units     as units
 from invisible_cities.cities.components      import city
 from invisible_cities.core.configure         import configure
 from invisible_cities.evm.event_model        import MCHit
 from invisible_cities.reco.paolina_functions import voxelize_hits
 from invisible_cities.reco.tbl_functions     import filters as tbl_filters
+from invisible_cities.io.mcinfo_io           import get_event_numbers_in_file
+from invisible_cities.io.mcinfo_io           import load_mchits_df
+from invisible_cities.io.mcinfo_io           import load_mcparticles_df
 
 # Specific fanalIC stuff
 from fanal.reco.reco_io_functions import get_reco_group_name
@@ -35,7 +35,6 @@ from fanal.reco.reco_io_functions import store_voxels_reco_dict
 
 from fanal.reco.energy        import get_mc_energy
 from fanal.reco.energy        import smear_evt_energy
-from fanal.reco.energy        import smear_hit_energies
 
 from fanal.reco.position      import translate_hit_positions
 from fanal.reco.position      import check_event_fiduciality
@@ -45,12 +44,8 @@ from fanal.core.detector      import get_active_size
 from fanal.core.detector      import get_fiducial_size
 from fanal.core.fanal_types   import DetName
 
-from fanal.mc.mc_io_functions import load_mc_particles
-from fanal.mc.mc_io_functions import load_mc_hits
-from fanal.mc.mc_io_functions import get_num_mc_particles
-
-from fanal.mc.mc_utilities    import print_mc_event
-from fanal.mc.mc_utilities    import plot_mc_event
+#from fanal.mc.mc_utilities    import print_mc_event
+#from fanal.mc.mc_utilities    import plot_mc_event
 
 
 
@@ -129,7 +124,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
     # Reco group Name
     reco_group_name = get_reco_group_name(fwhm/units.perCent, voxel_size)
     oFile.create_group('/', 'FANAL')
-    oFile.create_group('/FANAL', reco_group_name[9:])
+    oFile.create_group('/FANAL', reco_group_name[7:])
 
     print('\n* Output file name:', file_out)
     print('  Reco group name:  {}\n'.format(reco_group_name))
@@ -169,14 +164,14 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
         stored_events    += int(configuration_df[configuration_df.param_key == 'saved_events'].param_value)
 
         # Getting event numbers
-        file_extents = pd.read_hdf(iFileName, '/MC/extents', mode='r')
-        file_event_numbers = file_extents.evt_number
-
+        file_event_numbers = get_event_numbers_in_file(iFileName)
         print('* Processing {0}  ({1} events) ...'.format(iFileName, len(file_event_numbers)))
 
-        # Getting mc hits
-        file_mcHits = load_mc_hits(iFileName)
+        # Getting mc hits & particles
+        file_mcHits  = load_mchits_df(iFileName)
+        file_mcParts = load_mcparticles_df(iFileName)
 
+        ### RECONSTRUCTION PROCEDURE
         # Looping through all the events in iFile
         for event_number in file_event_numbers:
 
@@ -190,8 +185,9 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
             
             event_mcHits  = file_mcHits.loc[event_number, :]
             active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
+            event_mcParts = file_mcParts.loc[event_number, :]
 
-            event_data['num_MCparts'] = get_num_mc_particles(file_extents, event_number)
+            event_data['num_MCparts'] = len(event_mcParts)
             event_data['num_MChits']  = len(active_mcHits)
             
             # The event mc energy is the sum of the energy of all the hits except
@@ -199,7 +195,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
             if (event_type == 'Bi214'):
                 event_data['mcE'] = get_mc_energy(active_mcHits)
             else:
-                event_data['mcE'] = active_mcHits.E.sum()
+                event_data['mcE'] = active_mcHits.energy.sum()
                 
             # Smearing the event energy
             event_data['smE'] = smear_evt_energy(event_data['mcE'], sigma_Qbb, Qbb)
@@ -217,7 +213,7 @@ def fanal_reco(det_name,    # Detector name: 'new', 'next100', 'next500'
 
                 # Smearing hit energies
                 smearing_factor = event_data['smE'] / event_data['mcE']
-                active_mcHits['smE'] = active_mcHits['E'] * smearing_factor
+                active_mcHits['smE'] = active_mcHits['energy'] * smearing_factor
 
                 # Translating hit Z positions from delayed hits
                 translate_hit_positions(det_name, active_mcHits, DRIFT_VELOCITY)

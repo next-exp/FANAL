@@ -39,7 +39,7 @@ def get_S1_E(evt_hits: pd.DataFrame
 
 	s1_ts = evt_hits[evt_hits.disc_time <= evt_width_inS1]['disc_time'].unique()
 	for s1_t in s1_ts:
-		s1_E = evt_hits[evt_hits.disc_time==s1_t].E.sum()
+		s1_E = evt_hits[evt_hits.disc_time==s1_t].energy.sum()
 		S1s.append((s1_t, s1_E))
 
 	return S1s
@@ -98,6 +98,6 @@ def smear_hit_energies(mcHits      : List[MCHit],
 	It smears the montecarlo hit energies according to the conv_factor
 	It returns a list of the hit smeared energies.
 	"""
-	mcEnergies = np.array([hit.E for hit in mcHits])
+	mcEnergies = np.array([hit.energy for hit in mcHits])
 	smEnergies = mcEnergies * conv_factor
 	return smEnergies
