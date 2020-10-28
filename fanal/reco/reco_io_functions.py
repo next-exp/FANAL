@@ -13,7 +13,6 @@ Documentation
     Insert documentation https
 """
 
-import os
 import numpy  as np
 import pandas as pd
 import tables as tb

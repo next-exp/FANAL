@@ -39,9 +39,9 @@ def test_get_active_size():
 
 
 def test_get_fiducial_size():
-	fid_dim = VolumeDim(z_min =   20.  * units.mm,
-	                    z_max = 1280.  * units.mm,
-						rad   =  514.5 * units.mm)
+	fid_dim = VolumeDim(z_min =   20.0   * units.mm,
+	                    z_max = 1184.95  * units.mm,
+						rad   =  472.0   * units.mm)
 
 	assert fid_dim == get_fiducial_size(DetName.next100, 20. * units.mm)
 
