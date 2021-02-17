@@ -15,15 +15,16 @@ def get_logger(name     : str,
 	logger = logging.getLogger(name)
 
 	# Create handlers
-	if filename == '':
-		screen_handler        = logging.StreamHandler()
-		screen_handler.stream = sys.stdout
-		screen_handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
-		logger.addHandler(screen_handler)
-	else:
-		file_handler = logging.FileHandler(filename, mode='w')
-		file_handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
-		logger.addHandler(file_handler)
+	if not logger.hasHandlers():
+		if filename == '':
+			screen_handler        = logging.StreamHandler()
+			screen_handler.stream = sys.stdout
+			screen_handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
+			logger.addHandler(screen_handler)
+		else:
+			file_handler = logging.FileHandler(filename, mode='w')
+			file_handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
+			logger.addHandler(file_handler)
 
 	# Setting verbosity level
 	logger.setLevel(level)
