@@ -8,7 +8,7 @@ from typing import List
 # IC importings
 import invisible_cities.core.system_of_units     as units
 
-from   invisible_cities.evm.event_model      import Voxel
+from invisible_cities.evm.event_model        import Voxel  as icVoxel
 
 # FANAL importings
 from fanal.core.fanal_types  import DetName
@@ -55,7 +55,7 @@ def translate_hit_positions(detname        : DetName,
 def check_event_fiduciality(detname      : DetName,
                             veto_width   : float,
                             min_VetoE    : float,
-                            event_voxels : List[Voxel]
+                            event_voxels : List[icVoxel]
                            ) -> Tuple[float, float, float, float, bool]:
     """
     Checks if an event is fiducial or not.
@@ -68,7 +68,7 @@ def check_event_fiduciality(detname      : DetName,
         Width of the veto region.
     min_VetoE    : float
         Veto energy threshold.
-    event_voxels : List[Voxel]
+    event_voxels : List[icVoxel]
         List of voxels of the event.
 
     Returns:

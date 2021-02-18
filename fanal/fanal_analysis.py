@@ -3,6 +3,7 @@ import os
 import sys
 import glob
 import json
+import numpy      as np
 import tables     as tb
 import pandas     as pd
 from   typing import Tuple
@@ -25,17 +26,17 @@ from fanal.core.detector          import get_fiducial_size
 from fanal.core.fanal_types       import DetName
 
 from fanal.analysis.event         import get_events_dict
+from fanal.analysis.event         import extend_events_dict
 from fanal.analysis.event         import analyze_event
 from fanal.analysis.event         import store_events_data
+from fanal.analysis.event         import store_events_counters
 
-from fanal.reco.reco_io_functions import get_voxels_reco_dict
-from fanal.reco.reco_io_functions import extend_events_reco_dict
-from fanal.reco.reco_io_functions import store_voxels_reco_dict
-
-from fanal.ana.ana_io_functions   import store_events_ana_counters
+from fanal.analysis.voxel         import get_voxels_dict
+from fanal.analysis.voxel         import store_voxels_dict
 
 #import line_profiler
 #profile = line_profiler.LineProfiler()
+
 
 
 def analyze(det_name        : str,
@@ -84,15 +85,15 @@ def analyze(det_name        : str,
     logger = get_logger('Fanal', verbosity_level)
 
     ### Input files
-    files_in = glob.glob(files_in)
+    files_in = sorted(glob.glob(files_in))
 
     ### Output file compression ('ZLIB1', 'ZLIB4', 'ZLIB5', 'ZLIB9', 'BLOSC5', 'BLZ4HC5')
     compression = 'ZLIB4'
 
     ### DETECTOR NAME & its ACTIVE dimensions
-    det_name          = getattr(DetName, det_name)
-    ACTIVE_dimensions = get_active_size(det_name)
-    fid_dimensions    = get_fiducial_size(det_name, veto_width)
+    detector          = getattr(DetName, det_name)
+    ACTIVE_dimensions = get_active_size(detector)
+    fid_dimensions    = get_fiducial_size(detector, veto_width)
 
     ### RECONSTRUCTION DATA
     # Smearing energy settings
@@ -102,7 +103,7 @@ def analyze(det_name        : str,
 
     ### PRINTING GENERAL INFO
     print('\n***********************************************************************************')
-    print(f'***** Detector:          {det_name.name}')
+    print(f'***** Detector:          {detector.name}')
     print(f'***** Reconstructing:    {event_type} events')
     print(f'***** Energy Resolution: {fwhm / units.perCent:.2f}% fwhm at Qbb')
     print(f'***** Voxel Size:        ({voxel_size[0] / units.mm}, ' + \
@@ -169,7 +170,7 @@ def analyze(det_name        : str,
 
     # Dictionaries for events & voxels data
     events_dict = get_events_dict()
-    voxels_dict = get_voxels_reco_dict()
+    voxels_dict = get_voxels_dict()
 
 
     ### RECONSTRUCTION PROCEDURE
@@ -196,7 +197,7 @@ def analyze(det_name        : str,
             logger.info(f"Analyzing event Id: {event_id} ...")
 
             # Analyze event
-            event_data = analyze_event(det_name, ACTIVE_dimensions, event_id, event_type,
+            event_data = analyze_event(detector, ACTIVE_dimensions, int(event_id), event_type,
                                        sigma_Qbb, e_min, e_max,
                                        voxel_size, voxel_Eth, veto_width, min_veto_e,
                                        track_Eth, max_num_tracks, blob_radius, blob_Eth,
@@ -206,7 +207,7 @@ def analyze(det_name        : str,
                                        voxels_dict)
 
             # Storing event_data
-            extend_events_reco_dict(events_dict, event_data)
+            extend_events_dict(events_dict, event_data)
 
             # Verbosing
             if (not(analyzed_events % verbose_every)):
@@ -215,12 +216,12 @@ def analyze(det_name        : str,
 
 
     ### STORING RECONSTRUCTION DATA
-    print(f'* Total analyzed events: {analyzed_events}')
+    print(f'\n* Total analyzed events: {analyzed_events}')
 
     # Storing events and voxels dataframes
     print(f'\n* Storing data in the output file ...\n  {file_out}\n')
     store_events_data(file_out, '/FANAL', events_dict)
-    store_voxels_reco_dict(file_out, '/FANAL', voxels_dict)
+    store_voxels_dict(file_out, voxels_dict)
 
     # Storing event counters as attributes
     smE_filter_events    = sum(events_dict['smE_filter'])
@@ -229,10 +230,9 @@ def analyze(det_name        : str,
     blobs_filter_events  = sum(events_dict['blobs_filter'])
     roi_filter_events    = sum(events_dict['roi_filter'])
 
-    store_events_ana_counters(oFile, '/FANAL', simulated_events, stored_events,
-                              smE_filter_events, fid_filter_events,
-                              tracks_filter_events, blobs_filter_events,
-                              roi_filter_events)
+    store_events_counters(oFile, simulated_events, stored_events, smE_filter_events,
+                          fid_filter_events, tracks_filter_events, blobs_filter_events,
+                          roi_filter_events)
 
     ### Ending ...
     oFile.close()
@@ -260,14 +260,17 @@ if __name__ == '__main__':
 
     with open(config_fname) as config_file:
         fanal_params = json.load(config_file)
-        fanal_params['fwhm']       = fanal_params['fwhm']       * units.perCent
-        fanal_params['e_min']      = fanal_params['e_min']      * units.keV
-        fanal_params['e_max']      = fanal_params['e_max']      * units.keV
-        fanal_params['voxel_Eth']  = fanal_params['voxel_Eth']  * units.keV
-        fanal_params['min_veto_e'] = fanal_params['min_veto_e'] * units.keV
-        fanal_params['track_Eth']  = fanal_params['track_Eth']  * units.keV
-        fanal_params['blob_Eth']   = fanal_params['blob_Eth']   * units.keV
-        fanal_params['roi_Emin']   = fanal_params['roi_Emin']   * units.keV
-        fanal_params['roi_Emax']   = fanal_params['roi_Emax']   * units.keV
+        fanal_params['fwhm']        = fanal_params['fwhm']        * units.perCent
+        fanal_params['e_min']       = fanal_params['e_min']       * units.keV
+        fanal_params['e_max']       = fanal_params['e_max']       * units.keV
+        fanal_params['voxel_size']  = np.array(fanal_params['voxel_size'])  * units.mm
+        fanal_params['voxel_Eth']   = fanal_params['voxel_Eth']   * units.keV
+        fanal_params['veto_width']  = fanal_params['veto_width']  * units.mm
+        fanal_params['min_veto_e']  = fanal_params['min_veto_e']  * units.keV
+        fanal_params['track_Eth']   = fanal_params['track_Eth']   * units.keV
+        fanal_params['blob_radius'] = fanal_params['blob_radius'] * units.mm
+        fanal_params['blob_Eth']    = fanal_params['blob_Eth']    * units.keV
+        fanal_params['roi_Emin']    = fanal_params['roi_Emin']    * units.keV
+        fanal_params['roi_Emax']    = fanal_params['roi_Emax']    * units.keV
 
     result = analyze(**fanal_params)
