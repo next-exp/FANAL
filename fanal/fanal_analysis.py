@@ -34,6 +34,8 @@ from fanal.analysis.event         import store_events_counters
 from fanal.analysis.voxel         import get_voxels_dict
 from fanal.analysis.voxel         import store_voxels_dict
 
+from fanal.analysis.tracks        import TrackList
+
 #import line_profiler
 #profile = line_profiler.LineProfiler()
 
@@ -171,6 +173,7 @@ def analyze(det_name        : str,
     # Dictionaries for events & voxels data
     events_dict = get_events_dict()
     voxels_dict = get_voxels_dict()
+    tracks_data = TrackList()
 
 
     ### RECONSTRUCTION PROCEDURE
@@ -197,17 +200,17 @@ def analyze(det_name        : str,
             logger.info(f"Analyzing event Id: {event_id} ...")
 
             # Analyze event
-            event_data = analyze_event(detector, ACTIVE_dimensions, int(event_id), event_type,
-                                       sigma_Qbb, e_min, e_max,
-                                       voxel_size, voxel_Eth, veto_width, min_veto_e,
-                                       track_Eth, max_num_tracks, blob_radius, blob_Eth,
-                                       roi_Emin, roi_Emax,
-                                       file_mcParts.loc[event_id, :],
-                                       file_mcHits .loc[event_id, :],
-                                       voxels_dict)
+            event_data, event_tracks = \
+                analyze_event(detector, ACTIVE_dimensions, int(event_id), event_type,
+                              sigma_Qbb, e_min, e_max, voxel_size, voxel_Eth, veto_width,
+                              min_veto_e, track_Eth, max_num_tracks, blob_radius, blob_Eth,
+                              roi_Emin, roi_Emax, file_mcParts.loc[event_id, :],
+                              file_mcHits .loc[event_id, :], voxels_dict)
 
             # Storing event_data
             extend_events_dict(events_dict, event_data)
+
+            tracks_data.add(event_tracks)
 
             # Verbosing
             if (not(analyzed_events % verbose_every)):
@@ -222,6 +225,8 @@ def analyze(det_name        : str,
     print(f'\n* Storing data in the output file ...\n  {file_out}\n')
     store_events_data(file_out, '/FANAL', events_dict)
     store_voxels_dict(file_out, voxels_dict)
+    tracks_data.store(file_out, 'FANAL')
+
 
     # Storing event counters as attributes
     smE_filter_events    = sum(events_dict['smE_filter'])

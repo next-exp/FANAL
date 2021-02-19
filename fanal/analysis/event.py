@@ -18,18 +18,22 @@ from invisible_cities.reco.paolina_functions  import length as track_length
 from invisible_cities.reco.paolina_functions  import blob_energies
 
 # FANAL importings
-from fanal.core.fanal_types       import VolumeDim
-from fanal.core.fanal_types       import DetName
-from fanal.core.logger            import get_logger
+from fanal.core.fanal_types   import VolumeDim
+from fanal.core.fanal_types   import DetName
+from fanal.core.logger        import get_logger
 
-from fanal.utils.fanal_units      import Qbb
+from fanal.utils.fanal_units  import Qbb
 
-from fanal.analysis.energy        import get_mc_energy
-from fanal.analysis.energy        import smear_evt_energy
-from fanal.analysis.position      import check_event_fiduciality
-from fanal.analysis.position      import translate_hit_positions
+from fanal.analysis.energy    import get_mc_energy
+from fanal.analysis.energy    import smear_evt_energy
+from fanal.analysis.position  import check_event_fiduciality
+from fanal.analysis.position  import translate_hit_positions
 
-from fanal.analysis.voxel         import process_tracks
+from fanal.analysis.voxel     import process_tracks
+
+from fanal.analysis.tracks    import Track
+from fanal.analysis.tracks    import TrackList
+from fanal.analysis.tracks    import track_from_ICtrack
 
 
 
@@ -178,6 +182,7 @@ def analyze_event(detector          : DetName,
 
     # Data to be filled
     event_data = get_event_data()
+    tracks     = TrackList()
 
     # Filtering hits
     active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
@@ -256,9 +261,19 @@ def analyze_event(detector          : DetName,
         if event_data['fid_filter']:
 
             # Make tracks
-            event_tracks = make_track_graphs(ic_voxels)
-            num_ini_tracks = len(event_tracks)
-            logger.info(f"  Num initial tracks: {num_ini_tracks:2}")
+            ic_tracks  = make_track_graphs(ic_voxels)
+            num_tracks = len(ic_tracks)
+            logger.info(f"  Num tracks: {num_tracks:2}")
+
+
+
+
+            # Creating & storing tracks from ic_tracks
+            for track_id in range(len(ic_tracks)):
+                tracks.add(track_from_ICtrack(event_id, track_id, ic_tracks[track_id]))
+            logger.info(tracks)
+
+
 
             # Appending to every voxel, the track it belongs to
             #event_voxels_tracks = get_voxel_track_relations(event_voxels, event_tracks)
@@ -268,30 +283,30 @@ def analyze_event(detector          : DetName,
             #                        event_voxels_newE, event_voxels_tracks)
 
             # Processing tracks: Getting energies, sorting and filtering ...
-            event_sorted_tracks = process_tracks(event_tracks, track_Eth)
-            event_data['num_tracks'] = len(event_sorted_tracks)
+            sorted_ic_tracks = process_tracks(ic_tracks, track_Eth)
+            event_data['num_tracks'] = len(sorted_ic_tracks)
 
             # Storing 3 hottest tracks info
             if event_data['num_tracks'] >= 1:
-                event_data['track0_E']      = event_sorted_tracks[0][0]
-                event_data['track0_length'] = event_sorted_tracks[0][1]
-                event_data['track0_voxels'] = len(event_sorted_tracks[0][2].nodes())
+                event_data['track0_E']      = sorted_ic_tracks[0][0]
+                event_data['track0_length'] = sorted_ic_tracks[0][1]
+                event_data['track0_voxels'] = len(sorted_ic_tracks[0][2].nodes())
                 logger.info(f"  Track 0 energy: {event_data['track0_E']:5.1f}  " + \
                             f"  Track 0 length: {event_data['track0_length']:5.1f}  " + \
                             f"  Track 0 voxels: {event_data['track0_voxels']:3}")
 
             if event_data['num_tracks'] >= 2:
-                event_data['track1_E']      = event_sorted_tracks[1][0]
-                event_data['track1_length'] = event_sorted_tracks[1][1]
-                event_data['track1_voxels'] = len(event_sorted_tracks[1][2].nodes())
+                event_data['track1_E']      = sorted_ic_tracks[1][0]
+                event_data['track1_length'] = sorted_ic_tracks[1][1]
+                event_data['track1_voxels'] = len(sorted_ic_tracks[1][2].nodes())
                 logger.info(f"  Track 1 energy: {event_data['track1_E']:5.1f}  " + \
                             f"  Track 1 length: {event_data['track1_length']:5.1f}  " + \
                             f"  Track 1 voxels: {event_data['track1_voxels']:3}")
 
             if event_data['num_tracks'] >= 3:
-                event_data['track2_E']      = event_sorted_tracks[2][0]
-                event_data['track2_length'] = event_sorted_tracks[2][1]
-                event_data['track2_voxels'] = len(event_sorted_tracks[2][2].nodes())
+                event_data['track2_E']      = sorted_ic_tracks[2][0]
+                event_data['track2_length'] = sorted_ic_tracks[2][1]
+                event_data['track2_voxels'] = len(sorted_ic_tracks[2][2].nodes())
                 logger.info(f"  Track 2 energy: {event_data['track2_E']:5.1f}  " + \
                             f"  Track 2 length: {event_data['track2_length']:5.1f}  " + \
                             f"  Track 2 voxels: {event_data['track2_voxels']:3}")
@@ -309,7 +324,7 @@ def analyze_event(detector          : DetName,
 
             ### For those events passing the tracks filter:
             if event_data['tracks_filter']:
-                the_track = event_tracks[0]
+                the_track = ic_tracks[0]
 
                 # Getting the blob energies of the track
                 event_data['blob1_E'], event_data['blob2_E'] = \
@@ -335,4 +350,4 @@ def analyze_event(detector          : DetName,
                     logger.info(f"  Event energy: {event_data['smE']/units.keV:6.1f} keV" + \
                                 f"  -->  ROI filter: {event_data['roi_filter']}")
 
-    return event_data
+    return event_data, tracks
