@@ -33,14 +33,14 @@ class Track:
     ext2_num_voxels : int    = 0
 
     def __repr__(self):
-        s =  f"* Event - Track ids: {self.event_id} - {self.track_id}\n"
+        s =  f"* IDs (evt , trk): {self.event_id} , {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
         s += f"  Length: {self.length / units.mm:.3f} mm "
         s += f"  Num voxels: {self.num_voxels}\n"
-        s += f"  Extreme1: ({self.ext1_x},{self.ext1_y},{self.ext1_z}) "
+        s += f"  Extr1: ({self.ext1_x},{self.ext1_y},{self.ext1_z}) "
         s += f"  Energy: {self.ext1_energy / units.keV} keV "
         s += f"  Num voxels: {self.ext1_num_voxels}\n"
-        s += f"  Extreme2: ({self.ext2_x},{self.ext2_y},{self.ext2_z}) "
+        s += f"  Extr2: ({self.ext2_x},{self.ext2_y},{self.ext2_z}) "
         s += f"  Energy: {self.ext2_energy / units.keV} keV "
         s += f"  Num voxels: {self.ext2_num_voxels}\n"
         return s
@@ -81,7 +81,7 @@ class TrackList:
                          format = 'table', data_columns = True)
 
     def __repr__(self):
-        s = f"List with {len(self.tracks)} tracks ...\n"
+        s = f"Track List with {len(self.tracks)} tracks ...\n"
         for track in self.tracks:
             s += str(track)
         return s

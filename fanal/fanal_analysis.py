@@ -35,6 +35,7 @@ from fanal.analysis.voxel         import get_voxels_dict
 from fanal.analysis.voxel         import store_voxels_dict
 
 from fanal.analysis.tracks        import TrackList
+from fanal.analysis.voxels        import VoxelList
 
 #import line_profiler
 #profile = line_profiler.LineProfiler()
@@ -174,6 +175,7 @@ def analyze(det_name        : str,
     events_dict = get_events_dict()
     voxels_dict = get_voxels_dict()
     tracks_data = TrackList()
+    voxels_data = VoxelList()
 
 
     ### RECONSTRUCTION PROCEDURE
@@ -200,7 +202,7 @@ def analyze(det_name        : str,
             logger.info(f"Analyzing event Id: {event_id} ...")
 
             # Analyze event
-            event_data, event_tracks = \
+            event_data, event_tracks, event_voxels = \
                 analyze_event(detector, ACTIVE_dimensions, int(event_id), event_type,
                               sigma_Qbb, e_min, e_max, voxel_size, voxel_Eth, veto_width,
                               min_veto_e, track_Eth, max_num_tracks, blob_radius, blob_Eth,
@@ -211,6 +213,7 @@ def analyze(det_name        : str,
             extend_events_dict(events_dict, event_data)
 
             tracks_data.add(event_tracks)
+            voxels_data.add(event_voxels)
 
             # Verbosing
             if (not(analyzed_events % verbose_every)):
@@ -226,6 +229,7 @@ def analyze(det_name        : str,
     store_events_data(file_out, '/FANAL', events_dict)
     store_voxels_dict(file_out, voxels_dict)
     tracks_data.store(file_out, 'FANAL')
+    voxels_data.store(file_out, 'FANAL')
 
 
     # Storing event counters as attributes
