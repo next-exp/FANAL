@@ -43,10 +43,13 @@ def analyze_event(detector          : DetName,
                   ACTIVE_dimensions : VolumeDim,
                   event_id          : int,
                   event_type        : str,
+                  event_mcParts     : pd.DataFrame,
+                  event_mcHits      : pd.DataFrame,
                   sigma_Qbb         : float,
                   e_min             : float,
                   e_max             : float,
                   voxel_size        : np.ndarray,
+                  strict_voxel_size : bool,
                   voxel_Eth         : float,
                   veto_width        : float,
                   min_veto_e        : float,
@@ -55,9 +58,7 @@ def analyze_event(detector          : DetName,
                   blob_radius       : float,
                   blob_Eth          : float,
                   roi_Emin          : float,
-                  roi_Emax          : float,
-                  event_mcParts     : pd.DataFrame,
-                  event_mcHits      : pd.DataFrame
+                  roi_Emax          : float
                  )                 -> Tuple[Event, TrackList, VoxelList] :
 
     # Data to be filled
@@ -108,7 +109,7 @@ def analyze_event(detector          : DetName,
             MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
 
         # Voxelizing using the ic_hits ...
-        ic_voxels = voxelize_hits(ic_hits, voxel_size, strict_voxel_size=False)
+        ic_voxels = voxelize_hits(ic_hits, voxel_size, strict_voxel_size)
         event_data.num_voxels = len(ic_voxels)
         eff_voxel_size = ic_voxels[0].size
         event_data.voxel_size_x = eff_voxel_size[0]

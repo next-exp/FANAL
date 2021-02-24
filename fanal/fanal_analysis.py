@@ -33,24 +33,25 @@ from fanal.analysis.events        import EventCounter
 
 
 
-def analyze(det_name        : str,
-            event_type      : str,
-            files_in        : str,
-            file_out        : str,
-            fwhm            : float,
-            e_min           : float,
-            e_max           : float,
-            voxel_size      : Tuple[float, float, float],
-            voxel_Eth       : float,
-            veto_width      : float,
-            min_veto_e      : float,
-            track_Eth       : float,
-            max_num_tracks  : int,
-            blob_radius     : float,
-            blob_Eth        : float,
-            roi_Emin        : float,
-            roi_Emax        : float,
-            verbosity_level : str = "WARNING"):
+def analyze(det_name          : str,
+            event_type        : str,
+            files_in          : str,
+            file_out          : str,
+            fwhm              : float,
+            e_min             : float,
+            e_max             : float,
+            voxel_size        : Tuple[float, float, float],
+            strict_voxel_size : bool,
+            voxel_Eth         : float,
+            veto_width        : float,
+            min_veto_e        : float,
+            track_Eth         : float,
+            max_num_tracks    : int,
+            blob_radius       : float,
+            blob_Eth          : float,
+            roi_Emin          : float,
+            roi_Emax          : float,
+            verbosity_level   : str = "WARNING"):
 
     """
     Parameters:
@@ -63,6 +64,7 @@ def analyze(det_name        : str,
         e_min,             # Minimum smeared energy for energy filtering
         e_max,             # Maximum smeared energy for energy filtering
         voxel_size,        # Voxel size (x, y, z)
+        strict_voxel_size, # Force strict voxel size
         voxel_Eth,         # Voxel energy threshold
         veto_width,        # Veto width for fiducial filtering
         min_veto_e,        # Minimum energy in veto for fiducial filtering
@@ -100,9 +102,10 @@ def analyze(det_name        : str,
     print(f'***** Detector:          {detector.name}')
     print(f'***** Reconstructing:    {event_type} events')
     print(f'***** Energy Resolution: {fwhm / units.perCent:.2f}% fwhm at Qbb')
-    print(f'***** Voxel Size:        ({voxel_size[0] / units.mm}, ' + \
-                                    f'{voxel_size[1] / units.mm}, ' + \
-                                    f'{voxel_size[2] / units.mm}) mm')
+    print(f'***** Voxel Size:        ({voxel_size[0] / units.mm}, '     + \
+                                    f'{voxel_size[1] / units.mm}, '     + \
+                                    f'{voxel_size[2] / units.mm}) mm  ' + \
+                                    f'-  strict: {strict_voxel_size}')
     print(f'***** Voxel Eth:         {voxel_Eth/units.keV:.1f} keV')
     print(f"***** Track Eth: {track_Eth/units.keV:4.1f} keV   Max Num Tracks: {max_num_tracks}")
     print(f"***** Blob radius: {blob_radius:.1f} mm   Blob Eth: {blob_Eth/units.keV:4.1f} keV")
@@ -137,22 +140,23 @@ def analyze(det_name        : str,
     oFile.create_group('/', 'FANAL')
 
     # Attributes
-    oFile.set_node_attr('/FANAL', 'event_type',                event_type)
-    oFile.set_node_attr('/FANAL', 'energy_resolution',         fwhm/units.perCent)
-    oFile.set_node_attr('/FANAL', 'voxel_sizeX',               voxel_size[0])
-    oFile.set_node_attr('/FANAL', 'voxel_sizeY',               voxel_size[1])
-    oFile.set_node_attr('/FANAL', 'voxel_sizeZ',               voxel_size[2])
-    oFile.set_node_attr('/FANAL', 'voxel_Eth',                 voxel_Eth)
-    oFile.set_node_attr('/FANAL', 'smE_filter_Emin',           e_min)
-    oFile.set_node_attr('/FANAL', 'smE_filter_Emax',           e_max)
-    oFile.set_node_attr('/FANAL', 'fiducial_filter_VetoWidth', veto_width)
-    oFile.set_node_attr('/FANAL', 'fiducial_filter_MinVetoE',  min_veto_e)
-    oFile.set_node_attr('/FANAL', 'track_Eth',                 track_Eth)
-    oFile.set_node_attr('/FANAL', 'max_num_tracks',            max_num_tracks)
-    oFile.set_node_attr('/FANAL', 'blob_radius',               blob_radius)
-    oFile.set_node_attr('/FANAL', 'blob_Eth',                  blob_Eth)
-    oFile.set_node_attr('/FANAL', 'roi_Emin',                  roi_Emin)
-    oFile.set_node_attr('/FANAL', 'roi_Emax',                  roi_Emax)
+    oFile.set_node_attr('/FANAL', 'event_type',             event_type)
+    oFile.set_node_attr('/FANAL', 'energy_resolution',      fwhm/units.perCent)
+    oFile.set_node_attr('/FANAL', 'voxel_sizeX',            voxel_size[0])
+    oFile.set_node_attr('/FANAL', 'voxel_sizeY',            voxel_size[1])
+    oFile.set_node_attr('/FANAL', 'voxel_sizeZ',            voxel_size[2])
+    oFile.set_node_attr('/FANAL', 'strict_voxel_size',      strict_voxel_size)
+    oFile.set_node_attr('/FANAL', 'voxel_Eth',              voxel_Eth)
+    oFile.set_node_attr('/FANAL', 'smE_filter_Emin',        e_min)
+    oFile.set_node_attr('/FANAL', 'smE_filter_Emax',        e_max)
+    oFile.set_node_attr('/FANAL', 'fiduc_filter_VetoWidth', veto_width)
+    oFile.set_node_attr('/FANAL', 'fiduc_filter_MinVetoE',  min_veto_e)
+    oFile.set_node_attr('/FANAL', 'track_Eth',              track_Eth)
+    oFile.set_node_attr('/FANAL', 'max_num_tracks',         max_num_tracks)
+    oFile.set_node_attr('/FANAL', 'blob_radius',            blob_radius)
+    oFile.set_node_attr('/FANAL', 'blob_Eth',               blob_Eth)
+    oFile.set_node_attr('/FANAL', 'roi_Emin',               roi_Emin)
+    oFile.set_node_attr('/FANAL', 'roi_Emax',               roi_Emax)
 
 
     ### DATA TO COLECT
@@ -191,10 +195,10 @@ def analyze(det_name        : str,
             # Analyze event
             event_data, event_tracks, event_voxels = \
                 analyze_event(detector, ACTIVE_dimensions, int(event_id), event_type,
-                              sigma_Qbb, e_min, e_max, voxel_size, voxel_Eth, veto_width,
-                              min_veto_e, track_Eth, max_num_tracks, blob_radius, blob_Eth,
-                              roi_Emin, roi_Emax, file_mcParts.loc[event_id, :],
-                              file_mcHits.loc[event_id, :])
+                              file_mcParts.loc[event_id, :], file_mcHits.loc[event_id, :],
+                              sigma_Qbb, e_min, e_max, voxel_size, strict_voxel_size,
+                              voxel_Eth, veto_width, min_veto_e, track_Eth, max_num_tracks,
+                              blob_radius, blob_Eth, roi_Emin, roi_Emax)
 
             # Storing event data
             events_data.add(event_data)
