@@ -25,20 +25,11 @@ from fanal.core.detector          import get_active_size
 from fanal.core.detector          import get_fiducial_size
 from fanal.core.fanal_types       import DetName
 
-from fanal.analysis.event         import get_events_dict
-from fanal.analysis.event         import extend_events_dict
 from fanal.analysis.event         import analyze_event
-from fanal.analysis.event         import store_events_data
-from fanal.analysis.event         import store_events_counters
-
-from fanal.analysis.voxel         import get_voxels_dict
-from fanal.analysis.voxel         import store_voxels_dict
-
 from fanal.analysis.tracks        import TrackList
 from fanal.analysis.voxels        import VoxelList
-
-#import line_profiler
-#profile = line_profiler.LineProfiler()
+from fanal.analysis.events        import EventList
+from fanal.analysis.events        import EventCounter
 
 
 
@@ -164,27 +155,23 @@ def analyze(det_name        : str,
     oFile.set_node_attr('/FANAL', 'roi_Emax',                  roi_Emax)
 
 
-    ### DATA TO STORE
-    # Event counters
-    simulated_events = 0
-    stored_events    = 0
-    analyzed_events  = 0
-    verbose_every    = 1
-
-    # Dictionaries for events & voxels data
-    events_dict = get_events_dict()
-    voxels_dict = get_voxels_dict()
-    tracks_data = TrackList()
-    voxels_data = VoxelList()
+    ### DATA TO COLECT
+    events_data   = EventList()
+    tracks_data   = TrackList()
+    voxels_data   = VoxelList()
+    event_counter = EventCounter()
 
 
     ### RECONSTRUCTION PROCEDURE
+
+    verbose_every    = 1
+
     # Looping through all the input files
     for iFileName in files_in:
         # Updating simulated and stored event counters
         configuration_df = pd.read_hdf(iFileName, '/MC/configuration', mode='r')
-        simulated_events += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
-        stored_events    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
+        event_counter.simulated += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
+        event_counter.stored    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
 
         # Getting event numbers
         file_event_ids = get_event_numbers_in_file(iFileName)
@@ -198,7 +185,7 @@ def analyze(det_name        : str,
         for event_id in file_event_ids:
 
             # Updating counter of analyzed events
-            analyzed_events += 1
+            event_counter.analyzed += 1
             logger.info(f"Analyzing event Id: {event_id} ...")
 
             # Analyze event
@@ -207,55 +194,50 @@ def analyze(det_name        : str,
                               sigma_Qbb, e_min, e_max, voxel_size, voxel_Eth, veto_width,
                               min_veto_e, track_Eth, max_num_tracks, blob_radius, blob_Eth,
                               roi_Emin, roi_Emax, file_mcParts.loc[event_id, :],
-                              file_mcHits .loc[event_id, :], voxels_dict)
+                              file_mcHits.loc[event_id, :])
 
-            # Storing event_data
-            extend_events_dict(events_dict, event_data)
-
+            # Storing event data
+            events_data.add(event_data)
             tracks_data.add(event_tracks)
             voxels_data.add(event_voxels)
 
             # Verbosing
-            if (not(analyzed_events % verbose_every)):
-                print(f'* Num analyzed events: {analyzed_events}')
-            if (analyzed_events == (10 * verbose_every)): verbose_every *= 10
+            if (not(event_counter.analyzed % verbose_every)):
+                print(f'* Num analyzed events: {event_counter.analyzed}')
+            if (event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
 
 
     ### STORING RECONSTRUCTION DATA
-    print(f'\n* Total analyzed events: {analyzed_events}')
+    print(f'\n* Total analyzed events: {event_counter.analyzed}')
 
     # Storing events and voxels dataframes
     print(f'\n* Storing data in the output file ...\n  {file_out}\n')
-    store_events_data(file_out, '/FANAL', events_dict)
-    store_voxels_dict(file_out, voxels_dict)
+    events_data.store(file_out, 'FANAL')
     tracks_data.store(file_out, 'FANAL')
     voxels_data.store(file_out, 'FANAL')
 
-
     # Storing event counters as attributes
-    smE_filter_events    = sum(events_dict['smE_filter'])
-    fid_filter_events    = sum(events_dict['fid_filter'])
-    tracks_filter_events = sum(events_dict['tracks_filter'])
-    blobs_filter_events  = sum(events_dict['blobs_filter'])
-    roi_filter_events    = sum(events_dict['roi_filter'])
+    #event_counter.energy_filter = sum(event.energy_filter for event in events_data.events)
+    #event_counter.fiduc_filter  = sum(event.fiduc_filter    for event in events_data.events)
+    #event_counter.track_filter  = sum(event.track_filter  for event in events_data.events)
+    #event_counter.blob_filter   = sum(event.blob_filter   for event in events_data.events)
+    #event_counter.roi_filter    = sum(event.roi_filter    for event in events_data.events)
 
-    store_events_counters(oFile, simulated_events, stored_events, smE_filter_events,
-                          fid_filter_events, tracks_filter_events, blobs_filter_events,
-                          roi_filter_events)
+    events_df = events_data.df()
+    event_counter.energy_filter = len(events_df[events_df.energy_filter])
+    event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
+    event_counter.track_filter  = len(events_df[events_df.track_filter])
+    event_counter.blob_filter   = len(events_df[events_df.blob_filter])
+    event_counter.roi_filter    = len(events_df[events_df.roi_filter])
+
+    event_counter.store(file_out, 'FANAL')
 
     ### Ending ...
     oFile.close()
     print('\n* Analysis done !!\n')
 
     # Printing analysis numbers
-    print('* Event counters ...')
-    print(f"  Simulated events:     {simulated_events:9}\n"     + \
-          f"  Stored events:        {stored_events:9}\n"        + \
-          f"  smE_filter events:    {smE_filter_events:9}\n"    + \
-          f"  fid_filter events:    {fid_filter_events:9}\n"    + \
-          f"  tracks_filter events: {tracks_filter_events:9}\n" + \
-          f"  blobs_filter events:  {blobs_filter_events:9}\n"  + \
-          f"  roi_filter events:    {roi_filter_events:9}\n")
+    print(event_counter)
 
 
 

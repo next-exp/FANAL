@@ -1,11 +1,7 @@
 # General importings
 import numpy  as np
 import pandas as pd
-import tables as tb
 
-from   typing import Dict
-from   typing import Any
-from   typing import List
 from   typing import Tuple
 
 
@@ -35,126 +31,11 @@ from fanal.analysis.tracks    import track_from_ICtrack
 from fanal.analysis.voxels    import VoxelList
 from fanal.analysis.voxels    import voxel_from_ICvoxel
 
+from fanal.analysis.events    import Event
 
 
 # The logger
 logger = get_logger('Fanal')
-
-
-
-def get_event_data() -> Dict[str, Any]:
-    """
-    It returns a dictionary with a key for each field to be stored per event
-    """
-    event_data : Dict[str, Any] = {
-        'event_id'     : np.nan,
-        'num_MCparts'  : np.nan,
-        'num_MChits'   : np.nan,
-        'mcE'          : np.nan,
-        'smE'          : np.nan,
-        'smE_filter'   : False,
-        'num_voxels'   : np.nan,
-        'voxel_sizeX'  : np.nan,
-        'voxel_sizeY'  : np.nan,
-        'voxel_sizeZ'  : np.nan,
-        'voxels_minZ'  : np.nan,
-        'voxels_maxZ'  : np.nan,
-        'voxels_maxRad': np.nan,
-        'veto_energy'  : np.nan,
-        'fid_filter'   : False,
-        'num_tracks'   : np.nan,
-        'tracks_filter': False,
-        'track0_E'     : np.nan,
-        'track0_length': np.nan,
-        'track0_voxels': np.nan,
-        'track1_E'     : np.nan,
-        'track1_length': np.nan,
-        'track1_voxels': np.nan,
-        'track2_E'     : np.nan,
-        'track2_length': np.nan,
-        'track2_voxels': np.nan,
-        'blob1_E'      : np.nan,
-        'blob2_E'      : np.nan,
-        'blobs_filter' : False,
-        'roi_filter'   : False
-    }
-
-    return event_data
-
-
-
-def get_events_dict() -> Dict[str, List[Any]]:
-    """
-    It returns the dictionary to store the data from all the events.
-    """
-    event_data  = get_event_data()
-
-    events_dict : Dict[str, List[Any]] = {}
-    for key in event_data.keys():
-        events_dict[key] = []
-
-    return events_dict
-
-
-
-def extend_events_dict(
-    events_dict : Dict[str, List[Any]],
-    event_data  : Dict[str, Any]) -> None:
-    """
-    It stores all the data related to an event into the events_dict.
-    The values not passed in the function called are set to default values
-    to fill all the dictionary fields per event.
-    """
-
-    assert type(event_data['event_id']) == int, "event_id is mandatory"
-
-    for key in event_data.keys():
-        events_dict[key].extend([event_data[key]])
-
-
-
-def store_events_data(file_name   : str,
-                      group_name  : str,
-                      events_dict : Dict[str, List[Any]]
-                     ) -> None:
-    """
-    Translates the events dictionary to a dataFrame that is stored in
-    file_name / group_name / events.
-    """
-    # Creating the df
-    events_df = pd.DataFrame(events_dict)
-
-    # Formatting DF
-    events_df.set_index('event_id', inplace = True)
-    events_df.sort_index()
-
-    # Storing DF
-    events_df.to_hdf(file_name, group_name + '/events',
-                     format = 'table', data_columns = True)
-
-    print('  Total Events in File: {}'.format(len(events_df)))
-
-
-
-def store_events_counters(oFile                : tb.file.File,
-                          simulated_events     : int,
-                          stored_events        : int,
-                          smE_filter_events    : int,
-                          fid_filter_events    : int,
-                          tracks_filter_events : int,
-                          blobs_filter_events  : int,
-                          roi_filter_events    : int
-                         ) -> None:
-    """
-    Stores the event counters as attributes of oFile / group_name
-    """
-    oFile.set_node_attr('/FANAL', 'simulated_events',     simulated_events)
-    oFile.set_node_attr('/FANAL', 'stored_events',        stored_events)
-    oFile.set_node_attr('/FANAL', 'smE_filter_events',    smE_filter_events)
-    oFile.set_node_attr('/FANAL', 'fid_filter_events',    fid_filter_events)
-    oFile.set_node_attr('/FANAL', 'tracks_filter_events', tracks_filter_events)
-    oFile.set_node_attr('/FANAL', 'blobs_filter_events',  blobs_filter_events)
-    oFile.set_node_attr('/FANAL', 'roi_filter_events',    roi_filter_events)
 
 
 
@@ -176,46 +57,45 @@ def analyze_event(detector          : DetName,
                   roi_Emin          : float,
                   roi_Emax          : float,
                   event_mcParts     : pd.DataFrame,
-                  event_mcHits      : pd.DataFrame,
-                  voxels_dict       : Dict
-                 )                 -> Tuple[Dict, TrackList, VoxelList] :
+                  event_mcHits      : pd.DataFrame
+                 )                 -> Tuple[Event, TrackList, VoxelList] :
 
     # Data to be filled
-    event_data = get_event_data()
-    tracks     = TrackList()
-    voxels     = VoxelList()
+    event_data  = Event()
+    tracks_data = TrackList()
+    voxels_data = VoxelList()
 
     # Filtering hits
     active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
 
-    event_data['event_id']    = event_id
-    event_data['num_MCparts'] = len(event_mcParts)
-    event_data['num_MChits']  = len(active_mcHits)
+    event_data.event_id    = event_id
+    event_data.num_mcParts = len(event_mcParts)
+    event_data.num_mcHits  = len(active_mcHits)
 
     # The event mc energy is the sum of the energy of all the hits except
     # for Bi214 events, in which the number of S1 in the event is considered
     if (event_type == 'Bi214'):
-        event_data['mcE'] = get_mc_energy(active_mcHits)
+        event_data.mc_energy = get_mc_energy(active_mcHits)
     else:
-        event_data['mcE'] = active_mcHits.energy.sum()
+        event_data.mc_energy = active_mcHits.energy.sum()
 
     # Smearing the event energy
-    event_data['smE'] = smear_evt_energy(event_data['mcE'], sigma_Qbb, Qbb)
+    event_data.sm_energy = smear_evt_energy(event_data.mc_energy, sigma_Qbb, Qbb)
 
     # Applying the smE filter
-    event_data['smE_filter'] = (e_min <= event_data['smE'] <= e_max)
+    event_data.energy_filter = (e_min <= event_data.sm_energy <= e_max)
 
     # Verbosing
-    logger.info(f"  Num mcHits: {event_data['num_MChits']:3}   "       + \
-                f"mcE: {event_data['mcE']/units.keV:.1f} "             + \
-                f"keV   smE: {event_data['smE']/units.keV:.1f} keV   " + \
-                f"smE_filter: {event_data['smE_filter']}")
+    logger.info(f"  Num mcHits: {event_data.num_mcHits:3}   " + \
+                f"mcE: {event_data.mc_energy/units.keV:.1f} keV   " + \
+                f"smE: {event_data.sm_energy/units.keV:.1f} keV   " + \
+                f"energy_filter: {event_data.energy_filter}")
 
     # For those events passing the smE filter:
-    if event_data['smE_filter']:
+    if event_data.energy_filter:
 
         # Smearing hit energies
-        smearing_factor = event_data['smE'] / event_data['mcE']
+        smearing_factor = event_data.sm_energy / event_data.mc_energy
         active_mcHits['smE'] = active_mcHits['energy'] * smearing_factor
 
         # Translating hit Z positions from delayed hits
@@ -224,39 +104,39 @@ def analyze_event(detector          : DetName,
                                       (active_mcHits.shifted_z > ACTIVE_dimensions.z_min)]
 
         # Creating the IChits with the smeared energies and translated Z positions
-        ic_hits = active_mcHits.apply(lambda hit: MCHit((hit.x, hit.y, hit.shifted_z),
-                                                       hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
+        ic_hits = active_mcHits.apply(lambda hit: \
+            MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
 
         # Voxelizing using the ic_hits ...
         ic_voxels = voxelize_hits(ic_hits, voxel_size, strict_voxel_size=False)
-        event_data['num_voxels'] = len(ic_voxels)
+        event_data.num_voxels = len(ic_voxels)
         eff_voxel_size = ic_voxels[0].size
-        event_data['voxel_sizeX'] = eff_voxel_size[0]
-        event_data['voxel_sizeY'] = eff_voxel_size[1]
-        event_data['voxel_sizeZ'] = eff_voxel_size[2]
+        event_data.voxel_size_x = eff_voxel_size[0]
+        event_data.voxel_size_y = eff_voxel_size[1]
+        event_data.voxel_size_z = eff_voxel_size[2]
 
         # Check fiduciality
-        event_data['voxels_minZ'], event_data['voxels_maxZ'], event_data['voxels_maxRad'], \
-        event_data['veto_energy'], event_data['fid_filter'] = \
+        event_data.voxels_min_z, event_data.voxels_max_z, event_data.voxels_max_rad, \
+        event_data.veto_energy, event_data.fiduc_filter = \
         check_event_fiduciality(detector, veto_width, min_veto_e, ic_voxels)
 
         # Verbosing
-        logger.info(f"  Num Voxels: {event_data['num_voxels']:3}   "            + \
-                    f"minZ: {event_data['voxels_minZ']:.1f} mm   "              + \
-                    f"maxZ: {event_data['voxels_maxZ']:.1f} mm   "              + \
-                    f"maxR: {event_data['voxels_maxRad']:.1f} mm   "            + \
-                    f"veto_E: {event_data['veto_energy']/units.keV:.1f} keV   " + \
-                    f"fid_filter: {event_data['fid_filter']}")
+        #logger.info(f"  Num Voxels: {event_data['num_voxels']:3}   "            + \
+        #            f"minZ: {event_data['voxels_minZ']:.1f} mm   "              + \
+        #            f"maxZ: {event_data['voxels_maxZ']:.1f} mm   "              + \
+        #            f"maxR: {event_data['voxels_maxRad']:.1f} mm   "            + \
+        #            f"veto_E: {event_data['veto_energy']/units.keV:.1f} keV   " + \
+        #            f"fiduc_filter: {event_data['fiduc_filter']}")
 
         ### For those events NOT passing the fiducial filter
         # Storing voxels without track-id info
-        if not event_data['fid_filter']:
+        if not event_data.fiduc_filter:
             for voxel_id in range(len(ic_voxels)):
-                voxels.add(voxel_from_ICvoxel(event_id, -1, voxel_id, ic_voxels[voxel_id]))
-            logger.debug(voxels)
+                voxels_data.add(voxel_from_ICvoxel(event_id, -1, voxel_id, ic_voxels[voxel_id]))
+            logger.debug(voxels_data)
 
         ### For those events passing the fiducial filter:
-        if event_data['fid_filter']:
+        else:
 
             # Make tracks
             ic_tracks  = make_track_graphs(ic_voxels)
@@ -266,86 +146,55 @@ def analyze_event(detector          : DetName,
             # Storing tracks from ic_tracks
             for track_id in range(len(ic_tracks)):
                 ic_track = ic_tracks[track_id]
-                tracks.add(track_from_ICtrack(event_id, track_id, ic_track))
+                tracks_data.add(track_from_ICtrack(event_id, track_id, ic_track))
 
                 # Storing voxels from ic_voxels
                 ic_voxels = list(ic_track.nodes())
                 for voxel_id in range(len(ic_voxels)):
-                    voxels.add(voxel_from_ICvoxel(event_id, track_id, voxel_id,
-                                                  ic_voxels[voxel_id]))
+                    voxels_data.add(voxel_from_ICvoxel(event_id, track_id, voxel_id,
+                                                       ic_voxels[voxel_id]))
 
-            logger.debug(voxels)
-            logger.info(tracks)
+            logger.debug(voxels_data)
+            logger.info(tracks_data)
 
             # Processing tracks: Getting energies, sorting and filtering ...
-            #sorted_ic_tracks = process_tracks(ic_tracks, track_Eth)
-            #event_data['num_tracks'] = len(sorted_ic_tracks)
-            event_data['num_tracks'] = tracks.len()
+            event_data.num_tracks = tracks_data.len()
 
-            ## Storing 3 hottest tracks info
-            #if event_data['num_tracks'] >= 1:
-            #    event_data['track0_E']      = sorted_ic_tracks[0][0]
-            #    event_data['track0_length'] = sorted_ic_tracks[0][1]
-            #    event_data['track0_voxels'] = len(sorted_ic_tracks[0][2].nodes())
-            #    logger.info(f"  Track 0 energy: {event_data['track0_E']:5.1f}  " + \
-            #                f"  Track 0 length: {event_data['track0_length']:5.1f}  " + \
-            #                f"  Track 0 voxels: {event_data['track0_voxels']:3}")
-#
-            #if event_data['num_tracks'] >= 2:
-            #    event_data['track1_E']      = sorted_ic_tracks[1][0]
-            #    event_data['track1_length'] = sorted_ic_tracks[1][1]
-            #    event_data['track1_voxels'] = len(sorted_ic_tracks[1][2].nodes())
-            #    logger.info(f"  Track 1 energy: {event_data['track1_E']:5.1f}  " + \
-            #                f"  Track 1 length: {event_data['track1_length']:5.1f}  " + \
-            #                f"  Track 1 voxels: {event_data['track1_voxels']:3}")
-#
-            #if event_data['num_tracks'] >= 3:
-            #    event_data['track2_E']      = sorted_ic_tracks[2][0]
-            #    event_data['track2_length'] = sorted_ic_tracks[2][1]
-            #    event_data['track2_voxels'] = len(sorted_ic_tracks[2][2].nodes())
-            #    logger.info(f"  Track 2 energy: {event_data['track2_E']:5.1f}  " + \
-            #                f"  Track 2 length: {event_data['track2_length']:5.1f}  " + \
-            #                f"  Track 2 voxels: {event_data['track2_voxels']:3}")
-
-            # Applying the tracks filter consisting on:
-            # 0 < num tracks < max_num_tracks
-            # the track length must be longer than 2 times the blob_radius
-            #event_data['tracks_filter'] = ((event_data['num_tracks'] >  0) &
-            #                               (event_data['num_tracks'] <= max_num_tracks) &
-            #                               (event_data['track0_length'] >=  2. * blob_radius))
-            event_data['tracks_filter'] = ((event_data['num_tracks'] >  0) &
-                                           (event_data['num_tracks'] <= max_num_tracks))
+            event_data.track_filter = ((event_data.num_tracks >  0) &
+                                       (event_data.num_tracks <= max_num_tracks))
 
             # Verbosing
-            logger.info(f"  Num tracks: {event_data['num_tracks']:2}  -->" + \
-                        f"  tracks_filter: {event_data['tracks_filter']}")
+            logger.info(f"  Num tracks: {event_data.num_tracks:3}  -->" + \
+                        f"  track_filter: {event_data.track_filter}")
 
-            ### For those events passing the tracks filter:
-            if event_data['tracks_filter']:
+            ### For those events passing the track filter:
+            if event_data.track_filter:
                 the_track = ic_tracks[0]
 
+                event_data.track_length = tracks_data.tracks[0].length
+
                 # Getting the blob energies of the track
-                event_data['blob1_E'], event_data['blob2_E'] = \
+                event_data.blob1_E, event_data.blob2_E = \
                     blob_energies(the_track, blob_radius)
 
-                # Applying the blobs filter
-                event_data['blobs_filter'] = (event_data['blob2_E'] > blob_Eth)
+                # Applying the blob filter
+                event_data.blob_filter = (event_data.blob2_E > blob_Eth)
 
                 # Verbosing
-                logger.info(f"  Blob 1 energy: {event_data['blob1_E']/units.keV:4.1f} keV " + \
-                            f"  Blob 2 energy: {event_data['blob2_E']/units.keV:4.1f} keV"  + \
-                            f"  -->  Blobs filter: {event_data['blobs_filter']}")
+                logger.info(f"  Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
+                            f"  Blob 2 energy: {event_data.blob2_E/units.keV:4.1f} keV"  + \
+                            f"  -->  Blob filter: {event_data.blob_filter}")
 
 
                 ### For those events passing the blobs filter:
-                if event_data['blobs_filter']:
+                if event_data.blob_filter:
 
                     # Applying the ROI filter
-                    event_data['roi_filter'] = ((event_data['smE'] >= roi_Emin) &
-                                                (event_data['smE'] <= roi_Emax))
+                    event_data.roi_filter = ((event_data.sm_energy >= roi_Emin) &
+                                                (event_data.sm_energy <= roi_Emax))
 
                     # Verbosing
-                    logger.info(f"  Event energy: {event_data['smE']/units.keV:6.1f} keV" + \
-                                f"  -->  ROI filter: {event_data['roi_filter']}")
+                    logger.info(f"  Event energy: {event_data.sm_energy/units.keV:6.1f} keV" + \
+                                f"  -->  ROI filter: {event_data.roi_filter}")
 
-    return event_data, tracks, voxels
+    return event_data, tracks_data, voxels_data
