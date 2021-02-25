@@ -51,7 +51,7 @@ def analyze(det_name          : str,
             blob_Eth          : float,
             roi_Emin          : float,
             roi_Emax          : float,
-            verbosity_level   : str = "WARNING"):
+            verbosity         : str = "WARNING"):
 
     """
     Parameters:
@@ -74,11 +74,11 @@ def analyze(det_name          : str,
         blob_Eth,
         roi_Emin,
         roi_Emax,
-        verbosity_level):
+        verbosity):
     """
 
     ### LOGGER
-    logger = get_logger('Fanal', verbosity_level)
+    logger = get_logger('Fanal', verbosity)
 
     ### Input files
     files_in = sorted(glob.glob(files_in))
@@ -93,8 +93,7 @@ def analyze(det_name          : str,
 
     ### RECONSTRUCTION DATA
     # Smearing energy settings
-    fwhm_Qbb  = fwhm * Qbb
-    sigma_Qbb = fwhm_Qbb / 2.355
+    sigma_Qbb = fwhm * Qbb / 2.355
     assert e_max > e_min, 'SmE_filter settings not valid. e_max must be higher than e_min.'
 
     ### PRINTING GENERAL INFO
@@ -136,7 +135,7 @@ def analyze(det_name          : str,
     # Output file
     oFile = tb.open_file(file_out, 'w', filters=tbl_filters(compression))
 
-    # Reco group Name
+    # Create FANAL group
     oFile.create_group('/', 'FANAL')
 
     # Attributes
