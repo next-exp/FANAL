@@ -48,7 +48,9 @@ def analyze_event(detector          : DetName,
                   sigma_Qbb         : float,
                   e_min             : float,
                   e_max             : float,
-                  voxel_size        : np.ndarray,
+                  voxel_size_x      : float,
+                  voxel_size_y      : float,
+                  voxel_size_z      : float,
                   strict_voxel_size : bool,
                   voxel_Eth         : float,
                   veto_width        : float,
@@ -109,7 +111,8 @@ def analyze_event(detector          : DetName,
             MCHit((hit.x, hit.y, hit.shifted_z), hit.time, hit.smE, 'ACTIVE'), axis=1).tolist()
 
         # Voxelizing using the ic_hits ...
-        ic_voxels = voxelize_hits(ic_hits, voxel_size, strict_voxel_size)
+        ic_voxels = voxelize_hits(ic_hits, [voxel_size_x, voxel_size_y, voxel_size_z],
+                                  strict_voxel_size)
         event_data.num_voxels = len(ic_voxels)
         eff_voxel_size = ic_voxels[0].size
         event_data.voxel_size_x = eff_voxel_size[0]

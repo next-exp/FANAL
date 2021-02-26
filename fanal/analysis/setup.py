@@ -50,7 +50,9 @@ class Setup:
     e_min              : float  = np.nan
     e_max              : float  = np.nan
 
-    voxel_size         : List[float] = field(default_factory=list)
+    voxel_size_x       : float  = np.nan
+    voxel_size_y       : float  = np.nan
+    voxel_size_z       : float  = np.nan
     strict_voxel_size  : bool   = False
     voxel_Eth          : float  = np.nan
 
@@ -65,7 +67,8 @@ class Setup:
     roi_Emin           : float  = np.nan
     roi_Emax           : float  = np.nan
 
-    verbosity          : str    = 'WARNING' # ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+    # ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+    verbosity          : str    = 'WARNING'
 
 
     def __post_init__(self):
@@ -106,8 +109,8 @@ class Setup:
         s += f"*** Output file:       {self.output_fname}\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb  ->  "
         s += f"Sigma: {self.sigma_Qbb/units.keV:.3f} keV\n"
-        s += f"*** Voxel Size:        ({self.voxel_size[0] / units.mm}, "
-        s += f"{self.voxel_size[1] / units.mm}, {self.voxel_size[2] / units.mm}) mm  "
+        s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
+        s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
         s += f"-  strict: {self.strict_voxel_size}\n"
         s += f"*** Voxel energy th.:  {self.voxel_Eth / units.keV:.1f} keV\n"
         s += f"*** Track energy th.:  {self.track_Eth / units.keV:.1f} keV\n"
@@ -125,42 +128,40 @@ class Setup:
 #    def load_config(self, config_fname : str):
 #        with open(config_fname) as config_file:
 #            fanal_params = json.load(config_file)
-#            fanal_params['fwhm']        = fanal_params['fwhm']        * units.perCent
-#            fanal_params['e_min']       = fanal_params['e_min']       * units.keV
-#            fanal_params['e_max']       = fanal_params['e_max']       * units.keV
-#            fanal_params['voxel_size']  = np.array(fanal_params['voxel_size'])  * units.mm
-#            fanal_params['voxel_Eth']   = fanal_params['voxel_Eth']   * units.keV
-#            fanal_params['veto_width']  = fanal_params['veto_width']  * units.mm
-#            fanal_params['min_veto_e']  = fanal_params['min_veto_e']  * units.keV
-#            fanal_params['track_Eth']   = fanal_params['track_Eth']   * units.keV
-#            fanal_params['blob_radius'] = fanal_params['blob_radius'] * units.mm
-#            fanal_params['blob_Eth']    = fanal_params['blob_Eth']    * units.keV
-#            fanal_params['roi_Emin']    = fanal_params['roi_Emin']    * units.keV
-#            fanal_params['roi_Emax']    = fanal_params['roi_Emax']    * units.keV
+#            fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
+#            fanal_params['e_min']        = fanal_params['e_min']        * units.keV
+#            fanal_params['e_max']        = fanal_params['e_max']        * units.keV
+#            fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
+#            fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
+#            fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
+#            fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
+#            fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
+#            fanal_params['min_veto_e']   = fanal_params['min_veto_e']   * units.keV
+#            fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
+#            fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
+#            fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
+#            fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
+#            fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
 #        self.__init__(**fanal_params)
 
 
-    def store_config(self, output_file : tb.file.File):
-        output_file.set_node_attr('/FANAL', 'det_name',          self.det_name)
-        output_file.set_node_attr('/FANAL', 'event_type',        self.event_type)
-        output_file.set_node_attr('/FANAL', 'input_path',        self.input_path)
-        output_file.set_node_attr('/FANAL', 'output_fname',      self.output_fname)
-        output_file.set_node_attr('/FANAL', 'fwhm',              self.fwhm)
-        output_file.set_node_attr('/FANAL', 'e_min',             self.e_min)
-        output_file.set_node_attr('/FANAL', 'e_max',             self.e_max)
-        output_file.set_node_attr('/FANAL', 'voxel_size_x',      self.voxel_size[0])
-        output_file.set_node_attr('/FANAL', 'voxel_size_y',      self.voxel_size[1])
-        output_file.set_node_attr('/FANAL', 'voxel_size_z',      self.voxel_size[2])
-        output_file.set_node_attr('/FANAL', 'strict_voxel_size', self.strict_voxel_size)
-        output_file.set_node_attr('/FANAL', 'voxel_Eth',         self.voxel_Eth)
-        output_file.set_node_attr('/FANAL', 'veto_width',        self.veto_width)
-        output_file.set_node_attr('/FANAL', 'min_veto_e',        self.min_veto_e)
-        output_file.set_node_attr('/FANAL', 'track_Eth',         self.track_Eth)
-        output_file.set_node_attr('/FANAL', 'max_num_tracks',    self.max_num_tracks)
-        output_file.set_node_attr('/FANAL', 'blob_radius',       self.blob_radius)
-        output_file.set_node_attr('/FANAL', 'blob_Eth',          self.blob_Eth)
-        output_file.set_node_attr('/FANAL', 'roi_Emin',          self.roi_Emin)
-        output_file.set_node_attr('/FANAL', 'roi_Emax',          self.roi_Emax)
+    def config_df(self):
+        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname',
+                           'fwhm', 'e_min', 'e_max', 'voxel_size_x', 'voxel_size_y',
+                           'voxel_size_z', 'strict_voxel_size', 'voxel_Eth',
+                           'veto_width', 'min_veto_e', 'track_Eth', 'max_num_tracks',
+                           'blob_radius', 'blob_Eth', 'roi_Emin', 'roi_Emax']
+        param_values = []
+        for key in params_to_store:
+            param_values.append(str(self.__dict__[key]))
+        return pd.DataFrame(index=params_to_store, data=param_values, columns=['value'])
+
+
+    def store_config(self, output_fname : str):
+        # It is stored with all the fields like 'str' to allow pandas
+        # to place them in the same column
+        self.config_df().to_hdf(output_fname, 'FANAL' + '/config',
+                                data_columns = True, format = 'table')
 
 
     def run_analysis(self):
@@ -170,7 +171,7 @@ class Setup:
         # Opening the output file and storing configration parameters
         with tb.open_file(self.output_fname, 'w', filters=tbl_filters('ZLIB4')) as output_file:
             output_file.create_group('/', 'FANAL')
-            self.store_config(output_file)
+        self.store_config(self.output_fname)
 
         ### DATA TO COLECT
         events_data   = EventList()
@@ -206,9 +207,12 @@ class Setup:
                 event_data, event_tracks, event_voxels = \
                     analyze_event(self.detector, self.active_dimensions, int(event_id),
                                   self.event_type, file_mcParts.loc[event_id, :],
-                                  file_mcHits.loc[event_id, :], self.sigma_Qbb, self.e_min, self.e_max, self.voxel_size, self.strict_voxel_size,
-                                  self.voxel_Eth, self.veto_width, self.min_veto_e, self.track_Eth, self.max_num_tracks,
-                                  self.blob_radius, self.blob_Eth, self.roi_Emin, self.roi_Emax)
+                                  file_mcHits.loc[event_id, :], self.sigma_Qbb, self.e_min,
+                                  self.e_max, self.voxel_size_x, self.voxel_size_y,
+                                  self.voxel_size_z, self.strict_voxel_size,
+                                  self.voxel_Eth, self.veto_width, self.min_veto_e,
+                                  self.track_Eth, self.max_num_tracks, self.blob_radius,
+                                  self.blob_Eth, self.roi_Emin, self.roi_Emax)
 
                 # Storing event data
                 events_data.add(event_data)
@@ -255,18 +259,20 @@ if __name__ == '__main__':
 
     with open(config_fname) as config_file:
         fanal_params = json.load(config_file)
-        fanal_params['fwhm']        = fanal_params['fwhm']        * units.perCent
-        fanal_params['e_min']       = fanal_params['e_min']       * units.keV
-        fanal_params['e_max']       = fanal_params['e_max']       * units.keV
-        fanal_params['voxel_size']  = np.array(fanal_params['voxel_size'])  * units.mm
-        fanal_params['voxel_Eth']   = fanal_params['voxel_Eth']   * units.keV
-        fanal_params['veto_width']  = fanal_params['veto_width']  * units.mm
-        fanal_params['min_veto_e']  = fanal_params['min_veto_e']  * units.keV
-        fanal_params['track_Eth']   = fanal_params['track_Eth']   * units.keV
-        fanal_params['blob_radius'] = fanal_params['blob_radius'] * units.mm
-        fanal_params['blob_Eth']    = fanal_params['blob_Eth']    * units.keV
-        fanal_params['roi_Emin']    = fanal_params['roi_Emin']    * units.keV
-        fanal_params['roi_Emax']    = fanal_params['roi_Emax']    * units.keV
+        fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
+        fanal_params['e_min']        = fanal_params['e_min']        * units.keV
+        fanal_params['e_max']        = fanal_params['e_max']        * units.keV
+        fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
+        fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
+        fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
+        fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
+        fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
+        fanal_params['min_veto_e']   = fanal_params['min_veto_e']   * units.keV
+        fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
+        fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
+        fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
+        fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
+        fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
 
     fanal_setup = Setup(**fanal_params)
     fanal_setup.run_analysis()
