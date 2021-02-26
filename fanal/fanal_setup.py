@@ -189,7 +189,7 @@ class Setup:
 
             # Getting event numbers
             file_event_ids = get_event_numbers_in_file(input_fname)
-            print(f'* Processing {input_fname}  ({len(file_event_ids)} events) ...')
+            print(f'\n*** Processing {input_fname}  ({len(file_event_ids)} events) ...')
 
             # Getting mc hits & particles
             file_mcHits  = load_mchits_df(input_fname)

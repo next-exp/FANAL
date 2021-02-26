@@ -89,7 +89,7 @@ def analyze_event(detector          : DetName,
     event_data.energy_filter = (e_min <= event_data.sm_energy <= e_max)
 
     # Verbosing
-    logger.info(f"  Num mcHits: {event_data.num_mcHits:3}   " + \
+    logger.info(f"Num mcHits: {event_data.num_mcHits:3}   " + \
                 f"mcE: {event_data.mc_energy/units.keV:.1f} keV   " + \
                 f"smE: {event_data.sm_energy/units.keV:.1f} keV   " + \
                 f"energy_filter: {event_data.energy_filter}")
@@ -144,8 +144,6 @@ def analyze_event(detector          : DetName,
 
             # Make tracks
             ic_tracks  = make_track_graphs(ic_voxels)
-            num_tracks = len(ic_tracks)
-            logger.info(f"  Num tracks: {num_tracks:2}")
 
             # Storing tracks from ic_tracks
             for track_id in range(len(ic_tracks)):
@@ -168,7 +166,7 @@ def analyze_event(detector          : DetName,
                                        (event_data.num_tracks <= max_num_tracks))
 
             # Verbosing
-            logger.info(f"  Num tracks: {event_data.num_tracks:3}  -->" + \
+            logger.info(f"Num tracks: {event_data.num_tracks:3}  -->" + \
                         f"  track_filter: {event_data.track_filter}")
 
             ### For those events passing the track filter:
@@ -185,7 +183,7 @@ def analyze_event(detector          : DetName,
                 event_data.blob_filter = (event_data.blob2_E > blob_Eth)
 
                 # Verbosing
-                logger.info(f"  Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
+                logger.info(f"Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
                             f"  Blob 2 energy: {event_data.blob2_E/units.keV:4.1f} keV"  + \
                             f"  -->  Blob filter: {event_data.blob_filter}")
 
@@ -198,7 +196,7 @@ def analyze_event(detector          : DetName,
                                                 (event_data.sm_energy <= roi_Emax))
 
                     # Verbosing
-                    logger.info(f"  Event energy: {event_data.sm_energy/units.keV:6.1f} keV" + \
+                    logger.info(f"Event energy: {event_data.sm_energy/units.keV:6.1f} keV" + \
                                 f"  -->  ROI filter: {event_data.roi_filter}")
 
     return event_data, tracks_data, voxels_data
