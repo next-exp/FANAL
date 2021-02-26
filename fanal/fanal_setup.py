@@ -12,7 +12,6 @@ from   typing    import List
 from dataclasses import dataclass
 from dataclasses import field
 
-
 # IC importings
 import invisible_cities.core.system_of_units  as units
 
@@ -23,18 +22,18 @@ from invisible_cities.io.mcinfo_io        import load_mchits_df
 from invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
-from fanal.utils.fanal_units      import Qbb
+from fanal.utils.logger              import get_logger
 
-from fanal.core.logger            import get_logger
-from fanal.core.detector          import get_active_size
-from fanal.core.detector          import get_fiducial_size
-from fanal.core.fanal_types       import DetName
+from fanal.core.fanal_units         import Qbb
+from fanal.core.detector            import get_active_size
+from fanal.core.detector            import get_fiducial_size
+from fanal.core.fanal_types         import DetName
 
-from fanal.analysis.event         import analyze_event
-from fanal.analysis.tracks        import TrackList
-from fanal.analysis.voxels        import VoxelList
-from fanal.analysis.events        import EventList
-from fanal.analysis.events        import EventCounter
+from fanal.analysis.event_analyzer  import analyze_event
+from fanal.containers.tracks        import TrackList
+from fanal.containers.voxels        import VoxelList
+from fanal.containers.events        import EventList
+from fanal.containers.events        import EventCounter
 
 
 

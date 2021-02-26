@@ -1,6 +1,5 @@
 fanal/__pycache__/
-fanal/ana/__pycache__/
 fanal/analysis/__pycache__/
+fanal/containers/__pycache__/
 fanal/core/__pycache__/
-fanal/reco/__pycache__/
 fanal/utils/__pycache__/

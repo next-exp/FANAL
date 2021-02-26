@@ -14,8 +14,7 @@ from invisible_cities.evm.event_model        import Voxel  as icVoxel
 from fanal.core.fanal_types  import DetName
 from fanal.core.detector     import get_fiducial_size
 from fanal.core.detector     import is_detector_symmetric
-
-from fanal.utils.fanal_units import drift_velocity
+from fanal.core.fanal_units  import drift_velocity
 
 
 

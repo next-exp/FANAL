@@ -14,24 +14,24 @@ from invisible_cities.reco.paolina_functions  import make_track_graphs
 from invisible_cities.reco.paolina_functions  import blob_energies
 
 # FANAL importings
+from fanal.utils.logger       import get_logger
+
 from fanal.core.fanal_types   import VolumeDim
 from fanal.core.fanal_types   import DetName
-from fanal.core.logger        import get_logger
-
-from fanal.utils.fanal_units  import Qbb
+from fanal.core.fanal_units   import Qbb
 
 from fanal.analysis.energy    import get_mc_energy
 from fanal.analysis.energy    import smear_evt_energy
 from fanal.analysis.position  import check_event_fiduciality
 from fanal.analysis.position  import translate_hit_positions
 
-from fanal.analysis.tracks    import TrackList
-from fanal.analysis.tracks    import track_from_ICtrack
+from fanal.containers.tracks  import TrackList
+from fanal.containers.tracks  import track_from_ICtrack
 
-from fanal.analysis.voxels    import VoxelList
-from fanal.analysis.voxels    import voxel_from_ICvoxel
+from fanal.containers.voxels  import VoxelList
+from fanal.containers.voxels  import voxel_from_ICvoxel
 
-from fanal.analysis.events    import Event
+from fanal.containers.events  import Event
 
 
 # The logger

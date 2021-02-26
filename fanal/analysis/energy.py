@@ -9,7 +9,8 @@ from   typing import List
 import invisible_cities.core.system_of_units        as units
 
 # FANAL importings
-from   fanal.core.logger             import get_logger
+from   fanal.utils.logger    import get_logger
+
 
 # Some constants needed
 S1_Eth    = 20. * units.keV  # Energy threshold for S1s
