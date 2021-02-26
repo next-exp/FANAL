@@ -43,7 +43,7 @@ class Setup:
     det_name           : str    = ''
     event_type         : str    = ''
 
-    files_in           : str    = ''
+    input_fname        : str    = ''
     output_fname       : str    = ''
 
     fwhm               : float  = np.nan
@@ -74,8 +74,8 @@ class Setup:
         self.logger = get_logger('Fanal', self.verbosity)
 
         # Input files
-        self.files_in   = sorted(glob.glob(self.files_in))
-        self.input_path = os.path.dirname(self.files_in[0])
+        self.input_fnames = sorted(glob.glob(self.input_fname))
+        self.input_path   = os.path.dirname(self.input_fnames[0])
 
         # Output path
         output_path = os.path.dirname(self.output_fname)
@@ -92,17 +92,17 @@ class Setup:
         self.sigma_Qbb = self.fwhm * Qbb / 2.355
 
         # Assertions
-        #assert self.e_max >= self.e_min,       \
-        #    "energy_filter settings not valid: 'e_max' must be higher than 'e_min'"
-        #assert self.roi_Emax >= self.roi_Emin, \
-        #    "roi_filter settings not valid: 'roi_Emax' must be higher than 'roi_Emin'"
+        assert self.e_max >= self.e_min,       \
+            "energy_filter settings not valid: 'e_max' must be higher than 'e_min'"
+        assert self.roi_Emax >= self.roi_Emin, \
+            "roi_filter settings not valid: 'roi_Emax' must be higher than 'roi_Emin'"
 
 
     def __repr__(self):
         s  =  "*******************************************************************************\n"
         s += f"*** Detector:          {self.det_name}\n"
         s += f"*** Reconstructing:    {self.event_type} events\n"
-        s += f"*** Input  files:      {len(self.files_in)} from {self.input_path}\n"
+        s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb  ->  "
         s += f"Sigma: {self.sigma_Qbb/units.keV:.3f} keV\n"
@@ -180,20 +180,20 @@ class Setup:
 
         ### Looping through all the input files
         verbose_every    = 1
-        for iFileName in self.files_in:
+        for input_fname in self.input_fnames:
 
             # Updating simulated and stored event counters
-            configuration_df = pd.read_hdf(iFileName, '/MC/configuration', mode='r')
+            configuration_df = pd.read_hdf(input_fname, '/MC/configuration', mode='r')
             event_counter.simulated += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
             event_counter.stored    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
 
             # Getting event numbers
-            file_event_ids = get_event_numbers_in_file(iFileName)
-            print(f'* Processing {iFileName}  ({len(file_event_ids)} events) ...')
+            file_event_ids = get_event_numbers_in_file(input_fname)
+            print(f'* Processing {input_fname}  ({len(file_event_ids)} events) ...')
 
             # Getting mc hits & particles
-            file_mcHits  = load_mchits_df(iFileName)
-            file_mcParts = load_mcparticles_df(iFileName)
+            file_mcHits  = load_mchits_df(input_fname)
+            file_mcParts = load_mcparticles_df(input_fname)
 
             # Looping through all the events in iFile
             for event_id in file_event_ids:
