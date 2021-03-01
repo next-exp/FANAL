@@ -94,6 +94,12 @@ class Setup:
         # Reconstruction
         self.sigma_Qbb = self.fwhm * Qbb / 2.355
 
+        # DATA TO COLECT
+        self.events_data   = EventList()
+        self.tracks_data   = TrackList()
+        self.voxels_data   = VoxelList()
+        self.event_counter = EventCounter()
+
         # Assertions
         assert self.e_max >= self.e_min,       \
             "energy_filter settings not valid: 'e_max' must be higher than 'e_min'"
@@ -164,20 +170,27 @@ class Setup:
                                 data_columns = True, format = 'table')
 
 
+    def events_df(self):
+        return self.events_data.df()
+
+
+    def tracks_df(self):
+        return self.tracks_data.df()
+
+
+    def voxels_df(self):
+        return self.voxels_data.df()
+
+
+
     def run_analysis(self):
         # Print the Setup
         print(self)
 
-        # Opening the output file and storing configration parameters
+        ### Opening the output file and storing configration parameters
         with tb.open_file(self.output_fname, 'w', filters=tbl_filters('ZLIB4')) as output_file:
             output_file.create_group('/', 'FANAL')
         self.store_config(self.output_fname)
-
-        ### DATA TO COLECT
-        events_data   = EventList()
-        tracks_data   = TrackList()
-        voxels_data   = VoxelList()
-        event_counter = EventCounter()
 
         ### Looping through all the input files
         verbose_every    = 1
@@ -185,8 +198,8 @@ class Setup:
 
             # Updating simulated and stored event counters
             configuration_df = pd.read_hdf(input_fname, '/MC/configuration', mode='r')
-            event_counter.simulated += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
-            event_counter.stored    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
+            self.event_counter.simulated += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
+            self.event_counter.stored    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
 
             # Getting event numbers
             file_event_ids = get_event_numbers_in_file(input_fname)
@@ -200,7 +213,7 @@ class Setup:
             for event_id in file_event_ids:
 
                 # Updating counter of analyzed events
-                event_counter.analyzed += 1
+                self.event_counter.analyzed += 1
                 self.logger.info(f"Analyzing event Id: {event_id} ...")
 
                 # Analyze event
@@ -215,37 +228,37 @@ class Setup:
                                   self.blob_Eth, self.roi_Emin, self.roi_Emax)
 
                 # Storing event data
-                events_data.add(event_data)
-                tracks_data.add(event_tracks)
-                voxels_data.add(event_voxels)
+                self.events_data.add(event_data)
+                self.tracks_data.add(event_tracks)
+                self.voxels_data.add(event_voxels)
 
                 # Verbosing
-                if (not(event_counter.analyzed % verbose_every)):
-                    print(f'* Num analyzed events: {event_counter.analyzed}')
-                if (event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
+                if (not(self.event_counter.analyzed % verbose_every)):
+                    print(f'* Num analyzed events: {self.event_counter.analyzed}')
+                if (self.event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
 
 
         ### STORING ANALYSIS DATA
-        print(f'\n* Total analyzed events: {event_counter.analyzed}')
+        print(f'\n* Total analyzed events: {self.event_counter.analyzed}')
 
         # Storing events and voxels dataframes
         print(f'\n* Storing data in the output file ...\n  {output_file}\n')
-        events_data.store(self.output_fname, 'FANAL')
-        tracks_data.store(self.output_fname, 'FANAL')
-        voxels_data.store(self.output_fname, 'FANAL')
+        self.events_data.store(self.output_fname, 'FANAL')
+        self.tracks_data.store(self.output_fname, 'FANAL')
+        self.voxels_data.store(self.output_fname, 'FANAL')
 
         # Storing event counters as attributes
-        events_df = events_data.df()
-        event_counter.energy_filter = len(events_df[events_df.energy_filter])
-        event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
-        event_counter.track_filter  = len(events_df[events_df.track_filter])
-        event_counter.blob_filter   = len(events_df[events_df.blob_filter])
-        event_counter.roi_filter    = len(events_df[events_df.roi_filter])
-        event_counter.store(self.output_fname, 'FANAL')
+        events_df = self.events_data.df()
+        self.event_counter.energy_filter = len(events_df[events_df.energy_filter])
+        self.event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
+        self.event_counter.track_filter  = len(events_df[events_df.track_filter])
+        self.event_counter.blob_filter   = len(events_df[events_df.blob_filter])
+        self.event_counter.roi_filter    = len(events_df[events_df.roi_filter])
+        self.event_counter.store(self.output_fname, 'FANAL')
 
         ### Ending ...
         print('\n* Analysis done !!\n')
-        print(event_counter)
+        print(self.event_counter)
 
 
 
