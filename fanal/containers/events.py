@@ -17,6 +17,7 @@ class Event:
     num_mcParts    : int    = -1
     num_mcHits     : int    = -1
     mc_energy      : float  = np.nan
+    mc_filter      : bool   = False
     sm_energy      : float  = np.nan
     energy_filter  : bool   = False
     num_voxels     : int    = -1
@@ -104,6 +105,7 @@ class EventCounter:
     simulated     : int = 0
     stored        : int = 0
     analyzed      : int = 0
+    mc_filter     : int = 0
     energy_filter : int = 0
     fiduc_filter  : int = 0
     track_filter  : int = 0
@@ -116,6 +118,7 @@ class EventCounter:
         s += f"  Simulated:     {self.simulated:10}  ({self.simulated/self.simulated:.2e})\n"
         s += f"  Stored:        {self.stored:10}  ({self.stored/self.simulated:.2e})\n"
         s += f"  Analyzed:      {self.analyzed:10}  ({self.analyzed/self.simulated:.2e})\n"
+        s += f"  MC     filter: {self.mc_filter:10}  ({self.mc_filter/self.simulated:.2e})\n"
         s += f"  Energy filter: {self.energy_filter:10}  ({self.energy_filter/self.simulated:.2e})\n"
         s += f"  Fiduc. filter: {self.fiduc_filter:10}  ({self.fiduc_filter/self.simulated:.2e})\n"
         s += f"  Track  filter: {self.track_filter:10}  ({self.track_filter/self.simulated:.2e})\n"

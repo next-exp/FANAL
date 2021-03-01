@@ -20,18 +20,18 @@ from fanal.core.fanal_types   import VolumeDim
 from fanal.core.fanal_types   import DetName
 from fanal.core.fanal_units   import Qbb
 
+from fanal.containers.tracks  import TrackList
+from fanal.containers.tracks  import track_from_ICtrack
+from fanal.containers.voxels  import VoxelList
+from fanal.containers.voxels  import voxel_from_ICvoxel
+from fanal.containers.events  import Event
+
 from fanal.analysis.energy    import get_mc_energy
 from fanal.analysis.energy    import smear_evt_energy
 from fanal.analysis.position  import check_event_fiduciality
 from fanal.analysis.position  import translate_hit_positions
 
-from fanal.containers.tracks  import TrackList
-from fanal.containers.tracks  import track_from_ICtrack
-
-from fanal.containers.voxels  import VoxelList
-from fanal.containers.voxels  import voxel_from_ICvoxel
-
-from fanal.containers.events  import Event
+from fanal.analysis.mc_analysis import check_mc_data
 
 
 # The logger
@@ -39,6 +39,7 @@ logger = get_logger('Fanal')
 
 
 
+# TODO: Pass the whole fanal_setup instead all the config params
 def analyze_event(detector          : DetName,
                   ACTIVE_dimensions : VolumeDim,
                   event_id          : int,
@@ -68,12 +69,24 @@ def analyze_event(detector          : DetName,
     tracks_data = TrackList()
     voxels_data = VoxelList()
 
-    # Filtering hits
-    active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
-
+    # Storing basic MC data
     event_data.event_id    = event_id
     event_data.num_mcParts = len(event_mcParts)
-    event_data.num_mcHits  = len(active_mcHits)
+    event_data.num_mcHits  = len(event_mcHits)
+    
+    logger.info(f"Num mcParticles: {event_data.num_mcParts:3}   " + \
+                f"Num mcHits: {event_data.num_mcHits:3}   ")
+
+    # Processing MC data
+    # TODO: Replace veto_Eth by buffer_Eth in this call
+    event_data.mc_filter = check_mc_data(event_mcHits, veto_Eth, e_min, e_max)
+    if not event_data.mc_filter: return event_data, tracks_data, voxels_data
+
+    ### Continue analysis of events passing the mc_filter
+    # Reconstruct hits
+    active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE'].copy()
+    #recons_hits   = reconstruct_hits(active_mcHits, event_type)
+
 
     # The event mc energy is the sum of the energy of all the hits except
     # for Bi214 events, in which the number of S1 in the event is considered
@@ -89,10 +102,8 @@ def analyze_event(detector          : DetName,
     event_data.energy_filter = (e_min <= event_data.sm_energy <= e_max)
 
     # Verbosing
-    logger.info(f"Num mcHits: {event_data.num_mcHits:3}   " + \
-                f"mcE: {event_data.mc_energy/units.keV:.1f} keV   " + \
-                f"smE: {event_data.sm_energy/units.keV:.1f} keV   " + \
-                f"energy_filter: {event_data.energy_filter}")
+    logger.info(f"smE: {event_data.sm_energy/units.keV:.1f} keV   " + \
+                f"ENERGY filter: {event_data.energy_filter}")
 
     # For those events passing the smE filter:
     if event_data.energy_filter:
@@ -167,7 +178,7 @@ def analyze_event(detector          : DetName,
 
             # Verbosing
             logger.info(f"Num tracks: {event_data.num_tracks:3}  -->" + \
-                        f"  track_filter: {event_data.track_filter}")
+                        f"  TRACK filter: {event_data.track_filter}")
 
             ### For those events passing the track filter:
             if event_data.track_filter:
@@ -185,7 +196,7 @@ def analyze_event(detector          : DetName,
                 # Verbosing
                 logger.info(f"Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
                             f"  Blob 2 energy: {event_data.blob2_E/units.keV:4.1f} keV"  + \
-                            f"  -->  Blob filter: {event_data.blob_filter}")
+                            f"  -->  BLOB filter: {event_data.blob_filter}")
 
 
                 ### For those events passing the blobs filter:

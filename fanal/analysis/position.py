@@ -53,7 +53,7 @@ def translate_hit_positions(detname        : DetName,
 
 def check_event_fiduciality(detname      : DetName,
                             veto_width   : float,
-                            min_VetoE    : float,
+                            veto_Eth     : float,
                             event_voxels : List[icVoxel]
                            ) -> Tuple[float, float, float, float, bool]:
     """
@@ -65,7 +65,7 @@ def check_event_fiduciality(detname      : DetName,
         Name of the detector.
     veto_width   : float
         Width of the veto region.
-    min_VetoE    : float
+    veto_Eth     : float
         Veto energy threshold.
     event_voxels : List[icVoxel]
         List of voxels of the event.
@@ -100,6 +100,6 @@ def check_event_fiduciality(detname      : DetName,
                               (voxel.Z > fid_dimensions.z_max) |
                               (math.sqrt(voxel.X**2 + voxel.Y**2) > fid_dimensions.rad)))
 
-    fiducial_filter = veto_energy < min_VetoE
+    fiducial_filter = veto_energy < veto_Eth
 
     return voxels_minZ, voxels_maxZ, voxels_maxRad, veto_energy, fiducial_filter

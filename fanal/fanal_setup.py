@@ -249,6 +249,7 @@ class Setup:
 
         # Storing event counters as attributes
         events_df = self.events_data.df()
+        self.event_counter.mc_filter     = len(events_df[events_df.mc_filter])
         self.event_counter.energy_filter = len(events_df[events_df.energy_filter])
         self.event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
         self.event_counter.track_filter  = len(events_df[events_df.track_filter])
