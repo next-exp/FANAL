@@ -36,7 +36,8 @@ from fanal.containers.events        import EventList
 from fanal.containers.events        import EventCounter
 
 
-
+# TODO - Remove it and implement Setup as a simple class ??
+# TODO - Change init and __post_init to allow fanal_setup = Setup()
 @dataclass
 class Setup:
     det_name           : str    = ''
@@ -56,7 +57,7 @@ class Setup:
     voxel_Eth          : float  = np.nan
 
     veto_width         : float  = np.nan
-    min_veto_e         : float  = np.nan
+    veto_Eth           : float  = np.nan
 
     track_Eth          : float  = np.nan
     max_num_tracks     : int    = -1
@@ -135,7 +136,7 @@ class Setup:
 #            fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
 #            fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
 #            fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
-#            fanal_params['min_veto_e']   = fanal_params['min_veto_e']   * units.keV
+#            fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
 #            fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
 #            fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
 #            fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
@@ -148,7 +149,7 @@ class Setup:
         params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname',
                            'fwhm', 'e_min', 'e_max', 'voxel_size_x', 'voxel_size_y',
                            'voxel_size_z', 'strict_voxel_size', 'voxel_Eth',
-                           'veto_width', 'min_veto_e', 'track_Eth', 'max_num_tracks',
+                           'veto_width', 'veto_Eth', 'track_Eth', 'max_num_tracks',
                            'blob_radius', 'blob_Eth', 'roi_Emin', 'roi_Emax']
         param_values = []
         for key in params_to_store:
@@ -209,7 +210,7 @@ class Setup:
                                   file_mcHits.loc[event_id, :], self.sigma_Qbb, self.e_min,
                                   self.e_max, self.voxel_size_x, self.voxel_size_y,
                                   self.voxel_size_z, self.strict_voxel_size,
-                                  self.voxel_Eth, self.veto_width, self.min_veto_e,
+                                  self.voxel_Eth, self.veto_width, self.veto_Eth,
                                   self.track_Eth, self.max_num_tracks, self.blob_radius,
                                   self.blob_Eth, self.roi_Emin, self.roi_Emax)
 
@@ -266,7 +267,7 @@ if __name__ == '__main__':
         fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
         fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
         fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
-        fanal_params['min_veto_e']   = fanal_params['min_veto_e']   * units.keV
+        fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
         fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
         fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
         fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV

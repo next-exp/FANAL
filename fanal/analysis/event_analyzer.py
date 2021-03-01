@@ -54,7 +54,7 @@ def analyze_event(detector          : DetName,
                   strict_voxel_size : bool,
                   voxel_Eth         : float,
                   veto_width        : float,
-                  min_veto_e        : float,
+                  veto_Eth          : float,
                   track_Eth         : float,
                   max_num_tracks    : int,
                   blob_radius       : float,
@@ -122,7 +122,7 @@ def analyze_event(detector          : DetName,
         # Check fiduciality
         event_data.voxels_min_z, event_data.voxels_max_z, event_data.voxels_max_rad, \
         event_data.veto_energy, event_data.fiduc_filter = \
-        check_event_fiduciality(detector, veto_width, min_veto_e, ic_voxels)
+        check_event_fiduciality(detector, veto_width, veto_Eth, ic_voxels)
 
         # Verbosing
         #logger.info(f"  Num Voxels: {event_data['num_voxels']:3}   "            + \
