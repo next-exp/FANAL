@@ -1,5 +1,10 @@
+.hypothesis/
+fanal/.hypothesis/
 fanal/__pycache__/
 fanal/analysis/__pycache__/
 fanal/containers/__pycache__/
 fanal/core/__pycache__/
 fanal/utils/__pycache__/
+data/next100/Bi214/fanal/
+data/next100/Tl208/fanal/
+data/next100/bb0nu/fanal/
