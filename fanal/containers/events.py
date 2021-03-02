@@ -1,3 +1,4 @@
+# General importings
 from dataclasses import dataclass
 from dataclasses import field
 
@@ -7,6 +8,7 @@ from typing      import Union
 import pandas        as pd
 import numpy         as np
 
+# IC importings
 import invisible_cities.core.system_of_units  as units
 
 

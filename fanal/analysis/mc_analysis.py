@@ -1,12 +1,11 @@
+# General importings
 import math
-import numpy as np
-import pandas as pd
-
+import numpy      as np
+import pandas     as pd
 from   typing import Tuple
-from   typing import List
 
 # IC importings
-import invisible_cities.core.system_of_units        as units
+import invisible_cities.core.system_of_units   as units
 
 # FANAL importings
 from fanal.utils.logger      import get_logger
@@ -16,6 +15,7 @@ from fanal.core.detectors    import Detector
 from fanal.core.detectors    import S1_Eth
 from fanal.core.detectors    import S1_WIDTH
 from fanal.core.detectors    import EVT_WIDTH
+from fanal.core.detectors    import DRIFT_VELOCITY
 
 # The logger
 logger = get_logger('Fanal')
@@ -163,15 +163,15 @@ def translate_hits(detector : Detector,
     # Only applying to events wider than a minimum offset
     if ((max_time - min_time) > min_offset):
         if detector.symmetric:
-            active_mcHits['shifted_z'] = active_mcHits['z'] - np.sign(active_mcHits['z']) * \
-                                         (active_mcHits['time'] - min_time) * drift_velocity
+            mcHits['shifted_z'] = mcHits['z'] - np.sign(mcHits['z']) * \
+                                         (mcHits['time'] - min_time) * DRIFT_VELOCITY
         # In case of assymetric detector
         else:
-            active_mcHits['shifted_z'] = active_mcHits['z'] + \
-                                         (active_mcHits['time'] - min_time) * drift_velocity
+            mcHits['shifted_z'] = mcHits['z'] + \
+                                         (mcHits['time'] - min_time) * DRIFT_VELOCITY
 
     # Event time width smaller than minimum offset
     else:
-        active_mcHits['shifted_z'] = active_mcHits['z']
+        mcHits['shifted_z'] = mcHits['z']
 
 

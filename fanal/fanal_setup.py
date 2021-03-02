@@ -6,11 +6,8 @@ import json
 import numpy         as np
 import tables        as tb
 import pandas        as pd
-from   typing    import Tuple
-from   typing    import List
 
 from dataclasses import dataclass
-from dataclasses import field
 
 # IC importings
 import invisible_cities.core.system_of_units  as units
@@ -24,7 +21,6 @@ from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
 # FANAL importings
 from fanal.utils.logger              import get_logger
 
-from fanal.core.fanal_units         import Qbb
 from fanal.core.detectors           import get_detector
 
 from fanal.containers.tracks        import TrackList

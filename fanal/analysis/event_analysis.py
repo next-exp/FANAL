@@ -1,5 +1,4 @@
 # General importings
-import numpy  as np
 import pandas as pd
 
 from   typing import Tuple
@@ -16,16 +15,11 @@ from invisible_cities.reco.paolina_functions  import blob_energies
 # FANAL importings
 from fanal.utils.logger              import get_logger
 
-from fanal.core.fanal_types          import VolumeDim
-from fanal.core.fanal_units          import Qbb
-
 from fanal.containers.tracks         import TrackList
 from fanal.containers.tracks         import track_from_ICtrack
 from fanal.containers.voxels         import VoxelList
 from fanal.containers.voxels         import voxel_from_ICvoxel
 from fanal.containers.events         import Event
-
-#from fanal.analysis.position         import translate_hit_positions
 
 from fanal.analysis.mc_analysis      import check_mc_data
 from fanal.analysis.mc_analysis      import reconstruct_hits

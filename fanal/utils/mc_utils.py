@@ -1,19 +1,17 @@
-import os
-import sys
-import random
+# TODO: Update it to the new persistency
+
+
 import tables as tb
-import numpy  as np
 import pandas as pd
 
-import matplotlib
-#matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from typing import List
 
-from typing import Sequence, Union, Dict, Any, List, Mapping
+#import matplotlib
+#matplotlib.use('TkAgg')
+#from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 import invisible_cities.core.system_of_units as units
-from invisible_cities.evm.event_model        import MCParticle
 
 from fanal.mc.mc_io_functions  import load_mc_particles
 from fanal.mc.mc_io_functions  import load_mc_hits
@@ -158,7 +156,7 @@ It will look for it into all the list of iFileNames passed."""
 
                 # Getting the mcParticles and mcHits of the right file
                 file_mcHits  = load_mc_hits(iFileName)
-                file_mcParts = load_mc_particles(iFileName)
+                #file_mcParts = load_mc_particles(iFileName)
 
                 # Getting the mcParticles and mcHits of the right event
                 event_mcHits       = file_mcHits.loc[event_id, :]

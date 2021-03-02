@@ -5,6 +5,7 @@ fanal/analysis/__pycache__/
 fanal/containers/__pycache__/
 fanal/core/__pycache__/
 fanal/utils/__pycache__/
+fanal/utils/logger_test.log
 data/next100/Bi214/fanal/
 data/next100/Tl208/fanal/
 data/next100/bb0nu/fanal/

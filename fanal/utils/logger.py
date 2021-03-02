@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from typing import Any, Union
+
 
 def get_logger(name     : str,
 	           level    : int = logging.WARNING,
