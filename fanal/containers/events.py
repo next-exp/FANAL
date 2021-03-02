@@ -7,7 +7,7 @@ from typing      import Union
 import pandas        as pd
 import numpy         as np
 
-import invisible_cities.core.system_of_units                  as units
+import invisible_cities.core.system_of_units  as units
 
 
 
@@ -24,9 +24,6 @@ class Event:
     voxel_size_x   : float  = np.nan
     voxel_size_y   : float  = np.nan
     voxel_size_z   : float  = np.nan
-    voxel_min_z    : float  = np.nan
-    voxel_max_z    : float  = np.nan
-    voxel_max_rad  : float  = np.nan
     veto_energy    : float  = np.nan
     fiduc_filter   : bool   = False
     num_tracks     : int    = -1
@@ -45,8 +42,6 @@ class Event:
         s += f"  Num voxels: {self.num_voxels}  of size:"
         s += f"  ({self.voxel_size_x / units.mm:.1f}, {self.voxel_size_x / units.mm:.1f},"
         s += f" {self.voxel_size_x / units.mm:.1f}) mm\n"
-        s += f"  Voxels minZ: {self.voxel_min_z / units.mm:.1f}   maxZ: {self.voxel_max_z / units.mm:.1f}"
-        s += f"   maxRad: {self.voxel_max_rad / units.mm:.1f} mm "
         s += f"  vetoE: {self.veto_energy / units.keV:.3f}  ->  Fiduc. Filter: {self.fiduc_filter}\n"
         s += f"  Num tracks: {self.num_tracks}  ->  Track Length: {self.track_length / units.mm:.1f} mm "
         s += f"  ->  Track Filter: {self.track_filter}\n"

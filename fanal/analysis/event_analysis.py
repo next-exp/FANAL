@@ -25,11 +25,11 @@ from fanal.containers.voxels         import VoxelList
 from fanal.containers.voxels         import voxel_from_ICvoxel
 from fanal.containers.events         import Event
 
-from fanal.analysis.position         import check_event_fiduciality
-from fanal.analysis.position         import translate_hit_positions
+#from fanal.analysis.position         import translate_hit_positions
 
-from fanal.analysis.mc_analysis  import check_mc_data
-from fanal.analysis.mc_analysis  import reconstruct_hits
+from fanal.analysis.mc_analysis      import check_mc_data
+from fanal.analysis.mc_analysis      import reconstruct_hits
+from fanal.analysis.voxel_analysis   import check_event_fiduciality
 
 # The logger
 logger = get_logger('Fanal')
@@ -103,18 +103,12 @@ def analyze_event(event_id          : int,
     event_data.voxel_size_x = eff_voxel_size[0]
     event_data.voxel_size_y = eff_voxel_size[1]
     event_data.voxel_size_z = eff_voxel_size[2]
+    logger.info(f"  Num Voxels: {event_data.num_voxels:3}  of size: {eff_voxel_size} mm")
 
     # Check fiduciality
-    event_data.voxels_min_z, event_data.voxels_max_z, event_data.voxels_max_rad, \
     event_data.veto_energy, event_data.fiduc_filter = \
-    10., 20., 30, 0.001, True
-    #check_event_fiduciality(detector, veto_width, veto_Eth, ic_voxels)
-
-    logger.info(f"  Num Voxels: {event_data.num_voxels:3}   "            + \
-                f"minZ: {event_data.voxels_min_z:.1f} mm   "             + \
-                f"maxZ: {event_data.voxels_max_z:.1f} mm   "             + \
-                f"maxR: {event_data.voxels_max_rad:.1f} mm   "           + \
-                f"veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
+        check_event_fiduciality(fiducial_checker, ic_voxels, veto_Eth)
+    logger.info(f"  Veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
                 f"fiduc_filter: {event_data.fiduc_filter}")
 
     if not event_data.fiduc_filter:
