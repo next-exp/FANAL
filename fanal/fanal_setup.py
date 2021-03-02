@@ -32,7 +32,7 @@ from fanal.containers.voxels        import VoxelList
 from fanal.containers.events        import EventList
 from fanal.containers.events        import EventCounter
 
-from fanal.analysis.event_analyzer  import analyze_event
+from fanal.analysis.event_analysis  import analyze_event
 
 
 # TODO - Remove it and implement Setup as a simple class ??
