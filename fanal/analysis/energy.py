@@ -82,14 +82,14 @@ def get_mc_energy(evt_hits: pd.DataFrame
 
 
 
-def smear_evt_energy(mcE       : float,
-                     sigma_Qbb : float,
-                     Qbb       : float
+def smear_evt_energy(mcE  : float,
+                     fwhm : float
                     ) -> float:
     """
     It smears and returns the montecarlo energy of the event (mcE) according to:
     the sigma at Qbb (sigma_Qbb) in absolute values (keV).
     """
+    sigma_Qbb = fwhm * Qbb / 2.355
     sigma_E = sigma_Qbb * math.sqrt(mcE/Qbb)
     smE = np.random.normal(mcE, sigma_E)
     return smE

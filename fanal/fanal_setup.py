@@ -15,25 +15,24 @@ from dataclasses import field
 # IC importings
 import invisible_cities.core.system_of_units  as units
 
-from invisible_cities.reco.tbl_functions  import filters as tbl_filters
+from   invisible_cities.reco.tbl_functions  import filters as tbl_filters
 
-from invisible_cities.io.mcinfo_io        import get_event_numbers_in_file
-from invisible_cities.io.mcinfo_io        import load_mchits_df
-from invisible_cities.io.mcinfo_io        import load_mcparticles_df
+from   invisible_cities.io.mcinfo_io        import get_event_numbers_in_file
+from   invisible_cities.io.mcinfo_io        import load_mchits_df
+from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
 from fanal.utils.logger              import get_logger
 
 from fanal.core.fanal_units         import Qbb
-from fanal.core.detector            import get_active_size
-from fanal.core.detector            import get_fiducial_size
-from fanal.core.fanal_types         import DetName
+from fanal.core.detectors           import get_detector
 
-from fanal.analysis.event_analyzer  import analyze_event
 from fanal.containers.tracks        import TrackList
 from fanal.containers.voxels        import VoxelList
 from fanal.containers.events        import EventList
 from fanal.containers.events        import EventCounter
+
+from fanal.analysis.event_analyzer  import analyze_event
 
 
 # TODO - Remove it and implement Setup as a simple class ??
@@ -87,13 +86,9 @@ class Setup:
             os.makedirs(output_path)
 
         # The detector        
-        self.detector          = getattr(DetName, self.det_name)
-        self.active_dimensions = get_active_size(self.detector)
-        self.fid_dimensions    = get_fiducial_size(self.detector, self.veto_width)
-
-        # Reconstruction
-        self.sigma_Qbb = self.fwhm * Qbb / 2.355
-
+        self.detector         = get_detector(self.det_name)
+        self.fiducial_checker = self.detector.get_fiducial_checker(self.veto_width)
+        
         # DATA TO COLECT
         self.events_data   = EventList()
         self.tracks_data   = TrackList()
@@ -113,8 +108,7 @@ class Setup:
         s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
-        s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb  ->  "
-        s += f"Sigma: {self.sigma_Qbb/units.keV:.3f} keV\n"
+        s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
         s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
         s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
         s += f"-  strict: {self.strict_voxel_size}\n"
@@ -218,14 +212,16 @@ class Setup:
 
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
-                    analyze_event(self.detector, self.active_dimensions, int(event_id),
-                                  self.event_type, file_mcParts.loc[event_id, :],
-                                  file_mcHits.loc[event_id, :], self.sigma_Qbb, self.e_min,
-                                  self.e_max, self.voxel_size_x, self.voxel_size_y,
-                                  self.voxel_size_z, self.strict_voxel_size,
-                                  self.voxel_Eth, self.veto_width, self.veto_Eth,
-                                  self.track_Eth, self.max_num_tracks, self.blob_radius,
-                                  self.blob_Eth, self.roi_Emin, self.roi_Emax)
+                    analyze_event(int(event_id), self.event_type,
+                                  file_mcParts.loc[event_id, :],
+                                  file_mcHits.loc[event_id, :],
+                                  self.fwhm, self.e_min, self.e_max,
+                                  self.voxel_size_x, self.voxel_size_y, self.voxel_size_z,
+                                  self.strict_voxel_size, self.voxel_Eth,
+                                  self.fiducial_checker, self.veto_Eth,
+                                  self.track_Eth, self.max_num_tracks,
+                                  self.blob_radius, self.blob_Eth,
+                                  self.roi_Emin, self.roi_Emax)
 
                 # Storing event data
                 self.events_data.add(event_data)
