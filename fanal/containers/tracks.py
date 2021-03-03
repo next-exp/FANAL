@@ -33,7 +33,7 @@ class Track:
     ext2_num_voxels : int    = 0
 
     def __repr__(self):
-        s =  f"* IDs (evt , trk): {self.event_id} , {self.track_id}\n"
+        s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
         s += f"  Length: {self.length / units.mm:.3f} mm "
         s += f"  Num voxels: {self.num_voxels}\n"
@@ -42,7 +42,7 @@ class Track:
         s += f"  Num voxels: {self.ext1_num_voxels}\n"
         s += f"  Extr2: ({self.ext2_x},{self.ext2_y},{self.ext2_z}) "
         s += f"  Energy: {self.ext2_energy / units.keV} keV "
-        s += f"  Num voxels: {self.ext2_num_voxels}\n"
+        s += f"  Num voxels: {self.ext2_num_voxels}"
         return s
 
     __str__ = __repr__

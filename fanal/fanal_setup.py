@@ -147,21 +147,38 @@ class Setup:
 
     def config_df(self):
         params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname',
-                           'fwhm', 'e_min', 'e_max', 'voxel_size_x', 'voxel_size_y',
-                           'voxel_size_z', 'strict_voxel_size', 'voxel_Eth',
-                           'veto_width', 'veto_Eth', 'track_Eth', 'max_num_tracks',
-                           'blob_radius', 'blob_Eth', 'roi_Emin', 'roi_Emax']
+                           'trans_diff', 'long_diff', 'fwhm', 'e_min', 'e_max',
+                           'voxel_size_x', 'voxel_size_y', 'voxel_size_z',
+                           'strict_voxel_size', 'voxel_Eth', 'veto_width', 'veto_Eth',
+                           'track_Eth', 'max_num_tracks', 'blob_radius', 'blob_Eth',
+                           'roi_Emin', 'roi_Emax']
         param_values = []
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
         return pd.DataFrame(index=params_to_store, data=param_values, columns=['value'])
 
 
-    def store_config(self, output_fname : str):
+    def store_config(self):
         # It is stored with all the fields like 'str' to allow pandas
         # to place them in the same column
-        self.config_df().to_hdf(output_fname, 'FANAL' + '/config',
+        self.config_df().to_hdf(self.output_fname, 'FANAL' + '/config',
                                 data_columns = True, format = 'table')
+
+    def store_data(self):
+        # Storing data
+        self.events_data.store(self.output_fname, 'FANAL')
+        self.tracks_data.store(self.output_fname, 'FANAL')
+        self.voxels_data.store(self.output_fname, 'FANAL')
+
+        # Storing event counters
+        events_df = self.events_data.df()
+        self.event_counter.mc_filter     = len(events_df[events_df.mc_filter])
+        self.event_counter.energy_filter = len(events_df[events_df.energy_filter])
+        self.event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
+        self.event_counter.track_filter  = len(events_df[events_df.track_filter])
+        self.event_counter.blob_filter   = len(events_df[events_df.blob_filter])
+        self.event_counter.roi_filter    = len(events_df[events_df.roi_filter])
+        self.event_counter.store(self.output_fname, 'FANAL')
 
 
     def events_df(self):
@@ -176,6 +193,9 @@ class Setup:
         return self.voxels_data.df()
 
 
+    def results_df(self):
+        return self.event_counter.df()
+
 
     def run_analysis(self):
         # Print the Setup
@@ -184,7 +204,7 @@ class Setup:
         ### Opening the output file and storing configration parameters
         with tb.open_file(self.output_fname, 'w', filters=tbl_filters('ZLIB4')) as output_file:
             output_file.create_group('/', 'FANAL')
-        self.store_config(self.output_fname)
+        self.store_config()
 
         ### Looping through all the input files
         verbose_every    = 1
@@ -208,7 +228,7 @@ class Setup:
 
                 # Updating counter of analyzed events
                 self.event_counter.analyzed += 1
-                self.logger.info(f"Analyzing event Id: {event_id} ...")
+                self.logger.info(f"*** Analyzing event Id: {event_id} ...")
 
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
@@ -239,20 +259,8 @@ class Setup:
         print(f'\n* Total analyzed events: {self.event_counter.analyzed}')
 
         # Storing events and voxels dataframes
-        print(f'\n* Storing data in the output file ...\n  {output_file}\n')
-        self.events_data.store(self.output_fname, 'FANAL')
-        self.tracks_data.store(self.output_fname, 'FANAL')
-        self.voxels_data.store(self.output_fname, 'FANAL')
-
-        # Storing event counters as attributes
-        events_df = self.events_data.df()
-        self.event_counter.mc_filter     = len(events_df[events_df.mc_filter])
-        self.event_counter.energy_filter = len(events_df[events_df.energy_filter])
-        self.event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
-        self.event_counter.track_filter  = len(events_df[events_df.track_filter])
-        self.event_counter.blob_filter   = len(events_df[events_df.blob_filter])
-        self.event_counter.roi_filter    = len(events_df[events_df.roi_filter])
-        self.event_counter.store(self.output_fname, 'FANAL')
+        print(f'\n* Storing results in the output file ...\n  {output_file}\n')
+        self.store_data()
 
         ### Ending ...
         print('\n* Analysis done !!\n')
