@@ -14,6 +14,29 @@ logger = get_logger('Fanal')
 
 
 
+def clean_voxels(event_voxels : List[icVoxel],
+                 voxel_Eth    : float
+                ) -> List[icVoxel]:
+    """
+    Delete voxels with energy lower than threshold
+    and redistributes their energies.
+    As a first approach, we give the energy of negligible voxels to
+    the closest non-negligible voxel.
+    Parameters
+    ----------
+    event_voxels : List[icVoxel]
+        List of all the icVoxels computed by PAOLINA
+    voxel_Eth    : float
+        Voxel energy threshold
+    Returns
+    -------
+    List[icVoxel] containing the updated list of icVoxels
+    """
+    # TODO
+    return event_voxels
+
+
+
 def check_event_fiduciality(fiducial_checker : Callable,
                             event_voxels     : List[icVoxel],
                             veto_Eth         : float

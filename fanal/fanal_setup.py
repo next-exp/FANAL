@@ -19,7 +19,7 @@ from   invisible_cities.io.mcinfo_io        import load_mchits_df
 from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
-from fanal.utils.logger              import get_logger
+from fanal.utils.logger             import get_logger
 
 from fanal.core.detectors           import get_detector
 
@@ -41,6 +41,8 @@ class Setup:
     input_fname        : str    = ''
     output_fname       : str    = ''
 
+    trans_diff         : float  = np.nan
+    long_diff          : float  = np.nan
     fwhm               : float  = np.nan
     e_min              : float  = np.nan
     e_max              : float  = np.nan
@@ -104,6 +106,8 @@ class Setup:
         s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
+        s += f"*** Transverse diff:   {self.trans_diff / (units.mm/units.cm**0.5):.2f}  "
+        s += f"-  Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
         s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
         s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
@@ -208,9 +212,10 @@ class Setup:
 
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
-                    analyze_event(int(event_id), self.event_type,
+                    analyze_event(self.detector, int(event_id), self.event_type,
                                   file_mcParts.loc[event_id, :],
                                   file_mcHits.loc[event_id, :],
+                                  self.trans_diff, self.long_diff,
                                   self.fwhm, self.e_min, self.e_max,
                                   self.voxel_size_x, self.voxel_size_y, self.voxel_size_z,
                                   self.strict_voxel_size, self.voxel_Eth,
@@ -265,6 +270,8 @@ if __name__ == '__main__':
 
     with open(config_fname) as config_file:
         fanal_params = json.load(config_file)
+        fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
+        fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
         fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
         fanal_params['e_min']        = fanal_params['e_min']        * units.keV
         fanal_params['e_max']        = fanal_params['e_max']        * units.keV

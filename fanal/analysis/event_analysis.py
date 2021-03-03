@@ -15,6 +15,8 @@ from invisible_cities.reco.paolina_functions  import blob_energies
 # FANAL importings
 from fanal.utils.logger              import get_logger
 
+from fanal.core.detectors            import Detector
+
 from fanal.containers.tracks         import TrackList
 from fanal.containers.tracks         import track_from_ICtrack
 from fanal.containers.voxels         import VoxelList
@@ -24,6 +26,7 @@ from fanal.containers.events         import Event
 from fanal.analysis.mc_analysis      import check_mc_data
 from fanal.analysis.mc_analysis      import reconstruct_hits
 from fanal.analysis.voxel_analysis   import check_event_fiduciality
+from fanal.analysis.voxel_analysis   import clean_voxels
 
 # The logger
 logger = get_logger('Fanal')
@@ -31,10 +34,13 @@ logger = get_logger('Fanal')
 
 
 # TODO: Pass the whole fanal_setup instead all the config params
-def analyze_event(event_id          : int,
+def analyze_event(detector          : Detector,
+                  event_id          : int,
                   event_type        : str,
                   event_mcParts     : pd.DataFrame,
                   event_mcHits      : pd.DataFrame,
+                  trans_diff        : float,
+                  long_diff         : float,
                   fwhm              : float,
                   e_min             : float,
                   e_max             : float,
@@ -72,10 +78,11 @@ def analyze_event(event_id          : int,
         check_mc_data(event_mcHits, veto_Eth, e_min, e_max)
     if not event_data.mc_filter: return event_data, tracks_data, voxels_data
 
-    ### Continue analysis of events passing the mc_filter
+    ### Continue analysis of events passing the mc_filter ###
     # Reconstruct hits
     active_mcHits = event_mcHits[event_mcHits.label == 'ACTIVE']
-    recons_hits   = reconstruct_hits(active_mcHits, event_data.mc_energy, fwhm)
+    recons_hits   = reconstruct_hits(detector, active_mcHits, event_data.mc_energy,
+                                     fwhm, trans_diff, long_diff)
 
     # Event smeared energy
     event_data.sm_energy     = recons_hits.energy.sum()
@@ -84,7 +91,7 @@ def analyze_event(event_id          : int,
                 f"ENERGY filter: {event_data.energy_filter}")
     if not event_data.energy_filter: return event_data, tracks_data, voxels_data
 
-    ### Continue analysis of events passing the energy_filter
+    ### Continue analysis of events passing the energy_filter ###
     # Creating the IChits from reconstructed hits
     ic_hits = recons_hits.apply(lambda hit: \
         MCHit((hit.x, hit.y, hit.z), hit.time, hit.energy, 'ACTIVE'), axis=1).tolist()
@@ -92,6 +99,10 @@ def analyze_event(event_id          : int,
     # Voxelizing using the ic_hits ...
     ic_voxels = voxelize_hits(ic_hits, [voxel_size_x, voxel_size_y, voxel_size_z],
                               strict_voxel_size)
+
+    # Cleaning voxels with energy < voxel_Eth
+    ic_voxels = clean_voxels(ic_voxels, voxel_Eth)
+
     event_data.num_voxels = len(ic_voxels)
     eff_voxel_size = ic_voxels[0].size
     event_data.voxel_size_x = eff_voxel_size[0]
@@ -103,7 +114,7 @@ def analyze_event(event_id          : int,
     event_data.veto_energy, event_data.fiduc_filter = \
         check_event_fiduciality(fiducial_checker, ic_voxels, veto_Eth)
     logger.info(f"  Veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
-                f"fiduc_filter: {event_data.fiduc_filter}")
+                f"FIDUC filter: {event_data.fiduc_filter}")
 
     if not event_data.fiduc_filter:
         # Storing voxels without track-id info
@@ -112,7 +123,7 @@ def analyze_event(event_id          : int,
         logger.debug(voxels_data)
         return event_data, tracks_data, voxels_data
 
-    ### Continue analysis of events passing the fiduc_filter
+    ### Continue analysis of events passing the fiduc_filter ###
     # Make tracks
     ic_tracks  = make_track_graphs(ic_voxels)
 
@@ -125,7 +136,7 @@ def analyze_event(event_id          : int,
         ic_voxels = list(ic_track.nodes())
         for voxel_id in range(len(ic_voxels)):
             voxels_data.add(voxel_from_ICvoxel(event_id, track_id, voxel_id,
-                                                       ic_voxels[voxel_id]))
+                                               ic_voxels[voxel_id]))
 
     logger.debug(voxels_data)
     logger.info(tracks_data)
@@ -141,7 +152,7 @@ def analyze_event(event_id          : int,
 
     if not event_data.track_filter: return event_data, tracks_data, voxels_data
 
-    ### Continue analysis of events passing the track_filter
+    ### Continue analysis of events passing the track_filter ###
     the_track = ic_tracks[0]
 
     event_data.track_length = tracks_data.tracks[0].length
@@ -159,7 +170,7 @@ def analyze_event(event_id          : int,
 
     if not event_data.blob_filter: return event_data, tracks_data, voxels_data
 
-    ### For those events passing the blobs filter:
+    ### Continue analysis of events passing the blob_filter ###
     # Applying the ROI filter
     event_data.roi_filter = ((event_data.sm_energy >= roi_Emin) &
                                 (event_data.sm_energy <= roi_Emax))

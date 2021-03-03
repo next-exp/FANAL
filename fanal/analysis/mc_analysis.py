@@ -16,6 +16,7 @@ from fanal.core.detectors    import S1_Eth
 from fanal.core.detectors    import S1_WIDTH
 from fanal.core.detectors    import EVT_WIDTH
 from fanal.core.detectors    import DRIFT_VELOCITY
+from fanal.core.detectors    import MIN_TIME_SHIFT
 
 # The logger
 logger = get_logger('Fanal')
@@ -50,7 +51,7 @@ def check_mc_data(mcHits     : pd.DataFrame,
     Boolean: MC filter
     """
 
-    # Check ACTIVE energy
+    # Check ACTIVE mc energy
     active_mcHits = mcHits[mcHits.label == 'ACTIVE']
     active_energy = 0.
     if len(active_mcHits):
@@ -114,39 +115,77 @@ def get_num_S1(evt_hits: pd.DataFrame
 
 
 
-def reconstruct_hits(mcHits   : pd.DataFrame,
-                     evt_mcE  : float,
-                     fwhm     : float
+def reconstruct_hits(detector   : Detector,
+                     mcHits     : pd.DataFrame,
+                     evt_mcE    : float,
+                     fwhm       : float,
+                     trans_diff : float,
+                     long_diff  : float
                     ) -> pd.DataFrame:
     
     # Departing from MC hits
     recons_hits = mcHits.copy()
 
-    # Smearing the energy: first the event energy and then
-    # the hits accordingly
-    sigma_at_Qbb = fwhm * Qbb / 2.355
-    sigma_at_mcE = sigma_at_Qbb * math.sqrt(evt_mcE / Qbb)
-    evt_smE      = np.random.normal(evt_mcE, sigma_at_mcE)
-    sm_factor    = evt_smE / evt_mcE
-    recons_hits.energy = recons_hits.energy * sm_factor
+    # Smearing the energy
+    smear_hit_energies(recons_hits, evt_mcE, fwhm)
 
-    # TODO: Smear positions according to diffussion
+    # Smear positions according to spatial diffussion
+    smear_hit_positions(recons_hits, detector, trans_diff, long_diff)
 
-    # TODO: Translate Z position according to DRIFT velocity
-#        # Translating hit Z positions from delayed hits
-#        translate_hit_positions(detector, active_mcHits)
-#        active_mcHits = active_mcHits[(active_mcHits.shifted_z < ACTIVE_dimensions.z_max) &
-#                                      (active_mcHits.shifted_z > ACTIVE_dimensions.z_min)]
-    #recons_hits = translate_hits(detname, recons_hits)
-
+    # Translate Z position according to DRIFT velocity
+    # TODO: Not sure if needed after checking just one mc S1
+    translate_hit_zs(recons_hits, detector)
 
     return recons_hits
 
 
 
-def translate_hits(detector : Detector,
-                   mcHits   : pd.DataFrame
-                  ) -> None:
+def smear_hit_energies(mcHits   : pd.DataFrame,
+                       evt_mcE  : float,
+                       fwhm     : float
+                      ) -> None:
+    """
+    First smears the whole event energy and then
+    the hits accordingly
+    """
+    if fwhm == 0. : return
+
+    sigma_at_Qbb  = fwhm * Qbb / 2.355
+    sigma_at_mcE  = sigma_at_Qbb * math.sqrt(evt_mcE / Qbb)
+    evt_smE       = np.random.normal(evt_mcE, sigma_at_mcE)
+    sm_factor     = evt_smE / evt_mcE
+    mcHits.energy = mcHits.energy * sm_factor
+
+
+
+def smear_hit_positions(mcHits     : pd.DataFrame,
+                        detector   : Detector,
+                        trans_diff : float,
+                        long_diff  : float
+                       ) -> None:
+    """
+    Smearing hits positions according to detector diffusion
+    """
+    if (trans_diff == long_diff == 0.) : return
+
+    # Getting the drift length
+    if detector.symmetric:
+        drift_length = detector.active_z_max - abs(mcHits.z)
+    else:
+        drift_length = mcHits.z
+
+    # Applying the smearing
+    sqrt_len = drift_length ** 0.5
+
+    mcHits.x = np.random.normal(mcHits.x, sqrt_len * trans_diff)
+    mcHits.y = np.random.normal(mcHits.y, sqrt_len * trans_diff)
+    mcHits.z = np.random.normal(mcHits.z, sqrt_len * long_diff)
+
+
+
+def translate_hit_zs(mcHits   : pd.DataFrame,
+                     detector : Detector
+                    ) -> None:
     """
     In MC simulations all the hits of a MC event are assigned to the same event.
     In some special cases these events may contain hits in a period of time
@@ -154,24 +193,14 @@ def translate_hits(detector : Detector,
     Some of them occur with a delay that make them being reconstructed in shifted-Zs.
     This functions accomplish all these situations.
     """
-
-    # Minimum time offset to fix
-    min_offset = 1. * units.mus
-
-    min_time, max_time = mcHits.time.min(), mcHits.time.max()
-
     # Only applying to events wider than a minimum offset
-    if ((max_time - min_time) > min_offset):
-        if detector.symmetric:
-            mcHits['shifted_z'] = mcHits['z'] - np.sign(mcHits['z']) * \
-                                         (mcHits['time'] - min_time) * DRIFT_VELOCITY
-        # In case of assymetric detector
-        else:
-            mcHits['shifted_z'] = mcHits['z'] + \
-                                         (mcHits['time'] - min_time) * DRIFT_VELOCITY
+    min_time, max_time = mcHits.time.min(), mcHits.time.max()
+    if ((max_time - min_time) <= MIN_TIME_SHIFT): return
 
-    # Event time width smaller than minimum offset
+    # In case of symmetric detector
+    if detector.symmetric:
+        mcHits.z = mcHits.z - np.sign(mcHits.z) * \
+                  (mcHits.time - min_time) * DRIFT_VELOCITY
+    # In case of asymmetric detector
     else:
-        mcHits['shifted_z'] = mcHits['z']
-
-
+        mcHits.z = mcHits.z + (mcHits.time - min_time) * DRIFT_VELOCITY

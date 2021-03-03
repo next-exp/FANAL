@@ -19,7 +19,7 @@ S1_Eth         = 20. * units.keV  # Energy threshold for S1s
 S1_WIDTH       = 10. * units.ns   # S1 time width
 EVT_WIDTH      =  5. * units.ms   # Recorded time per event
 DRIFT_VELOCITY =  1. * units.mm / units.mus
-
+MIN_TIME_SHIFT =  1. * units.mus
 
 
 @dataclass
