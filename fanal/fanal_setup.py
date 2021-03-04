@@ -14,12 +14,12 @@ import invisible_cities.core.system_of_units  as units
 
 from   invisible_cities.reco.tbl_functions  import filters as tbl_filters
 
-from   invisible_cities.io.mcinfo_io        import get_event_numbers_in_file
 from   invisible_cities.io.mcinfo_io        import load_mchits_df
 from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
 from fanal.utils.logger             import get_logger
+from fanal.utils.mc_utils           import get_event_numbers_in_file
 
 from fanal.core.detectors           import get_detector
 
@@ -106,8 +106,8 @@ class Setup:
         s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
-        s += f"*** Transverse diff:   {self.trans_diff / (units.mm/units.cm**0.5):.2f}  "
-        s += f"-  Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
+        s += f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
+        s += f"*** Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
         s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
         s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
@@ -212,8 +212,10 @@ class Setup:
 
             # Updating simulated and stored event counters
             configuration_df = pd.read_hdf(input_fname, '/MC/configuration', mode='r')
-            self.event_counter.simulated += int(configuration_df[configuration_df.param_key=='num_events'].param_value)
-            self.event_counter.stored    += int(configuration_df[configuration_df.param_key=='saved_events'].param_value)
+            self.event_counter.simulated += \
+                int(configuration_df[configuration_df.param_key == 'num_events'].param_value)
+            self.event_counter.stored    += \
+                int(configuration_df[configuration_df.param_key == 'saved_events'].param_value)
 
             # Getting event numbers
             file_event_ids = get_event_numbers_in_file(input_fname)
