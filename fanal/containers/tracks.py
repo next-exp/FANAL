@@ -1,16 +1,20 @@
+# General importings
+from __future__  import annotations
+
+import pandas        as pd
+import numpy         as np
+
 from dataclasses import dataclass
 from dataclasses import field
 
 from typing      import List, Union
 
-import pandas        as pd
-import numpy         as np
+from networkx    import Graph
 
+# IC importings
 import invisible_cities.core.system_of_units                  as units
-
 from   invisible_cities.reco.paolina_functions  import length as track_length
 
-from   networkx                                 import Graph
 
 
 
@@ -56,13 +60,12 @@ class TrackList:
     def len(self):
         return len(self.tracks)
 
-    #def add(self, new_tracks: Union[Track, List[Track], TrackList]):
-    def add(self, new_tracks: Union[Track, List[Track]]):
+    def add(self, new_tracks: Union[Track, List[Track], TrackList]):
         if   isinstance(new_tracks, Track)     : self.tracks += [new_tracks]
         elif isinstance(new_tracks, list)      : self.tracks += new_tracks
         elif isinstance(new_tracks, TrackList) : self.tracks += new_tracks.tracks
         else:
-            raise TypeError("Triyng to add non-Track objects to TrackList")
+            raise TypeError("Trying to add non-Track objects to TrackList")
 
     def df(self) -> pd.DataFrame:
         if len(self.tracks) == 0:

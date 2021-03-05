@@ -1,4 +1,6 @@
 # General importings
+from __future__  import annotations
+
 from dataclasses import dataclass
 from dataclasses import field
 
@@ -64,13 +66,12 @@ class EventList:
     def len(self):
         return len(self.events)
 
-    #def add(self, new_events: Union[Event, List[Event], EventList]):
-    def add(self, new_events: Union[Event, List[Event]]):
+    def add(self, new_events: Union[Event, List[Event], EventList]):
         if   isinstance(new_events, Event)     : self.events += [new_events]
         elif isinstance(new_events, list)      : self.events += new_events
         elif isinstance(new_events, EventList) : self.events += new_events.events
         else:
-            raise TypeError("Triyng to add non-Event objects to EventList")
+            raise TypeError("Trying to add non-Event objects to EventList")
 
     def df(self) -> pd.DataFrame:
         if len(self.events) == 0:

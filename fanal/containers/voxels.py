@@ -1,13 +1,16 @@
+# General importings
+from __future__  import annotations
+
+import pandas        as pd
+import numpy         as np
+
 from dataclasses import dataclass
 from dataclasses import field
 
 from typing      import List, Union
 
-import pandas        as pd
-import numpy         as np
-
+# IC importings
 import invisible_cities.core.system_of_units                as units
-
 from invisible_cities.evm.event_model         import Voxel  as icVoxel
 
 
@@ -39,13 +42,12 @@ class VoxelList:
     def len(self):
         return len(self.voxels)
 
-    #def add(self, new_voxels: Union[Voxel, List[Voxel], VoxelList]):
-    def add(self, new_voxels: Union[Voxel, List[Voxel]]):
+    def add(self, new_voxels: Union[Voxel, List[Voxel], VoxelList]):
         if   isinstance(new_voxels, Voxel)     : self.voxels += [new_voxels]
         elif isinstance(new_voxels, list)      : self.voxels += new_voxels
         elif isinstance(new_voxels, VoxelList) : self.voxels += new_voxels.voxels
         else:
-            raise TypeError("Triyng to add non-Voxel objects to VoxelList")
+            raise TypeError("Trying to add non-Voxel objects to VoxelList")
 
     def df(self) -> pd.DataFrame:
         if len(self.voxels) == 0:
