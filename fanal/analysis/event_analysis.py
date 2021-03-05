@@ -168,15 +168,15 @@ def analyze_event(detector          : Detector,
     the_track.ext2_x, the_track.ext2_y, the_track.ext2_z = \
         ext2_pos[0], ext2_pos[1], ext2_pos[2]
 
-    event_data.blob1_E, event_data.blob2_E = ext1_energy, ext2_energy
+    event_data.blob1_energy, event_data.blob2_energy = ext1_energy, ext2_energy
 
     logger.info(tracks_data)
 
     # Applying the blob filter
-    event_data.blob_filter = (event_data.blob2_E > blob_Eth)
+    event_data.blob_filter = (event_data.blob2_energy > blob_Eth)
 
-    logger.info(f"Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
-                f"  Blob 2 energy: {event_data.blob2_E/units.keV:4.1f} keV"  + \
+    logger.info(f"Blob 1 energy: {event_data.blob1_energy/units.keV:4.1f} keV " + \
+                f"  Blob 2 energy: {event_data.blob2_energy/units.keV:4.1f} keV"  + \
                 f"  ->  BLOB filter: {event_data.blob_filter}")
 
     if not event_data.blob_filter: return event_data, tracks_data, voxels_data

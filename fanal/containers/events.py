@@ -31,8 +31,8 @@ class Event:
     num_tracks     : int    = -1
     track_length   : float  = np.nan
     track_filter   : bool   = False
-    blob1_E        : float  = np.nan
-    blob2_E        : float  = np.nan
+    blob1_energy   : float  = np.nan
+    blob2_energy   : float  = np.nan
     blob_filter    : bool   = False
     roi_filter     : bool   = False
 
@@ -47,7 +47,8 @@ class Event:
         s += f"  vetoE: {self.veto_energy / units.keV:.3f}  ->  Fiduc. Filter: {self.fiduc_filter}\n"
         s += f"  Num tracks: {self.num_tracks}  ->  Track Length: {self.track_length / units.mm:.1f} mm "
         s += f"  ->  Track Filter: {self.track_filter}\n"
-        s += f"  Blob1 E: {self.blob1_E / units.keV:.3f} keV   Blob2 E: {self.blob2_E / units.keV:.3f} keV "
+        s += f"  Blob1 E: {self.blob1_energy / units.keV:.3f} keV "
+        s += f"  Blob2 E: {self.blob2_energy / units.keV:.3f} keV "
         s += f"  ->  Blob Filter: {self.blob_filter}\n"
         s += f"  ROI Filter: {self.roi_filter}\n"
         return s

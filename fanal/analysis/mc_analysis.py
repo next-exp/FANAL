@@ -175,11 +175,13 @@ def smear_hit_positions(mcHits     : pd.DataFrame,
         drift_length = mcHits.z
 
     # Applying the smearing
-    sqrt_len = drift_length ** 0.5
+    sqrt_length = drift_length ** 0.5
 
-    mcHits.x = np.random.normal(mcHits.x, sqrt_len * trans_diff)
-    mcHits.y = np.random.normal(mcHits.y, sqrt_len * trans_diff)
-    mcHits.z = np.random.normal(mcHits.z, sqrt_len * long_diff)
+    if (trans_diff > 0.):
+        mcHits.x = np.random.normal(mcHits.x, sqrt_length * trans_diff)
+        mcHits.y = np.random.normal(mcHits.y, sqrt_length * trans_diff)
+    if (long_diff > 0.):
+        mcHits.z = np.random.normal(mcHits.z, sqrt_length * long_diff)
 
 
 
