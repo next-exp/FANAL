@@ -128,6 +128,8 @@ class Setup:
 #    def load_config(self, config_fname : str):
 #        with open(config_fname) as config_file:
 #            fanal_params = json.load(config_file)
+#            fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
+#            fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
 #            fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
 #            fanal_params['e_min']        = fanal_params['e_min']        * units.keV
 #            fanal_params['e_max']        = fanal_params['e_max']        * units.keV
