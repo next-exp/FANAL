@@ -10,7 +10,7 @@ import pandas        as pd
 from dataclasses import dataclass
 
 # IC importings
-import invisible_cities.core.system_of_units  as units
+import invisible_cities.core.system_of_units               as units
 
 from   invisible_cities.reco.tbl_functions  import filters as tbl_filters
 
@@ -31,45 +31,77 @@ from fanal.containers.events        import EventCounter
 from fanal.analysis.event_analysis  import analyze_event
 
 
-# TODO - Remove it and implement Setup as a simple class ??
-# TODO - Change init and __post_init to allow fanal_setup = Setup()
-@dataclass
+
 class Setup:
-    det_name           : str    = ''
-    event_type         : str    = ''
 
-    input_fname        : str    = ''
-    output_fname       : str    = ''
+    def __init__(self,
+                 det_name           : str    = '',
+                 event_type         : str    = '',
+                 input_fname        : str    = '',
+                 output_fname       : str    = '',
 
-    trans_diff         : float  = np.nan
-    long_diff          : float  = np.nan
-    fwhm               : float  = np.nan
-    e_min              : float  = np.nan
-    e_max              : float  = np.nan
+                 trans_diff         : float  = np.nan,
+                 long_diff          : float  = np.nan,
+                 fwhm               : float  = np.nan,
+                 e_min              : float  = np.nan,
+                 e_max              : float  = np.nan,
 
-    voxel_size_x       : float  = np.nan
-    voxel_size_y       : float  = np.nan
-    voxel_size_z       : float  = np.nan
-    strict_voxel_size  : bool   = False
-    voxel_Eth          : float  = np.nan
+                 voxel_size_x       : float  = np.nan,
+                 voxel_size_y       : float  = np.nan,
+                 voxel_size_z       : float  = np.nan,
+                 strict_voxel_size  : bool   = False,
+                 voxel_Eth          : float  = np.nan,
 
-    veto_width         : float  = np.nan
-    veto_Eth           : float  = np.nan
+                 veto_width         : float  = np.nan,
+                 veto_Eth           : float  = np.nan,
 
-    track_Eth          : float  = np.nan
-    max_num_tracks     : int    = -1
-    blob_radius        : float  = np.nan
-    blob_Eth           : float  = np.nan
+                 track_Eth          : float  = np.nan,
+                 max_num_tracks     : int    = -1,
+                 blob_radius        : float  = np.nan,
+                 blob_Eth           : float  = np.nan,
 
-    roi_Emin           : float  = np.nan
-    roi_Emax           : float  = np.nan
+                 roi_Emin           : float  = np.nan,
+                 roi_Emax           : float  = np.nan,
 
-    # ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
-    verbosity          : str    = 'WARNING'
+                 # ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+                 verbosity          : str    = 'WARNING'
+                ) :
+
+        self.det_name           = det_name
+        self.event_type         = event_type
+
+        self.input_fname        = input_fname
+        self.output_fname       = output_fname
+
+        self.trans_diff         = trans_diff
+        self.long_diff          = long_diff
+        self.fwhm               = fwhm
+        self.e_min              = e_min
+        self.e_max              = e_max
+
+        self.voxel_size_x       = voxel_size_x
+        self.voxel_size_y       = voxel_size_y
+        self.voxel_size_z       = voxel_size_z
+        self.strict_voxel_size  = strict_voxel_size
+        self.voxel_Eth          = voxel_Eth
+
+        self.veto_width         = veto_width
+        self.veto_Eth           = veto_Eth
+
+        self.track_Eth          = track_Eth
+        self.max_num_tracks     = max_num_tracks
+        self.blob_radius        = blob_radius
+        self.blob_Eth           = blob_Eth
+
+        self.roi_Emin           = roi_Emin
+        self.roi_Emax           = roi_Emax
+
+        self.verbosity          = verbosity
+
+        self._post_init()
 
 
-    def __post_init__(self):
-
+    def _post_init(self):
         # The logger
         self.logger = get_logger('Fanal', self.verbosity)
 
@@ -100,6 +132,30 @@ class Setup:
             "roi_filter settings not valid: 'roi_Emax' must be higher than 'roi_Emin'"
 
 
+    @classmethod
+    def from_config_file(cls, config_fname : str):
+        "Initialize Setup from a conig file (json format)"
+        with open(config_fname) as config_file:
+            fanal_params = json.load(config_file)
+            fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
+            fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
+            fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
+            fanal_params['e_min']        = fanal_params['e_min']        * units.keV
+            fanal_params['e_max']        = fanal_params['e_max']        * units.keV
+            fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
+            fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
+            fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
+            fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
+            fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
+            fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
+            fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
+            fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
+            fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
+            fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
+            fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
+        return cls(**fanal_params)
+
+
     def __repr__(self):
         s  =  "*******************************************************************************\n"
         s += f"*** Detector:          {self.det_name}\n"
@@ -125,28 +181,6 @@ class Setup:
     __str__ = __repr__
 
 
-#    def load_config(self, config_fname : str):
-#        with open(config_fname) as config_file:
-#            fanal_params = json.load(config_file)
-#            fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
-#            fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
-#            fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
-#            fanal_params['e_min']        = fanal_params['e_min']        * units.keV
-#            fanal_params['e_max']        = fanal_params['e_max']        * units.keV
-#            fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
-#            fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
-#            fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
-#            fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
-#            fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
-#            fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
-#            fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
-#            fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
-#            fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
-#            fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
-#            fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
-#        self.__init__(**fanal_params)
-
-
     def config_df(self):
         params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname',
                            'trans_diff', 'long_diff', 'fwhm', 'e_min', 'e_max',
@@ -165,6 +199,7 @@ class Setup:
         # to place them in the same column
         self.config_df().to_hdf(self.output_fname, 'FANAL' + '/config',
                                 data_columns = True, format = 'table')
+
 
     def store_data(self):
         # Storing data
@@ -280,24 +315,5 @@ if __name__ == '__main__':
         print("\nUsage: python nexus-production.py config_file\n")
         sys.exit()
 
-    with open(config_fname) as config_file:
-        fanal_params = json.load(config_file)
-        fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
-        fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
-        fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
-        fanal_params['e_min']        = fanal_params['e_min']        * units.keV
-        fanal_params['e_max']        = fanal_params['e_max']        * units.keV
-        fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
-        fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
-        fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
-        fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
-        fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
-        fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
-        fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
-        fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
-        fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
-        fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
-        fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
-
-    fanal_setup = Setup(**fanal_params)
+    fanal_setup = Setup.from_config_file(config_fname)
     fanal_setup.run_analysis()
