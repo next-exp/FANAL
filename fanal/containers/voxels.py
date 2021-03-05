@@ -24,7 +24,7 @@ class Voxel:
     def __repr__(self):
         s =  f"* Evt id: {self.event_id} , Trk id: {self.track_id} , Voxel id: {self.voxel_id}\n"
         s += f"  Position: ({self.x:.1f}, {self.y:.1f}, {self.z:.1f})  "
-        s += f"  Energy: {self.energy / units.keV:.3f} keV"
+        s += f"  Energy: {self.energy / units.keV:.3f} keV\n"
 
         return s
 

@@ -10,7 +10,7 @@ import invisible_cities.core.system_of_units      as units
 from invisible_cities.evm.event_model         import MCHit
 from invisible_cities.reco.paolina_functions  import voxelize_hits
 from invisible_cities.reco.paolina_functions  import make_track_graphs
-from invisible_cities.reco.paolina_functions  import blob_energies
+from invisible_cities.reco.paolina_functions  import blob_energies_hits_and_centres
 
 # FANAL importings
 from fanal.utils.logger              import get_logger
@@ -108,12 +108,12 @@ def analyze_event(detector          : Detector,
     event_data.voxel_size_x = eff_voxel_size[0]
     event_data.voxel_size_y = eff_voxel_size[1]
     event_data.voxel_size_z = eff_voxel_size[2]
-    logger.info(f"  Num Voxels: {event_data.num_voxels:3}  of size: {eff_voxel_size} mm")
+    logger.info(f"Num Voxels: {event_data.num_voxels:3}  of size: {eff_voxel_size} mm")
 
     # Check fiduciality
     event_data.veto_energy, event_data.fiduc_filter = \
         check_event_fiduciality(fiducial_checker, ic_voxels, veto_Eth)
-    logger.info(f"  Veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
+    logger.info(f"Veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
                 f"FIDUC filter: {event_data.fiduc_filter}")
 
     if not event_data.fiduc_filter:
@@ -139,7 +139,6 @@ def analyze_event(detector          : Detector,
                                                ic_voxels[voxel_id]))
 
     logger.debug(voxels_data)
-    logger.info(tracks_data)
 
     # Processing tracks: Getting energies, sorting and filtering ...
     event_data.num_tracks = tracks_data.len()
@@ -147,26 +146,38 @@ def analyze_event(detector          : Detector,
     event_data.track_filter = ((event_data.num_tracks >  0) &
                                (event_data.num_tracks <= max_num_tracks))
 
-    logger.info(f"Num tracks: {event_data.num_tracks:3}  -->" + \
+    logger.info(f"Num tracks: {event_data.num_tracks:3}  ->" + \
                 f"  TRACK filter: {event_data.track_filter}")
 
     if not event_data.track_filter: return event_data, tracks_data, voxels_data
 
     ### Continue analysis of events passing the track_filter ###
-    the_track = ic_tracks[0]
+    the_track = tracks_data.tracks[0]
 
-    event_data.track_length = tracks_data.tracks[0].length
+    event_data.track_length = the_track.length
 
-    # Getting the blob energies of the track
-    event_data.blob1_E, event_data.blob2_E = \
-        blob_energies(the_track, blob_radius)
+    # Getting & storing the track blob data
+    ext1_energy, ext2_energy, ext1_hits, ext2_hits, ext1_pos, ext2_pos = \
+        blob_energies_hits_and_centres(ic_tracks[0], blob_radius)
+
+    the_track.ext1_energy, the_track.ext1_num_hits = ext1_energy, len(ext1_hits)
+    the_track.ext1_x, the_track.ext1_y, the_track.ext1_z = \
+        ext1_pos[0], ext1_pos[1], ext1_pos[2]
+
+    the_track.ext2_energy, the_track.ext2_num_hits = ext2_energy, len(ext2_hits)
+    the_track.ext2_x, the_track.ext2_y, the_track.ext2_z = \
+        ext2_pos[0], ext2_pos[1], ext2_pos[2]
+
+    event_data.blob1_E, event_data.blob2_E = ext1_energy, ext2_energy
+
+    logger.info(tracks_data)
 
     # Applying the blob filter
     event_data.blob_filter = (event_data.blob2_E > blob_Eth)
 
     logger.info(f"Blob 1 energy: {event_data.blob1_E/units.keV:4.1f} keV " + \
                 f"  Blob 2 energy: {event_data.blob2_E/units.keV:4.1f} keV"  + \
-                f"  -->  BLOB filter: {event_data.blob_filter}")
+                f"  ->  BLOB filter: {event_data.blob_filter}")
 
     if not event_data.blob_filter: return event_data, tracks_data, voxels_data
 
@@ -176,6 +187,6 @@ def analyze_event(detector          : Detector,
                                 (event_data.sm_energy <= roi_Emax))
 
     logger.info(f"Event energy: {event_data.sm_energy/units.keV:6.1f} keV" + \
-                f"  -->  ROI filter: {event_data.roi_filter}")
+                f"  ->  ROI filter: {event_data.roi_filter}")
 
     return event_data, tracks_data, voxels_data

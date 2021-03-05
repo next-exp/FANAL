@@ -16,33 +16,33 @@ from   networkx                                 import Graph
 
 @dataclass
 class Track:
-    event_id        : int    = -1
-    track_id        : int    = -1
-    energy          : float  = np.nan
-    length          : float  = np.nan
-    num_voxels      : int    = 0
-    ext1_x          : float  = np.nan
-    ext1_y          : float  = np.nan
-    ext1_z          : float  = np.nan
-    ext1_energy     : float  = np.nan
-    ext1_num_voxels : int    = 0
-    ext2_x          : float  = np.nan
-    ext2_y          : float  = np.nan
-    ext2_z          : float  = np.nan
-    ext2_energy     : float  = np.nan
-    ext2_num_voxels : int    = 0
+    event_id      : int    = -1
+    track_id      : int    = -1
+    energy        : float  = np.nan
+    length        : float  = np.nan
+    num_voxels    : int    = 0
+    ext1_x        : float  = np.nan
+    ext1_y        : float  = np.nan
+    ext1_z        : float  = np.nan
+    ext1_energy   : float  = np.nan
+    ext1_num_hits : int    = 0
+    ext2_x        : float  = np.nan
+    ext2_y        : float  = np.nan
+    ext2_z        : float  = np.nan
+    ext2_energy   : float  = np.nan
+    ext2_num_hits : int    = 0
 
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
         s += f"  Length: {self.length / units.mm:.3f} mm "
         s += f"  Num voxels: {self.num_voxels}\n"
-        s += f"  Extr1: ({self.ext1_x},{self.ext1_y},{self.ext1_z}) "
-        s += f"  Energy: {self.ext1_energy / units.keV} keV "
-        s += f"  Num voxels: {self.ext1_num_voxels}\n"
-        s += f"  Extr2: ({self.ext2_x},{self.ext2_y},{self.ext2_z}) "
-        s += f"  Energy: {self.ext2_energy / units.keV} keV "
-        s += f"  Num voxels: {self.ext2_num_voxels}"
+        s += f"  Extr1: ({self.ext1_x:.1f},{self.ext1_y:.1f},{self.ext1_z:.1f}) "
+        s += f"  Energy: {self.ext1_energy / units.keV:.3f} keV "
+        s += f"  Num hits: {self.ext1_num_hits}\n"
+        s += f"  Extr2: ({self.ext2_x:.1f},{self.ext2_y:.1f},{self.ext2_z:.1f}) "
+        s += f"  Energy: {self.ext2_energy / units.keV:.3f} keV "
+        s += f"  Num hits: {self.ext2_num_hits}"
         return s
 
     __str__ = __repr__
