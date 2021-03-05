@@ -22,6 +22,7 @@ from fanal.utils.logger             import get_logger
 from fanal.utils.mc_utils           import get_event_numbers_in_file
 
 from fanal.core.detectors           import get_detector
+from fanal.core.fanal_types         import AnalysisParams
 
 from fanal.containers.tracks        import TrackList
 from fanal.containers.voxels        import VoxelList
@@ -118,6 +119,11 @@ class Setup:
         # The detector        
         self.detector         = get_detector(self.det_name)
         self.fiducial_checker = self.detector.get_fiducial_checker(self.veto_width)
+
+        # Analysis parameters
+        analysis_dict = {key: self.__dict__[key] for key in \
+                         AnalysisParams.__dataclass_fields__.keys()}
+        self.analysis_params = AnalysisParams(**analysis_dict)
         
         # DATA TO COLECT
         self.events_data   = EventList()
@@ -162,19 +168,7 @@ class Setup:
         s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
-        s += f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
-        s += f"*** Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
-        s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
-        s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
-        s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
-        s += f"-  strict: {self.strict_voxel_size}\n"
-        s += f"*** Voxel energy th.:  {self.voxel_Eth / units.keV:.1f} keV\n"
-        s += f"*** Track energy th.:  {self.track_Eth / units.keV:.1f} keV\n"
-        s += f"*** Max num Tracks:    {self.max_num_tracks}\n"
-        s += f"*** Blob radius:       {self.blob_radius:.1f} mm\n"
-        s += f"*** Blob energy th.:   {self.blob_Eth/units.keV:4.1f} keV\n"
-        s += f"*** ROI energy limits: ({self.roi_Emin/units.keV:4.1f}, "
-        s += f"{self.roi_Emax/units.keV:4.1f}) keV\n"
+        s += str(self.analysis_params)
         s +=  "*******************************************************************************\n"
         return s
 
@@ -182,12 +176,8 @@ class Setup:
 
 
     def config_df(self):
-        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname',
-                           'trans_diff', 'long_diff', 'fwhm', 'e_min', 'e_max',
-                           'voxel_size_x', 'voxel_size_y', 'voxel_size_z',
-                           'strict_voxel_size', 'voxel_Eth', 'veto_width', 'veto_Eth',
-                           'track_Eth', 'max_num_tracks', 'blob_radius', 'blob_Eth',
-                           'roi_Emin', 'roi_Emax']
+        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname'] + \
+                           list(AnalysisParams.__dataclass_fields__.keys())
         param_values = []
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
@@ -206,15 +196,6 @@ class Setup:
         self.events_data.store(self.output_fname, 'FANAL')
         self.tracks_data.store(self.output_fname, 'FANAL')
         self.voxels_data.store(self.output_fname, 'FANAL')
-
-        # Storing event counters
-        events_df = self.events_data.df()
-        self.event_counter.mc_filter     = len(events_df[events_df.mc_filter])
-        self.event_counter.energy_filter = len(events_df[events_df.energy_filter])
-        self.event_counter.fiduc_filter  = len(events_df[events_df.fiduc_filter])
-        self.event_counter.track_filter  = len(events_df[events_df.track_filter])
-        self.event_counter.blob_filter   = len(events_df[events_df.blob_filter])
-        self.event_counter.roi_filter    = len(events_df[events_df.roi_filter])
         self.event_counter.store(self.output_fname, 'FANAL')
 
 
@@ -274,14 +255,8 @@ class Setup:
                     analyze_event(self.detector, int(event_id), self.event_type,
                                   file_mcParts.loc[event_id, :],
                                   file_mcHits.loc[event_id, :],
-                                  self.trans_diff, self.long_diff,
-                                  self.fwhm, self.e_min, self.e_max,
-                                  self.voxel_size_x, self.voxel_size_y, self.voxel_size_z,
-                                  self.strict_voxel_size, self.voxel_Eth,
-                                  self.fiducial_checker, self.veto_Eth,
-                                  self.track_Eth, self.max_num_tracks,
-                                  self.blob_radius, self.blob_Eth,
-                                  self.roi_Emin, self.roi_Emax)
+                                  self.fiducial_checker,
+                                  self.analysis_params)
 
                 # Storing event data
                 self.events_data.add(event_data)
@@ -293,11 +268,12 @@ class Setup:
                     print(f'* Num analyzed events: {self.event_counter.analyzed}')
                 if (self.event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
 
-
-        ### STORING ANALYSIS DATA
         print(f'\n* Total analyzed events: {self.event_counter.analyzed}')
 
-        # Storing events and voxels dataframes
+        # Filling filtered event counters
+        self.event_counter.fill_filter_counters(self.events_data)
+
+        ### STORING ANALYSIS DATA
         print(f'\n* Storing results in the output file ...\n  {output_file}\n')
         self.store_data()
 
@@ -307,7 +283,7 @@ class Setup:
 
 
 
-# Make it executable
+### Make it executable
 if __name__ == '__main__':
     try:
         config_fname = sys.argv[1]

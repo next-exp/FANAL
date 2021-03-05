@@ -127,6 +127,15 @@ class EventCounter:
 
     __str__ = __repr__
 
+    def fill_filter_counters(self, events_data : EventList):
+        events_df          = events_data.df()
+        self.mc_filter     = len(events_df[events_df.mc_filter])
+        self.energy_filter = len(events_df[events_df.energy_filter])
+        self.fiduc_filter  = len(events_df[events_df.fiduc_filter])
+        self.track_filter  = len(events_df[events_df.track_filter])
+        self.blob_filter   = len(events_df[events_df.blob_filter])
+        self.roi_filter    = len(events_df[events_df.roi_filter])
+
     def df(self) -> pd.DataFrame:
         counters_df = pd.DataFrame([self.__dict__]).T
         counters_df.rename(columns={0: 'events'}, inplace = True)
