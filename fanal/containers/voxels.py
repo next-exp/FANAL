@@ -10,25 +10,24 @@ from dataclasses import field
 from typing      import List, Union
 
 # IC importings
-import invisible_cities.core.system_of_units                as units
-from invisible_cities.evm.event_model         import Voxel  as icVoxel
+import invisible_cities.core.system_of_units               as units
+from   invisible_cities.evm.event_model      import Voxel  as icVoxel
 
 
 @dataclass
 class Voxel:
-    event_id        : int    = -1
-    track_id        : int    = -1
-    voxel_id        : int    = -1
-    x               : float  = np.nan
-    y               : float  = np.nan
-    z               : float  = np.nan
-    energy          : float  = np.nan
+    event_id : int   = -1
+    track_id : int   = -1
+    voxel_id : int   = -1
+    x        : float = np.nan
+    y        : float = np.nan
+    z        : float = np.nan
+    energy   : float = np.nan
 
     def __repr__(self):
         s =  f"* Evt id: {self.event_id} , Trk id: {self.track_id} , Voxel id: {self.voxel_id}\n"
         s += f"  Position: ({self.x:.1f}, {self.y:.1f}, {self.z:.1f})  "
         s += f"  Energy: {self.energy / units.keV:.3f} keV\n"
-
         return s
 
     __str__ = __repr__

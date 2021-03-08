@@ -3,7 +3,7 @@ import numpy as np
 from enum        import Enum
 from dataclasses import dataclass
 
-import invisible_cities.core.system_of_units               as units
+import invisible_cities.core.system_of_units as units
 
 
 
@@ -18,6 +18,7 @@ class VolumeDim:
 
 @dataclass
 class AnalysisParams:
+
     trans_diff         : float  = np.nan
     long_diff          : float  = np.nan
     fwhm               : float  = np.nan
@@ -40,6 +41,8 @@ class AnalysisParams:
 
     roi_Emin           : float  = np.nan
     roi_Emax           : float  = np.nan
+
+    #__slots__ =  tuple(AnalysisParams.__dataclass_fields__.keys())
 
 
     def __post_init__(self):
