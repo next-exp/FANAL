@@ -3,15 +3,10 @@ import os
 import sys
 import glob
 import json
-import numpy         as np
 import tables        as tb
 import pandas        as pd
 
-from dataclasses import dataclass
-
 # IC importings
-import invisible_cities.core.system_of_units               as units
-
 from   invisible_cities.reco.tbl_functions  import filters as tbl_filters
 
 from   invisible_cities.io.mcinfo_io        import load_mchits_df
@@ -36,68 +31,26 @@ from fanal.analysis.event_analysis  import analyze_event
 class Setup:
 
     def __init__(self,
-                 det_name           : str    = '',
-                 event_type         : str    = '',
-                 input_fname        : str    = '',
-                 output_fname       : str    = '',
-
-                 trans_diff         : float  = np.nan,
-                 long_diff          : float  = np.nan,
-                 fwhm               : float  = np.nan,
-                 e_min              : float  = np.nan,
-                 e_max              : float  = np.nan,
-
-                 voxel_size_x       : float  = np.nan,
-                 voxel_size_y       : float  = np.nan,
-                 voxel_size_z       : float  = np.nan,
-                 strict_voxel_size  : bool   = False,
-                 voxel_Eth          : float  = np.nan,
-
-                 veto_width         : float  = np.nan,
-                 veto_Eth           : float  = np.nan,
-
-                 track_Eth          : float  = np.nan,
-                 max_num_tracks     : int    = -1,
-                 blob_radius        : float  = np.nan,
-                 blob_Eth           : float  = np.nan,
-
-                 roi_Emin           : float  = np.nan,
-                 roi_Emax           : float  = np.nan,
-
-                 # ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+                 det_name           : str,
+                 event_type         : str,
+                 input_fname        : str,
+                 output_fname       : str,
+                 analysis_params    : AnalysisParams,
                  verbosity          : str    = 'WARNING'
                 ) :
+        # Confiruration
+        self.det_name        = det_name
+        self.event_type      = event_type
+        self.input_fname     = input_fname
+        self.output_fname    = output_fname
+        self.analysis_params = analysis_params
+        self.verbosity       = verbosity
 
-        self.det_name           = det_name
-        self.event_type         = event_type
-
-        self.input_fname        = input_fname
-        self.output_fname       = output_fname
-
-        self.trans_diff         = trans_diff
-        self.long_diff          = long_diff
-        self.fwhm               = fwhm
-        self.e_min              = e_min
-        self.e_max              = e_max
-
-        self.voxel_size_x       = voxel_size_x
-        self.voxel_size_y       = voxel_size_y
-        self.voxel_size_z       = voxel_size_z
-        self.strict_voxel_size  = strict_voxel_size
-        self.voxel_Eth          = voxel_Eth
-
-        self.veto_width         = veto_width
-        self.veto_Eth           = veto_Eth
-
-        self.track_Eth          = track_Eth
-        self.max_num_tracks     = max_num_tracks
-        self.blob_radius        = blob_radius
-        self.blob_Eth           = blob_Eth
-
-        self.roi_Emin           = roi_Emin
-        self.roi_Emax           = roi_Emax
-
-        self.verbosity          = verbosity
+        # Data to collect
+        self.events_data   = EventList()
+        self.tracks_data   = TrackList()
+        self.voxels_data   = VoxelList()
+        self.event_counter = EventCounter()
 
         self._post_init()
 
@@ -118,47 +71,21 @@ class Setup:
 
         # The detector        
         self.detector         = get_detector(self.det_name)
-        self.fiducial_checker = self.detector.get_fiducial_checker(self.veto_width)
-
-        # Analysis parameters
-        analysis_dict = {key: self.__dict__[key] for key in \
-                         AnalysisParams.__dataclass_fields__.keys()}
-        self.analysis_params = AnalysisParams(**analysis_dict)
-        
-        # DATA TO COLECT
-        self.events_data   = EventList()
-        self.tracks_data   = TrackList()
-        self.voxels_data   = VoxelList()
-        self.event_counter = EventCounter()
-
-        # Assertions
-        assert self.e_max >= self.e_min,       \
-            "energy_filter settings not valid: 'e_max' must be higher than 'e_min'"
-        assert self.roi_Emax >= self.roi_Emin, \
-            "roi_filter settings not valid: 'roi_Emax' must be higher than 'roi_Emin'"
+        self.fiducial_checker = \
+            self.detector.get_fiducial_checker(self.analysis_params.veto_width)
 
 
     @classmethod
     def from_config_file(cls, config_fname : str):
         "Initialize Setup from a conig file (json format)"
+        # Loading file content
         with open(config_fname) as config_file:
             fanal_params = json.load(config_file)
-            fanal_params['trans_diff']   = fanal_params['trans_diff']   * (units.mm / units.cm**.5)
-            fanal_params['long_diff']    = fanal_params['long_diff']    * (units.mm / units.cm**.5)
-            fanal_params['fwhm']         = fanal_params['fwhm']         * units.perCent
-            fanal_params['e_min']        = fanal_params['e_min']        * units.keV
-            fanal_params['e_max']        = fanal_params['e_max']        * units.keV
-            fanal_params['voxel_size_x'] = fanal_params['voxel_size_x'] * units.mm
-            fanal_params['voxel_size_y'] = fanal_params['voxel_size_y'] * units.mm
-            fanal_params['voxel_size_z'] = fanal_params['voxel_size_z'] * units.mm
-            fanal_params['voxel_Eth']    = fanal_params['voxel_Eth']    * units.keV
-            fanal_params['veto_width']   = fanal_params['veto_width']   * units.mm
-            fanal_params['veto_Eth']     = fanal_params['veto_Eth']     * units.keV
-            fanal_params['track_Eth']    = fanal_params['track_Eth']    * units.keV
-            fanal_params['blob_radius']  = fanal_params['blob_radius']  * units.mm
-            fanal_params['blob_Eth']     = fanal_params['blob_Eth']     * units.keV
-            fanal_params['roi_Emin']     = fanal_params['roi_Emin']     * units.keV
-            fanal_params['roi_Emax']     = fanal_params['roi_Emax']     * units.keV
+        # Building the AnalysisParams
+        analysis_dict = {key: fanal_params.pop(key) for key in \
+                         AnalysisParams.__dataclass_fields__.keys()}
+        fanal_params['analysis_params'] = AnalysisParams(**analysis_dict)
+        fanal_params['analysis_params'].set_units()
         return cls(**fanal_params)
 
 
@@ -172,15 +99,20 @@ class Setup:
         s +=  "*******************************************************************************\n"
         return s
 
+
     __str__ = __repr__
 
 
     def config_df(self):
-        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname'] + \
-                           list(AnalysisParams.__dataclass_fields__.keys())
+        # Config params except the analysis-related ones
+        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname']
         param_values = []
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
+        # Adding analysis parameters
+        params_to_store += list(AnalysisParams.__dataclass_fields__.keys())
+        param_values    += list(str(val) for val in self.analysis_params.__dict__.values())
+
         return pd.DataFrame(index=params_to_store, data=param_values, columns=['value'])
 
 
@@ -253,10 +185,9 @@ class Setup:
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
                     analyze_event(self.detector, int(event_id), self.event_type,
+                                  self.analysis_params, self.fiducial_checker,
                                   file_mcParts.loc[event_id, :],
-                                  file_mcHits.loc[event_id, :],
-                                  self.fiducial_checker,
-                                  self.analysis_params)
+                                  file_mcHits.loc[event_id, :])
 
                 # Storing event data
                 self.events_data.add(event_data)
@@ -273,7 +204,7 @@ class Setup:
         # Filling filtered event counters
         self.event_counter.fill_filter_counters(self.events_data)
 
-        ### STORING ANALYSIS DATA
+        ### Storing global analysis data
         print(f'\n* Storing results in the output file ...\n  {output_file}\n')
         self.store_data()
 

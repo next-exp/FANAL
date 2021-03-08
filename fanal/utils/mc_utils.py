@@ -7,9 +7,9 @@ import pandas as pd
 
 from typing import List
 
-#import matplotlib
-#matplotlib.use('TkAgg')
-#from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
+matplotlib.use('TkAgg')
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 import invisible_cities.core.system_of_units    as units
@@ -76,10 +76,10 @@ def print_mc_event(event_id  :  int,
     # Getting the right file
     ifname = get_fname_with_event(event_id, ifnames)
     if ifname == '':
-        print(f"Event id: {event_id} NOT FOUND in input mc files.")
+        print(f"\nEvent id: {event_id} NOT FOUND in input mc files.")
         return
     else:
-        print(f"Event Id: {event_id}  contained in {ifname}\n")
+        print(f"\nEvent Id: {event_id}  contained in {ifname}\n")
 
     # Getting the mcParticles and mcHits of the right event
     mcParts = load_mcparticles_df(ifname).loc[event_id]
@@ -155,48 +155,34 @@ def print_mc_hits(mcHits : pd.DataFrame,
 
 
 
+def plot_mc_event(event_id : int,
+	              ifnames  : List[str]
+	             ) -> None:
+    """
+    Plots the information of the event corresponding to event_id.
+    """
 
+    # Getting the right file
+    ifname = get_fname_with_event(event_id, ifnames)
+    if ifname == '':
+        print(f"\nEvent id: {event_id} NOT FOUND in input mc files.")
+        return
+    else:
+        print(f"\nEvent Id: {event_id}  contained in {ifname}\n")
 
+    # Getting the mcParticles and mcHits of the right event
+    mcHits  = load_mchits_df(ifname).loc[event_id]
 
+    # Plotting
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('X (mm)')
+    ax.set_ylabel('Y (mm)')
+    ax.set_zlabel('Z (mm)')
+    p = ax.scatter(mcHits.x, mcHits.y, mcHits.z,
+                   cmap='coolwarm', c=(mcHits.energy / units.keV))
+    cb = fig.colorbar(p, ax=ax)
+    cb.set_label('Energy (keV)')
+    plt.show()
 
-
-#def plot_mc_event(event_id   : int,
-#	              iFileNames : List[str]
-#	             ) -> None:
-#    """
-#Plots the information of the event corresponding to event_id.
-#It will look for it into all the list of iFileNames passed."""
-#
-#    # Going through all the input files
-#    for iFileName in iFileNames:
-#        with tb.open_file(iFileName, mode='r') as h5in:
-#            file_extents = pd.read_hdf(iFileName, '/MC/extents', mode='r')
-#
-#            if event_id in file_extents['evt_number'].tolist():
-#                print('\nEvt Id: {}  contained in {}\n'.format(event_id, iFileName))
-#
-#                # Getting the mcParticles and mcHits of the right file
-#                file_mcHits  = load_mc_hits(iFileName)
-#                #file_mcParts = load_mc_particles(iFileName)
-#
-#                # Getting the mcParticles and mcHits of the right event
-#                event_mcHits       = file_mcHits.loc[event_id, :]
-#                active_mcHits      = event_mcHits[event_mcHits.label == 'ACTIVE']
-#
-#                # Plotting
-#                fig = plt.figure()
-#                ax = fig.add_subplot(111, projection='3d')
-#                ax.set_xlabel('X (mm)')
-#                ax.set_ylabel('Y (mm)')
-#                ax.set_zlabel('Z (mm)')
-#                p = ax.scatter(active_mcHits.x, active_mcHits.y, active_mcHits.z,
-#                               cmap='coolwarm', c=(active_mcHits.E / units.keV))
-#                cb = fig.colorbar(p, ax=ax)
-#                cb.set_label('Energy (keV)')
-#                plt.show()
-#
-#                return
-#
-#    # Event Id not found in any input file
-#    print('\nEvt Id: {}  NOT FOUND in any input file.\n'.format(event_id))
-#
+    return

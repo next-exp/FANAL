@@ -38,10 +38,10 @@ logger = get_logger('Fanal')
 def analyze_event(detector          : Detector,
                   event_id          : int,
                   event_type        : str,
-                  event_mcParts     : pd.DataFrame,
-                  event_mcHits      : pd.DataFrame,
+                  params            : AnalysisParams,
                   fiducial_checker  : Callable,
-                  params            : AnalysisParams
+                  event_mcParts     : pd.DataFrame,
+                  event_mcHits      : pd.DataFrame
                  )                 -> Tuple[Event, TrackList, VoxelList] :
 
     # Data to be filled

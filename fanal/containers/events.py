@@ -114,9 +114,9 @@ class EventCounter:
     def __repr__(self):
         if not self.simulated: return "* Event counters EMPTY"
         s =   "* Event counters ...\n"
-        s += f"  Simulated:     {self.simulated:10}  ({self.simulated/self.simulated:.2e})\n"
-        s += f"  Stored:        {self.stored:10}  ({self.stored/self.simulated:.2e})\n"
-        s += f"  Analyzed:      {self.analyzed:10}  ({self.analyzed/self.simulated:.2e})\n"
+        s += f"  Simulated    : {self.simulated:10}  ({self.simulated/self.simulated:.2e})\n"
+        s += f"  Stored       : {self.stored:10}  ({self.stored/self.simulated:.2e})\n"
+        s += f"  Analyzed     : {self.analyzed:10}  ({self.analyzed/self.simulated:.2e})\n"
         s += f"  MC     filter: {self.mc_filter:10}  ({self.mc_filter/self.simulated:.2e})\n"
         s += f"  Energy filter: {self.energy_filter:10}  ({self.energy_filter/self.simulated:.2e})\n"
         s += f"  Fiduc. filter: {self.fiduc_filter:10}  ({self.fiduc_filter/self.simulated:.2e})\n"
