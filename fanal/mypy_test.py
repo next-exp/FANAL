@@ -19,29 +19,17 @@ from hypothesis.strategies import floats
 from mypy import api
 
 
-
 os.chdir(os.path.expandvars('$FANALPATH/fanal'))
 
+#def test_containers_tye_checker():
+#    assert  api.run(['containers'])[2] == 0
 
 def test_core_tye_checker():
 	assert  api.run(['core'])[2] == 0
 
+#def test_analysis_tye_checker():
+#	assert  api.run(['analysis'])[2] == 0
 
-def test_reco_tye_checker():
-	assert  api.run(['reco'])[2] == 0
+#def test_fanal_setup_type_checker():
+#	assert  api.run(['fanal_setup.py'])[2] == 0
 
-
-def test_ana_tye_checker():
-	assert  api.run(['ana'])[2] == 0
-
-
-#def test_mc_tye_checker():
-#	assert  api.run(['mc'])[2] == 0
-
-
-def test_fanal_reco_tye_checker():
-	assert  api.run(['fanal_reco.py'])[2] == 0
-
-
-def test_fanal_ana_tye_checker():
-	assert  api.run(['fanal_ana.py'])[2] == 0

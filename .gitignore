@@ -1,6 +1,11 @@
+logger_test.log
 .hypothesis/
+__pycache__/
 fanal/.hypothesis/
+NB/__pycache__/
+NB/.ipynb_checkpoints/
 fanal/__pycache__/
+fanal/logger_test.log
 fanal/analysis/__pycache__/
 fanal/containers/__pycache__/
 fanal/core/__pycache__/

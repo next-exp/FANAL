@@ -2,8 +2,8 @@
 Define Fanal-specific exceptions
 """
 
-class FException(Exception):
+class FanalException(Exception):
     """ Base class for Fanal exceptions hierarchy """
 
-class DetectorNameNotDefined(FException):
+class DetectorNameNotDefined(FanalException):
     """ Detector name is not defined """
