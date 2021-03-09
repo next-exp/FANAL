@@ -6,6 +6,8 @@ from   numpy      import pi
 
 NN = np.nan
 
+
+
 def timeit(f):
     """
     Decorator for function timing.
@@ -13,10 +15,10 @@ def timeit(f):
     def time_f(*args, **kwargs):
         t0 = time.time()
         output = f(*args, **kwargs)
-        print("Time spent in {}: {} s".format(f.__name__,
-                                              time.time() - t0))
+        print(f"Time spent in {f.__name__}: {time.time() - t0} s")
         return output
     return time_f
+
 
 
 def in_range(data, minval=-np.inf, maxval=np.inf):
@@ -39,6 +41,7 @@ def in_range(data, minval=-np.inf, maxval=np.inf):
         for those values of data in the input range and False for the others.
     """
     return (minval <= data) & (data < maxval)
+
 
 
 def find_nearest(array : np.array, value :float)->float:
