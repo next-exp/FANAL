@@ -8,15 +8,16 @@ from   typing import Tuple
 import invisible_cities.core.system_of_units   as units
 
 # FANAL importings
-from fanal.utils.logger      import get_logger
-from fanal.core.fanal_units  import Qbb
+from fanal.utils.logger        import get_logger
+from fanal.utils.general_utils import distance
 
-from fanal.core.detectors    import Detector
-from fanal.core.detectors    import S1_Eth
-from fanal.core.detectors    import S1_WIDTH
-from fanal.core.detectors    import EVT_WIDTH
-from fanal.core.detectors    import DRIFT_VELOCITY
-from fanal.core.detectors    import MIN_TIME_SHIFT
+from fanal.core.fanal_units    import Qbb
+from fanal.core.detectors      import Detector
+from fanal.core.detectors      import S1_Eth
+from fanal.core.detectors      import S1_WIDTH
+from fanal.core.detectors      import EVT_WIDTH
+from fanal.core.detectors      import DRIFT_VELOCITY
+from fanal.core.detectors      import MIN_TIME_SHIFT
 
 # The logger
 logger = get_logger('Fanal')
@@ -248,11 +249,8 @@ def order_true_extrema(ext1_pos  : np.array,
     The order minimizing the total distances between true extrema
     and blobs positions is the one selected
     """
-    def dist(pos1 : np.array, pos2 : np.array) :
-        return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2 + (pos1[2]-pos2[2])**2)
-
-    ini_dist  = dist(ext1_pos, blob1_pos) + dist(ext2_pos, blob2_pos)
-    swap_dist = dist(ext2_pos, blob1_pos) + dist(ext1_pos, blob2_pos)
+    ini_dist  = distance(ext1_pos, blob1_pos) + distance(ext2_pos, blob2_pos)
+    swap_dist = distance(ext2_pos, blob1_pos) + distance(ext1_pos, blob2_pos)
 
     if (ini_dist <= swap_dist): return (ext1_pos, ext2_pos)
     else                      : return (ext2_pos, ext1_pos)

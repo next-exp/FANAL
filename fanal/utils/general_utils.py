@@ -1,8 +1,11 @@
 import time
-from   datetime import datetime
+import math
+
 import numpy as np
-from   typing      import Tuple, List, Iterable
-from   numpy      import pi
+
+from datetime import datetime
+from typing   import Tuple, List, Iterable
+from numpy    import pi
 
 NN = np.nan
 
@@ -21,7 +24,7 @@ def timeit(f):
 
 
 
-def in_range(data, minval=-np.inf, maxval=np.inf):
+def in_range(data, minval=-np.inf, maxval=np.inf) :
     """
     Find values in range [minval, maxval).
 
@@ -44,7 +47,18 @@ def in_range(data, minval=-np.inf, maxval=np.inf):
 
 
 
-def find_nearest(array : np.array, value :float)->float:
-    """Return the array element nearest to value"""
+def find_nearest(array : np.array, value :float) -> float:
+    """
+    Return the array element nearest to value
+    """
     idx = (np.abs(array-value)).argmin()
     return array[idx]
+
+
+
+def distance(pos1 : np.array, pos2 : np.array) -> float :
+    """
+    Returns the distance between the 2 positions
+    """
+    return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2 + (pos1[2]-pos2[2])**2)
+

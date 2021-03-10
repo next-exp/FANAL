@@ -172,7 +172,7 @@ def plot_mc_event(event_id : int,
     # Getting the mcParticles and mcHits of the right event
     mcHits  = load_mchits_df(ifname).loc[event_id]
 
-    # Plotting
+    # Plotting hits
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.set_xlabel('X (mm)')
@@ -181,6 +181,11 @@ def plot_mc_event(event_id : int,
     p = ax.scatter(mcHits.x, mcHits.y, mcHits.z,
                    cmap='coolwarm', c=(mcHits.energy / units.keV))
     cb = fig.colorbar(p, ax=ax)
+
+    # TODO: Plotting True extrema
+    #ax.scatter(e1[0], e1[1], e1[2], marker="d", s=250, color='black')
+    #ax.scatter(e2[0], e2[1], e2[2], marker="d", s=250, color='black')
+
     cb.set_label('Energy (keV)')
     plt.show()
 
