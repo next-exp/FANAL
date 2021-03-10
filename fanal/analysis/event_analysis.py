@@ -34,7 +34,6 @@ logger = get_logger('Fanal')
 
 
 
-# TODO: Pass the whole fanal_setup instead all the config params
 def analyze_event(detector          : Detector,
                   event_id          : int,
                   event_type        : str,
@@ -58,9 +57,8 @@ def analyze_event(detector          : Detector,
                 f"Num mcHits: {event_data.num_mcHits:3}   ")
 
     # Processing MC data
-    # TODO: Replace veto_Eth by buffer_Eth in this call
     event_data.mc_energy, event_data.mc_filter = \
-        check_mc_data(event_mcHits, params.veto_Eth, params.e_min, params.e_max)
+        check_mc_data(event_mcHits, params.buffer_Eth, params.e_min, params.e_max)
     if not event_data.mc_filter: return event_data, tracks_data, voxels_data
 
     ### Continue analysis of events passing the mc_filter ###

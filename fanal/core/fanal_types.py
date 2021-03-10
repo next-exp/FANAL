@@ -19,6 +19,7 @@ class VolumeDim:
 @dataclass
 class AnalysisParams:
 
+    buffer_Eth         : float  = np.nan
     trans_diff         : float  = np.nan
     long_diff          : float  = np.nan
     fwhm               : float  = np.nan
@@ -55,6 +56,7 @@ class AnalysisParams:
 
     def set_units(self):
         "Setting units to parameters when being read from json config file"
+        self.buffer_Eth   = self.buffer_Eth   * units.keV
         self.trans_diff   = self.trans_diff   * (units.mm / units.cm**.5)
         self.long_diff    = self.long_diff    * (units.mm / units.cm**.5)
         self.fwhm         = self.fwhm         * units.perCent
@@ -74,7 +76,8 @@ class AnalysisParams:
 
 
     def __repr__(self):
-        s  = f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
+        s  = f"*** Buffer energy th.: {self.buffer_Eth / units.keV:.1f} keV\n"
+        s += f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
         s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
