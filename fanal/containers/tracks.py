@@ -37,6 +37,19 @@ class Track:
     blob2_num_hits : int    = 0
     ovlp_energy    : float  = np.nan
 
+
+    @classmethod
+    def from_icTrack(cls,
+                     event_id : int,
+                     track_id : int,
+                     ic_track : Graph):
+        "Creates a Track fron an icTrack"
+        return cls(event_id, track_id,                  # ids
+                   sum(voxel.E for voxel in ic_track),  # energy
+                   track_length(ic_track),              # length
+                   len(ic_track.nodes()))               # num_voxels
+
+
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
@@ -92,13 +105,3 @@ class TrackList:
         return s
 
     __str__ = __repr__
-
-
-
-def track_from_ICtrack(event_id : int,
-                       track_id : int,
-                       ic_track : Graph) -> Track:
-    return Track(event_id, track_id,                  # ids
-                 sum(voxel.E for voxel in ic_track),  # energy
-                 track_length(ic_track),              # length
-                 len(ic_track.nodes()))               # voxels

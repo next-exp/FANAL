@@ -24,6 +24,20 @@ class Voxel:
     z        : float = np.nan
     energy   : float = np.nan
 
+
+    @classmethod
+    def from_icVoxel(cls,
+                     event_id : int,
+                     track_id : int,
+                     voxel_id : int,
+                     ic_voxel : icVoxel):
+        return cls(event_id, track_id, voxel_id,  # ids
+                   ic_voxel.X,                    # x coordinate
+                   ic_voxel.Y,                    # y coordinate
+                   ic_voxel.Z,                    # z coordinate
+                   ic_voxel.E)                    # energy
+
+
     def __repr__(self):
         s =  f"* Evt id: {self.event_id} , Trk id: {self.track_id} , Voxel id: {self.voxel_id}\n"
         s += f"  Position: ({self.x:.1f}, {self.y:.1f}, {self.z:.1f})  "
@@ -71,15 +85,3 @@ class VoxelList:
         return s
 
     __str__ = __repr__
-
-
-
-def voxel_from_ICvoxel(event_id : int,
-                       track_id : int,
-                       voxel_id : int,
-                       ic_voxel : icVoxel) -> Voxel:
-    return Voxel(event_id, track_id, voxel_id,  # ids
-                 ic_voxel.X,                    # x coordinate
-                 ic_voxel.Y,                    # y coordinate
-                 ic_voxel.Z,                    # z coordinate
-                 ic_voxel.E)                    # energy

@@ -18,10 +18,10 @@ from fanal.utils.logger             import get_logger
 from fanal.core.detectors           import Detector
 from fanal.core.fanal_types         import AnalysisParams
 
+from fanal.containers.tracks        import Track
 from fanal.containers.tracks        import TrackList
-from fanal.containers.tracks        import track_from_ICtrack
+from fanal.containers.voxels        import Voxel
 from fanal.containers.voxels        import VoxelList
-from fanal.containers.voxels        import voxel_from_ICvoxel
 from fanal.containers.events        import Event
 
 from fanal.analysis.mc_analysis     import check_mc_data
@@ -103,7 +103,7 @@ def analyze_event(detector          : Detector,
     if not event_data.fiduc_filter:
         # Storing voxels without track-id info
         for voxel_id in range(len(ic_voxels)):
-            voxels_data.add(voxel_from_ICvoxel(event_id, -1, voxel_id, ic_voxels[voxel_id]))
+            voxels_data.add(Voxel.from_icVoxel(event_id, -1, voxel_id, ic_voxels[voxel_id]))
         logger.debug(voxels_data)
         return event_data, tracks_data, voxels_data
 
@@ -114,12 +114,12 @@ def analyze_event(detector          : Detector,
     # Storing tracks from ic_tracks
     for track_id in range(len(ic_tracks)):
         ic_track = ic_tracks[track_id]
-        tracks_data.add(track_from_ICtrack(event_id, track_id, ic_track))
+        tracks_data.add(Track.from_icTrack(event_id, track_id, ic_track))
 
         # Storing voxels from ic_voxels
         ic_voxels = list(ic_track.nodes())
         for voxel_id in range(len(ic_voxels)):
-            voxels_data.add(voxel_from_ICvoxel(event_id, track_id, voxel_id,
+            voxels_data.add(Voxel.from_icVoxel(event_id, track_id, voxel_id,
                                                ic_voxels[voxel_id]))
 
     logger.debug(voxels_data)
