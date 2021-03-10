@@ -17,7 +17,6 @@ from   invisible_cities.reco.paolina_functions  import length as track_length
 
 
 
-
 @dataclass
 class Track:
     event_id       : int    = -1
@@ -25,6 +24,12 @@ class Track:
     energy         : float  = np.nan
     length         : float  = np.nan
     num_voxels     : int    = 0
+    t_ext1_x       : float  = np.nan
+    t_ext1_y       : float  = np.nan
+    t_ext1_z       : float  = np.nan
+    t_ext2_x       : float  = np.nan
+    t_ext2_y       : float  = np.nan
+    t_ext2_z       : float  = np.nan
     blob1_x        : float  = np.nan
     blob1_y        : float  = np.nan
     blob1_z        : float  = np.nan
@@ -55,10 +60,12 @@ class Track:
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
         s += f"  Length: {self.length / units.mm:.3f} mm "
         s += f"  Num voxels: {self.num_voxels}\n"
-        s += f"  Blob1: ({self.blob1_x:.1f},{self.blob1_y:.1f},{self.blob1_z:.1f}) "
+        s += f"  True Ext1: ({self.t_ext1_x:.1f}, {self.t_ext1_y:.1f}, {self.t_ext1_z:.1f})"
+        s += f"  True Ext2: ({self.t_ext2_x:.1f}, {self.t_ext2_y:.1f}, {self.t_ext2_z:.1f})\n"
+        s += f"  Blob1: ({self.blob1_x:.1f}, {self.blob1_y:.1f}, {self.blob1_z:.1f}) "
         s += f"  Energy: {self.blob1_energy / units.keV:.3f} keV "
         s += f"  Num hits: {self.blob1_num_hits}\n"
-        s += f"  Blob2: ({self.blob2_x:.1f},{self.blob2_y:.1f},{self.blob2_z:.1f}) "
+        s += f"  Blob2: ({self.blob2_x:.1f}, {self.blob2_y:.1f}, {self.blob2_z:.1f}) "
         s += f"  Energy: {self.blob2_energy / units.keV:.3f} keV "
         s += f"  Num hits: {self.blob2_num_hits}\n"
         s += f"  Blobs ovlp energy: {self.ovlp_energy / units.keV:.3f} keV "

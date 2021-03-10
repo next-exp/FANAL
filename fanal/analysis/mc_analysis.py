@@ -205,3 +205,54 @@ def translate_hit_zs(mcHits   : pd.DataFrame,
     # In case of asymmetric detector
     else:
         mcHits.z = mcHits.z + (mcHits.time - min_time) * DRIFT_VELOCITY
+
+
+
+def get_true_extrema(mcParticles : pd.DataFrame,
+                     event_type  : str
+                    ) -> Tuple[np.array, np.array] :
+    """
+    Returns the true extrema got from MC particles
+    """
+
+    # If event_type is bb decay, true extrema correspond to the final positions
+    # of the 2 primary particles (those with ID: 1 and 2)
+    if 'bb' in event_type:
+        ini_part1 = mcParticles.loc[1]
+        ini_part2 = mcParticles.loc[2]
+        return (np.array((ini_part1.final_x, ini_part1.final_y, ini_part1.final_z)),
+                np.array((ini_part2.final_x, ini_part2.final_y, ini_part2.final_z)))
+
+    # If event_type is a single e-, true extrema correspond to the initial
+    # and final positions off the initial particle
+    if 'e-' in event_type:
+        ini_part = mcParticles.loc[1]
+        return (np.array((ini_part.initial_x, ini_part.initial_y, ini_part.initial_z)),
+                np.array((ini_part.final_x  , ini_part.final_y  , ini_part.final_z)))
+
+    # If event type of any other kind (basically any real background),
+    # true extrema are set to initial and final positions of the particle
+    # with highest length
+    longest_part = mcParticles.iloc[mcParticles.length.argmax()]
+    return (np.array((longest_part.initial_x, longest_part.initial_y, longest_part.initial_z)),
+            np.array((longest_part.final_x  , longest_part.final_y  , longest_part.final_z)))
+
+
+def order_true_extrema(ext1_pos  : np.array,
+                       ext2_pos  : np.array,
+                       blob1_pos : np.array,
+                       blob2_pos : np.array
+                      ) -> Tuple[np.array, np.array] :
+    """
+    Returns the true extrema ordered following the Blobs order.
+    The order minimizing the total distances between true extrema
+    and blobs positions is the one selected
+    """
+    def dist(pos1 : np.array, pos2 : np.array) :
+        return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2 + (pos1[2]-pos2[2])**2)
+
+    ini_dist  = dist(ext1_pos, blob1_pos) + dist(ext2_pos, blob2_pos)
+    swap_dist = dist(ext2_pos, blob1_pos) + dist(ext1_pos, blob2_pos)
+
+    if (ini_dist <= swap_dist): return (ext1_pos, ext2_pos)
+    else                      : return (ext2_pos, ext1_pos)

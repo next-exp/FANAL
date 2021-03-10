@@ -26,6 +26,8 @@ from fanal.containers.events        import Event
 
 from fanal.analysis.mc_analysis     import check_mc_data
 from fanal.analysis.mc_analysis     import reconstruct_hits
+from fanal.analysis.mc_analysis     import get_true_extrema
+from fanal.analysis.mc_analysis     import order_true_extrema
 from fanal.analysis.voxel_analysis  import check_event_fiduciality
 from fanal.analysis.voxel_analysis  import clean_voxels
 
@@ -137,11 +139,17 @@ def analyze_event(detector          : Detector,
     ### Continue analysis of events passing the track_filter ###
     the_track = tracks_data.tracks[0]
 
-    # TODO: Getting & storing the True extrema
+    # Getting Track & Blobs extra data
+    ext1, ext2 = get_true_extrema(event_mcParts, event_type)
 
-    # Getting the blob data
     blob1_energy, blob2_energy, blob1_hits, blob2_hits, blob1_pos, blob2_pos = \
         blob_energies_hits_and_centres(ic_tracks[0], params.blob_radius)
+
+    ext1, ext2 = order_true_extrema(ext1, ext2, blob1_pos, blob2_pos)
+
+    # Storing Extrema info
+    the_track.t_ext1_x, the_track.t_ext1_y, the_track.t_ext1_z = ext1[0], ext1[1], ext1[2]
+    the_track.t_ext2_x, the_track.t_ext2_y, the_track.t_ext2_z = ext2[0], ext2[1], ext2[2]
 
     # Storing Blob info
     the_track.blob1_energy, the_track.blob1_num_hits = blob1_energy, len(blob1_hits)
