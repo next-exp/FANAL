@@ -20,35 +20,35 @@ from   invisible_cities.reco.paolina_functions  import length as track_length
 
 @dataclass
 class Track:
-    event_id      : int    = -1
-    track_id      : int    = -1
-    energy        : float  = np.nan
-    length        : float  = np.nan
-    num_voxels    : int    = 0
-    ext1_x        : float  = np.nan
-    ext1_y        : float  = np.nan
-    ext1_z        : float  = np.nan
-    ext1_energy   : float  = np.nan
-    ext1_num_hits : int    = 0
-    ext2_x        : float  = np.nan
-    ext2_y        : float  = np.nan
-    ext2_z        : float  = np.nan
-    ext2_energy   : float  = np.nan
-    ext2_num_hits : int    = 0
-    ovlp_energy   : float  = np.nan
+    event_id       : int    = -1
+    track_id       : int    = -1
+    energy         : float  = np.nan
+    length         : float  = np.nan
+    num_voxels     : int    = 0
+    blob1_x        : float  = np.nan
+    blob1_y        : float  = np.nan
+    blob1_z        : float  = np.nan
+    blob1_energy   : float  = np.nan
+    blob1_num_hits : int    = 0
+    blob2_x        : float  = np.nan
+    blob2_y        : float  = np.nan
+    blob2_z        : float  = np.nan
+    blob2_energy   : float  = np.nan
+    blob2_num_hits : int    = 0
+    ovlp_energy    : float  = np.nan
 
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
         s += f"  Length: {self.length / units.mm:.3f} mm "
         s += f"  Num voxels: {self.num_voxels}\n"
-        s += f"  Extr1: ({self.ext1_x:.1f},{self.ext1_y:.1f},{self.ext1_z:.1f}) "
-        s += f"  Energy: {self.ext1_energy / units.keV:.3f} keV "
-        s += f"  Num hits: {self.ext1_num_hits}\n"
-        s += f"  Extr2: ({self.ext2_x:.1f},{self.ext2_y:.1f},{self.ext2_z:.1f}) "
-        s += f"  Energy: {self.ext2_energy / units.keV:.3f} keV "
-        s += f"  Num hits: {self.ext2_num_hits}\n"
-        s += f"  Extremes overlap energy: {self.ovlp_energy / units.keV:.3f} keV "
+        s += f"  Blob1: ({self.blob1_x:.1f},{self.blob1_y:.1f},{self.blob1_z:.1f}) "
+        s += f"  Energy: {self.blob1_energy / units.keV:.3f} keV "
+        s += f"  Num hits: {self.blob1_num_hits}\n"
+        s += f"  Blob2: ({self.blob2_x:.1f},{self.blob2_y:.1f},{self.blob2_z:.1f}) "
+        s += f"  Energy: {self.blob2_energy / units.keV:.3f} keV "
+        s += f"  Num hits: {self.blob2_num_hits}\n"
+        s += f"  Blobs ovlp energy: {self.ovlp_energy / units.keV:.3f} keV "
         return s
 
     __str__ = __repr__

@@ -139,24 +139,24 @@ def analyze_event(detector          : Detector,
     the_track = tracks_data.tracks[0]
 
     # Getting the blob data
-    ext1_energy, ext2_energy, ext1_hits, ext2_hits, ext1_pos, ext2_pos = \
+    blob1_energy, blob2_energy, blob1_hits, blob2_hits, blob1_pos, blob2_pos = \
         blob_energies_hits_and_centres(ic_tracks[0], params.blob_radius)
 
     # Storing Blob info
-    the_track.ext1_energy, the_track.ext1_num_hits = ext1_energy, len(ext1_hits)
-    the_track.ext1_x, the_track.ext1_y, the_track.ext1_z = \
-        ext1_pos[0], ext1_pos[1], ext1_pos[2]
+    the_track.blob1_energy, the_track.blob1_num_hits = blob1_energy, len(blob1_hits)
+    the_track.blob1_x, the_track.blob1_y, the_track.blob1_z = \
+        blob1_pos[0], blob1_pos[1], blob1_pos[2]
 
-    the_track.ext2_energy, the_track.ext2_num_hits = ext2_energy, len(ext2_hits)
-    the_track.ext2_x, the_track.ext2_y, the_track.ext2_z = \
-        ext2_pos[0], ext2_pos[1], ext2_pos[2]
+    the_track.blob2_energy, the_track.blob2_num_hits = blob2_energy, len(blob2_hits)
+    the_track.blob2_x, the_track.blob2_y, the_track.blob2_z = \
+        blob2_pos[0], blob2_pos[1], blob2_pos[2]
 
     the_track.ovlp_energy = \
-        float(sum(hit.E for hit in set(ext1_hits).intersection(set(ext2_hits))))
+        float(sum(hit.E for hit in set(blob1_hits).intersection(set(blob2_hits))))
 
     # Storing Track info
     event_data.track_length = the_track.length
-    event_data.blob1_energy, event_data.blob2_energy = ext1_energy, ext2_energy
+    event_data.blob1_energy, event_data.blob2_energy = blob1_energy, blob2_energy
 
     logger.info(tracks_data)
 
