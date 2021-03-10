@@ -124,7 +124,6 @@ def analyze_event(detector          : Detector,
 
     logger.debug(voxels_data)
 
-    # Processing tracks: Getting energies, sorting and filtering ...
     event_data.num_tracks = tracks_data.len()
 
     event_data.track_filter = ((event_data.num_tracks >  0) &
@@ -137,6 +136,8 @@ def analyze_event(detector          : Detector,
 
     ### Continue analysis of events passing the track_filter ###
     the_track = tracks_data.tracks[0]
+
+    # TODO: Getting & storing the True extrema
 
     # Getting the blob data
     blob1_energy, blob2_energy, blob1_hits, blob2_hits, blob1_pos, blob2_pos = \

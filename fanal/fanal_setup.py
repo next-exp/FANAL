@@ -7,10 +7,10 @@ import tables        as tb
 import pandas        as pd
 
 # IC importings
-from   invisible_cities.reco.tbl_functions  import filters as tbl_filters
+from invisible_cities.reco.tbl_functions  import filters as tbl_filters
 
-from   invisible_cities.io.mcinfo_io        import load_mchits_df
-from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
+from invisible_cities.io.mcinfo_io        import load_mchits_df
+from invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
 from fanal.utils.logger             import get_logger

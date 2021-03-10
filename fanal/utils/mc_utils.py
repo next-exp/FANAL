@@ -1,4 +1,3 @@
-# TODO: Update it to the new persistency
 import glob
 
 import numpy  as np

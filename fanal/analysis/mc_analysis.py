@@ -30,7 +30,7 @@ def check_mc_data(mcHits     : pd.DataFrame,
                  ) -> Tuple[float, bool]:
     """
     Checks if an event accomplish for:
-    * mc ACTIVE energy in limits
+    * ACTIVE mc energy in limits
     * No signal in BUFFER
     * Just one S1
 
@@ -133,7 +133,6 @@ def reconstruct_hits(detector   : Detector,
     smear_hit_positions(recons_hits, detector, trans_diff, long_diff)
 
     # Translate Z position according to DRIFT velocity
-    # TODO: Not sure if needed after checking just one mc S1
     translate_hit_zs(recons_hits, detector)
 
     return recons_hits
