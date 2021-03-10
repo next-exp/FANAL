@@ -35,6 +35,7 @@ class Track:
     ext2_z        : float  = np.nan
     ext2_energy   : float  = np.nan
     ext2_num_hits : int    = 0
+    ovlp_energy   : float  = np.nan
 
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
@@ -46,7 +47,8 @@ class Track:
         s += f"  Num hits: {self.ext1_num_hits}\n"
         s += f"  Extr2: ({self.ext2_x:.1f},{self.ext2_y:.1f},{self.ext2_z:.1f}) "
         s += f"  Energy: {self.ext2_energy / units.keV:.3f} keV "
-        s += f"  Num hits: {self.ext2_num_hits}"
+        s += f"  Num hits: {self.ext2_num_hits}\n"
+        s += f"  Extremes overlap energy: {self.ovlp_energy / units.keV:.3f} keV "
         return s
 
     __str__ = __repr__
