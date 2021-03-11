@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 import invisible_cities.core.system_of_units    as units
 from   invisible_cities.io.mcinfo_io        import load_mchits_df
 from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
+from   invisible_cities.io.mcinfo_io        import load_mcconfiguration
+
+from   fanal.analysis.mc_analysis           import get_true_extrema
 
 
 
@@ -102,7 +105,8 @@ def print_mc_particles(mcParts   : pd.DataFrame,
 
     for part_id, part in mcParts.iterrows():
         # General Info
-        print(f"* Particle {part_id}: name = {part.particle_name},   primary = {part.primary}")
+        print(f"* Particle {part_id}: name = {part.particle_name}, " + \
+              f"  primary = {part.primary}")
 
         # Creator Info for non primary particles
         if not part.primary:
@@ -112,17 +116,21 @@ def print_mc_particles(mcParts   : pd.DataFrame,
 
         # Initial Info
         print(f"  Initial:  Momentum = ({part.initial_momentum_x/units.keV:.1f}, " + \
-              f"{part.initial_momentum_y/units.keV:.1f}, {part.initial_momentum_z/units.keV:.1f})" + \
+              f"{part.initial_momentum_y/units.keV:.1f}, " + \
+              f"{part.initial_momentum_z/units.keV:.1f})" + \
               f" keV  ->  KinE: {part.kin_energy/units.keV:.1f} keV")
-        print(f"  Initial:  Volume = {part.initial_volume}   Vertex = ({part.initial_x:.1f}," + \
+        print(f"  Initial:  Volume = {part.initial_volume} " + \
+              f"  Vertex = ({part.initial_x:.1f}," + \
               f" {part.initial_y:.1f}, {part.initial_z:.1f}) mm") 
 
         # Decay Info
-        print(f"  Decay  :  Volume = {part.final_volume}   Vertex = ({part.final_x:.1f}," + \
+        print(f"  Decay  :  Volume = {part.final_volume} " + \
+              f"  Vertex = ({part.final_x:.1f}," + \
               f" {part.final_y:.1f}, {part.final_z:.1f}) mm")
         print(f"  Decay  :  Process = {part.final_proc}   " + \
               f"Momentum = ({part.final_momentum_x/units.keV:.1f}, " + \
-              f"{part.final_momentum_y/units.keV:.1f}, {part.final_momentum_z/units.keV:.1f}) keV")
+              f"{part.final_momentum_y/units.keV:.1f}, " + \
+              f"{part.final_momentum_z/units.keV:.1f}) keV")
 
         # Daughter Particles Info
         daughter_parts = mcParts[mcParts.mother_id == part_id]
@@ -140,22 +148,24 @@ def print_mc_particles(mcParts   : pd.DataFrame,
 
 
 
-def print_mc_hits(mcHits : pd.DataFrame,
-                  t0     : float
+def print_mc_hits(mcHits   : pd.DataFrame,
+                  t0       : float
                  ) -> None :
 
     print(f"  {len(mcHits)} MC hits:")
     #print(mcHits)
 
     for hit_id, hit in mcHits.iterrows():
-        print(f"    Hit {hit_id:3}   Label: {hit.label}   E: {hit.energy/units.keV:6.3f} keV" + \
+        print(f"    Hit {hit_id:3}   Label: {hit.label}" +\
+              f"   Energy: {hit.energy/units.keV:6.3f} keV" + \
               f"   Pos: ({hit.x:5.1f}, {hit.y:5.1f}, {hit.z:5.1f}) mm" + \
-              f"   time: {(hit.time - t0)/units.mus:.1e} us")
+              f"   Time: {(hit.time - t0)/units.mus:.1e} us")
 
 
 
-def plot_mc_event(event_id : int,
-	              ifnames  : List[str]
+def plot_mc_event(event_id   : int,
+	              ifnames    : List[str],
+                  event_type : str = ''
 	             ) -> None:
     """
     Plots the information of the event corresponding to event_id.
@@ -170,7 +180,7 @@ def plot_mc_event(event_id : int,
         print(f"\nEvent Id: {event_id}  contained in {ifname}\n")
 
     # Getting the mcParticles and mcHits of the right event
-    mcHits  = load_mchits_df(ifname).loc[event_id]
+    mcHits = load_mchits_df(ifname).loc[event_id]
 
     # Plotting hits
     fig = plt.figure()
@@ -182,9 +192,19 @@ def plot_mc_event(event_id : int,
                    cmap='coolwarm', c=(mcHits.energy / units.keV))
     cb = fig.colorbar(p, ax=ax)
 
-    # TODO: Plotting True extrema
-    #ax.scatter(e1[0], e1[1], e1[2], marker="d", s=250, color='black')
-    #ax.scatter(e2[0], e2[1], e2[2], marker="d", s=250, color='black')
+    # Plotting True extrema
+    # There is a protection against sim files with event_type = 'other'
+    mcParts  = load_mcparticles_df(ifname).loc[event_id]
+    if event_type == '':
+        mcConfig = load_mcconfiguration(ifname)
+        mcConfig.set_index("param_key", inplace = True)
+        event_type = mcConfig.loc['event_type'].param_value
+    if event_type == 'other':
+        print("Event type stored in sim file: 'other', so not plotting the extrema")
+    else:
+        ext1, ext2 = get_true_extrema(mcParts, event_type)
+        ax.scatter(ext1[0], ext1[1], ext1[2], marker="o", lw=2, s=100, color='red')
+        ax.scatter(ext2[0], ext2[1], ext2[2], marker="o", lw=2, s=100, color='red')
 
     cb.set_label('Energy (keV)')
     plt.show()
