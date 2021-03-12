@@ -4,19 +4,9 @@ import numpy  as np
 import tables as tb
 import pandas as pd
 
-from typing import List
-
-import matplotlib
-matplotlib.use('TkAgg')
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-
 import invisible_cities.core.system_of_units    as units
 from   invisible_cities.io.mcinfo_io        import load_mchits_df
 from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
-from   invisible_cities.io.mcinfo_io        import load_mcconfiguration
-
-from   fanal.analysis.mc_analysis           import get_true_extrema
 
 
 
@@ -70,7 +60,7 @@ def get_fname_with_event(event_id : int,
 
 
 def print_mc_event(event_id  :  int,
-                   ifnames   :  List[str],
+                   ifnames   :  str,
                    with_hits :  bool = False
                   ) -> None :
     """Prints the information of the event corresponding to event_id."""
@@ -160,53 +150,3 @@ def print_mc_hits(mcHits   : pd.DataFrame,
               f"   Energy: {hit.energy/units.keV:6.3f} keV" + \
               f"   Pos: ({hit.x:5.1f}, {hit.y:5.1f}, {hit.z:5.1f}) mm" + \
               f"   Time: {(hit.time - t0)/units.mus:.1e} us")
-
-
-
-def plot_mc_event(event_id   : int,
-	              ifnames    : List[str],
-                  event_type : str = ''
-	             ) -> None:
-    """
-    Plots the information of the event corresponding to event_id.
-    """
-
-    # Getting the right file
-    ifname = get_fname_with_event(event_id, ifnames)
-    if ifname == '':
-        print(f"\nEvent id: {event_id} NOT FOUND in input mc files.")
-        return
-    else:
-        print(f"\nEvent Id: {event_id}  contained in {ifname}\n")
-
-    # Getting the mcParticles and mcHits of the right event
-    mcHits = load_mchits_df(ifname).loc[event_id]
-
-    # Plotting hits
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel('X (mm)')
-    ax.set_ylabel('Y (mm)')
-    ax.set_zlabel('Z (mm)')
-    p = ax.scatter(mcHits.x, mcHits.y, mcHits.z,
-                   cmap='coolwarm', c=(mcHits.energy / units.keV))
-    cb = fig.colorbar(p, ax=ax)
-
-    # Plotting True extrema
-    # There is a protection against sim files with event_type = 'other'
-    mcParts  = load_mcparticles_df(ifname).loc[event_id]
-    if event_type == '':
-        mcConfig = load_mcconfiguration(ifname)
-        mcConfig.set_index("param_key", inplace = True)
-        event_type = mcConfig.loc['event_type'].param_value
-    if event_type == 'other':
-        print("Event type stored in sim file: 'other', so not plotting the extrema")
-    else:
-        ext1, ext2 = get_true_extrema(mcParts, event_type)
-        ax.scatter(ext1[0], ext1[1], ext1[2], marker="o", lw=2, s=100, color='red')
-        ax.scatter(ext2[0], ext2[1], ext2[2], marker="o", lw=2, s=100, color='red')
-
-    cb.set_label('Energy (keV)')
-    plt.show()
-
-    return
