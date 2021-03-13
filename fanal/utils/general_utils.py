@@ -54,11 +54,3 @@ def find_nearest(array : np.array, value :float) -> float:
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
-
-
-def distance(pos1 : np.array, pos2 : np.array) -> float :
-    """
-    Returns the distance between the 2 positions
-    """
-    return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2 + (pos1[2]-pos2[2])**2)
-

@@ -9,7 +9,7 @@ import invisible_cities.core.system_of_units   as units
 
 # FANAL importings
 from fanal.utils.logger        import get_logger
-from fanal.utils.general_utils import distance
+from fanal.utils.types         import XYZ
 
 from fanal.core.fanal_units    import Qbb
 from fanal.core.detectors      import Detector
@@ -211,7 +211,7 @@ def translate_hit_zs(mcHits   : pd.DataFrame,
 
 def get_true_extrema(mcParticles : pd.DataFrame,
                      event_type  : str
-                    ) -> Tuple[np.array, np.array] :
+                    ) -> Tuple[XYZ, XYZ] :
     """
     Returns the true extrema got from MC particles
     """
@@ -221,36 +221,38 @@ def get_true_extrema(mcParticles : pd.DataFrame,
     if 'bb' in event_type:
         ini_part1 = mcParticles.loc[1]
         ini_part2 = mcParticles.loc[2]
-        return (np.array((ini_part1.final_x, ini_part1.final_y, ini_part1.final_z)),
-                np.array((ini_part2.final_x, ini_part2.final_y, ini_part2.final_z)))
+        return (XYZ(ini_part1.final_x, ini_part1.final_y, ini_part1.final_z),
+                XYZ(ini_part2.final_x, ini_part2.final_y, ini_part2.final_z))
 
     # If event_type is a single e-, true extrema correspond to the initial
     # and final positions off the initial particle
     if 'e-' in event_type:
         ini_part = mcParticles.loc[1]
-        return (np.array((ini_part.initial_x, ini_part.initial_y, ini_part.initial_z)),
-                np.array((ini_part.final_x  , ini_part.final_y  , ini_part.final_z)))
+        return (XYZ(ini_part.initial_x, ini_part.initial_y, ini_part.initial_z),
+                XYZ(ini_part.final_x  , ini_part.final_y  , ini_part.final_z))
 
     # If event type of any other kind (basically any real background),
     # true extrema are set to initial and final positions of the particle
     # with highest length
     longest_part = mcParticles.iloc[mcParticles.length.argmax()]
-    return (np.array((longest_part.initial_x, longest_part.initial_y, longest_part.initial_z)),
-            np.array((longest_part.final_x  , longest_part.final_y  , longest_part.final_z)))
+    return (XYZ(longest_part.initial_x, longest_part.initial_y, longest_part.initial_z),
+            XYZ(longest_part.final_x  , longest_part.final_y  , longest_part.final_z))
 
 
-def order_true_extrema(ext1_pos  : np.array,
-                       ext2_pos  : np.array,
-                       blob1_pos : np.array,
-                       blob2_pos : np.array
-                      ) -> Tuple[np.array, np.array] :
+
+def order_true_extrema(ext1_pos  : XYZ,
+                       ext2_pos  : XYZ,
+                       blob1_pos : XYZ,
+                       blob2_pos : XYZ
+                      ) -> Tuple[XYZ, XYZ] :
     """
     Returns the true extrema ordered following the Blobs order.
     The order minimizing the total distances between true extrema
     and blobs positions is the one selected
     """
-    ini_dist  = distance(ext1_pos, blob1_pos) + distance(ext2_pos, blob2_pos)
-    swap_dist = distance(ext2_pos, blob1_pos) + distance(ext1_pos, blob2_pos)
+    ini_dist  = ext1_pos.distance(blob1_pos) + ext2_pos.distance(blob2_pos)
+    swap_dist = ext2_pos.distance(blob1_pos) + ext1_pos.distance(blob2_pos)
 
     if (ini_dist <= swap_dist): return (ext1_pos, ext2_pos)
     else                      : return (ext2_pos, ext1_pos)
+

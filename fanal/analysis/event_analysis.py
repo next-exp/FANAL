@@ -14,6 +14,7 @@ from invisible_cities.reco.paolina_functions  import blob_energies_hits_and_cent
 
 # FANAL importings
 from fanal.utils.logger             import get_logger
+from fanal.utils.types              import XYZ
 
 from fanal.core.detectors           import Detector
 from fanal.core.fanal_types         import AnalysisParams
@@ -144,21 +145,22 @@ def analyze_event(detector          : Detector,
 
     blob1_energy, blob2_energy, blob1_hits, blob2_hits, blob1_pos, blob2_pos = \
         blob_energies_hits_and_centres(ic_tracks[0], params.blob_radius)
+    blob1_pos, blob2_pos = XYZ.from_array(blob1_pos), XYZ.from_array(blob2_pos)
 
     ext1, ext2 = order_true_extrema(ext1, ext2, blob1_pos, blob2_pos)
 
     # Storing Extrema info
-    the_track.t_ext1_x, the_track.t_ext1_y, the_track.t_ext1_z = ext1[0], ext1[1], ext1[2]
-    the_track.t_ext2_x, the_track.t_ext2_y, the_track.t_ext2_z = ext2[0], ext2[1], ext2[2]
+    the_track.t_ext1_x, the_track.t_ext1_y, the_track.t_ext1_z = ext1.x, ext1.y, ext1.z
+    the_track.t_ext2_x, the_track.t_ext2_y, the_track.t_ext2_z = ext2.x, ext2.y, ext2.z
 
     # Storing Blob info
     the_track.blob1_energy, the_track.blob1_num_hits = blob1_energy, len(blob1_hits)
     the_track.blob1_x, the_track.blob1_y, the_track.blob1_z = \
-        blob1_pos[0], blob1_pos[1], blob1_pos[2]
+        blob1_pos.x, blob1_pos.y, blob1_pos.z
 
     the_track.blob2_energy, the_track.blob2_num_hits = blob2_energy, len(blob2_hits)
     the_track.blob2_x, the_track.blob2_y, the_track.blob2_z = \
-        blob2_pos[0], blob2_pos[1], blob2_pos[2]
+        blob2_pos.x, blob2_pos.y, blob2_pos.z
 
     the_track.ovlp_energy = \
         float(sum(hit.E for hit in set(blob1_hits).intersection(set(blob2_hits))))

@@ -31,12 +31,12 @@ from fanal.analysis.event_analysis  import analyze_event
 class Setup:
 
     def __init__(self,
-                 det_name           : str,
-                 event_type         : str,
-                 input_fname        : str,
-                 output_fname       : str,
-                 analysis_params    : AnalysisParams,
-                 verbosity          : str    = 'WARNING'
+                 det_name        : str,
+                 event_type      : str,
+                 input_fname     : str,
+                 output_fname    : str,
+                 analysis_params : AnalysisParams,
+                 verbosity       : str    = 'WARNING'
                 ) :
         # Confiruration
         self.det_name        = det_name
