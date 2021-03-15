@@ -3,8 +3,11 @@ import os
 import sys
 import glob
 import json
-import tables        as tb
-import pandas        as pd
+import tables      as tb
+import pandas      as pd
+
+from   typing  import Tuple
+
 
 # IC importings
 from invisible_cities.reco.tbl_functions  import filters as tbl_filters
@@ -36,43 +39,33 @@ class Setup:
                  input_fname     : str,
                  output_fname    : str,
                  analysis_params : AnalysisParams,
-                 verbosity       : str    = 'WARNING'
+                 verbosity       : str = 'WARNING'
                 ) :
-        # Confiruration
-        self.det_name        = det_name
-        self.event_type      = event_type
-        self.input_fname     = input_fname
-        self.output_fname    = output_fname
-        self.analysis_params = analysis_params
-        self.verbosity       = verbosity
 
-        # Data to collect
-        self.events_data   = EventList()
-        self.tracks_data   = TrackList()
-        self.voxels_data   = VoxelList()
-        self.event_counter = EventCounter()
+        # The detector
+        self.det_name = det_name
+        self.detector = get_detector(self.det_name)
 
-        self._post_init()
-
-
-    def _post_init(self):
-        # The logger
-        self.logger = get_logger('Fanal', self.verbosity)
+        # Event type
+        self.event_type = event_type
 
         # Input files
+        self.input_fname  = input_fname
         self.input_fnames = sorted(glob.glob(self.input_fname))
         self.input_path   = os.path.dirname(self.input_fnames[0])
 
-        # Output path
+        # Output files
+        self.output_fname = output_fname
         output_path = os.path.dirname(self.output_fname)
         if not os.path.isdir(output_path):
             print(f"  Making PATH {output_path}")
             os.makedirs(output_path)
 
-        # The detector        
-        self.detector         = get_detector(self.det_name)
-        self.fiducial_checker = \
-            self.detector.get_fiducial_checker(self.analysis_params.veto_width)
+        # Analysis params
+        self.analysis_params = analysis_params
+
+        # The logger
+        self.logger = get_logger('Fanal', verbosity)
 
 
     @classmethod
@@ -123,33 +116,23 @@ class Setup:
                                 data_columns = True, format = 'table')
 
 
-    def store_data(self):
-        # Storing data
-        self.events_data.store(self.output_fname, 'FANAL')
-        self.tracks_data.store(self.output_fname, 'FANAL')
-        self.voxels_data.store(self.output_fname, 'FANAL')
-        self.event_counter.store(self.output_fname, 'FANAL')
+    def run_analysis(self) -> Tuple[pd.DataFrame,      # Event Counter
+                                    pd.DataFrame,      # Event Data
+                                    pd.DataFrame,      # Track Data
+                                    pd.DataFrame] :    # Voxel Data
 
-
-    def events_df(self):
-        return self.events_data.df()
-
-
-    def tracks_df(self):
-        return self.tracks_data.df()
-
-
-    def voxels_df(self):
-        return self.voxels_data.df()
-
-
-    def results_df(self):
-        return self.event_counter.df()
-
-
-    def run_analysis(self):
-        # Print the Setup
+        ### Print the Setup
         print(self)
+
+        ### Data to collect
+        events_data   = EventList()
+        tracks_data   = TrackList()
+        voxels_data   = VoxelList()
+        event_counter = EventCounter()
+
+        ### Obtaining the fiducial_checker
+        fiducial_checker = \
+            self.detector.get_fiducial_checker(self.analysis_params.veto_width)
 
         ### Opening the output file and storing configration parameters
         with tb.open_file(self.output_fname, 'w', filters=tbl_filters('ZLIB4')) as output_file:
@@ -162,9 +145,9 @@ class Setup:
 
             # Updating simulated and stored event counters
             configuration_df = pd.read_hdf(input_fname, '/MC/configuration', mode='r')
-            self.event_counter.simulated += \
+            event_counter.simulated += \
                 int(configuration_df[configuration_df.param_key == 'num_events'].param_value)
-            self.event_counter.stored    += \
+            event_counter.stored    += \
                 int(configuration_df[configuration_df.param_key == 'saved_events'].param_value)
 
             # Getting event numbers
@@ -179,38 +162,46 @@ class Setup:
             for event_id in file_event_ids:
 
                 # Updating counter of analyzed events
-                self.event_counter.analyzed += 1
+                event_counter.analyzed += 1
                 self.logger.info(f"*** Analyzing event Id: {event_id} ...")
 
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
                     analyze_event(self.detector, int(event_id), self.event_type,
-                                  self.analysis_params, self.fiducial_checker,
+                                  self.analysis_params, fiducial_checker,
                                   file_mcParts.loc[event_id, :],
                                   file_mcHits.loc[event_id, :])
 
                 # Storing event data
-                self.events_data.add(event_data)
-                self.tracks_data.add(event_tracks)
-                self.voxels_data.add(event_voxels)
+                events_data.add(event_data)
+                tracks_data.add(event_tracks)
+                voxels_data.add(event_voxels)
 
-                # Verbosing
-                if (not(self.event_counter.analyzed % verbose_every)):
-                    print(f'* Num analyzed events: {self.event_counter.analyzed}')
-                if (self.event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
+                # Verbosing num analyzed events
+                if (not(event_counter.analyzed % verbose_every)):
+                    print(f'* Num analyzed events: {event_counter.analyzed}')
+                if (event_counter.analyzed == (10 * verbose_every)): verbose_every *= 10
 
-        print(f'\n* Total analyzed events: {self.event_counter.analyzed}')
+        print(f'\n* Total analyzed events: {event_counter.analyzed}')
 
         # Filling filtered event counters
-        self.event_counter.fill_filter_counters(self.events_data)
+        event_counter.fill_filter_counters(events_data)
 
         ### Storing global analysis data
         print(f'\n* Storing results in the output file ...\n  {output_file}\n')
-        self.store_data()
+        events_data.store(self.output_fname, 'FANAL')
+        tracks_data.store(self.output_fname, 'FANAL')
+        voxels_data.store(self.output_fname, 'FANAL')
+        event_counter.store(self.output_fname, 'FANAL')
 
         ### Ending ...
         print('\n* Analysis done !!\n')
-        print(self.event_counter)
+        print(event_counter)
+
+        return (event_counter.df(),
+                events_data  .df(),
+                tracks_data  .df(),
+                voxels_data  .df())
 
 
 
