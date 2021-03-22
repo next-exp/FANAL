@@ -53,6 +53,18 @@ class Track:
                    track_length(ic_track),              # length
                    len(ic_track.nodes()))               # num_voxels
 
+    @classmethod
+    def from_graph(cls,
+                   event_id : int,
+                   track_id : int,
+                   graph    : nx.Graph):
+        "Creates a Track from an nx.Graph"
+        return cls(event_id   = event_id,
+                   track_id   = track_id,
+                   energy     = sum(node[3] for node in graph),
+                   length     = -1.,
+                   num_voxels = len(graph.nodes()))
+
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
         s += f"  Energy: {self.energy / units.keV:.3f} keV "
@@ -110,3 +122,41 @@ class TrackList:
         return s
 
     __str__ = __repr__
+
+
+
+@dataclass
+class TrackDF:
+    df : pd.DataFrame = pd.DataFrame(columns=Track.__dataclass_fields__.keys())
+
+    def __post_init__(self):
+        self.df.set_index(['event_id', 'track_id'], inplace = True)
+        self.df.sort_index()
+
+    def add(self, new_tracks: Union[Track, List[Track], TrackDF]):
+        if   isinstance(new_tracks, Track):
+            new_tracks_df = pd.DataFrame([new_tracks.__dict__])
+            new_tracks_df.set_index(['event_id', 'track_id'], inplace = True)
+            self.df = self.df.append(new_tracks_df)
+        elif isinstance(new_tracks, List):
+            new_tracks_df = pd.DataFrame([track.__dict__ for track in new_tracks])
+            new_tracks_df.set_index(['event_id', 'track_id'], inplace = True)
+            self.df = self.df.append(new_tracks_df)
+        elif isinstance(new_tracks, TrackDF):
+            self.df = self.df.append(new_tracks.df)
+        else:
+            raise TypeError("Trying to add non-Track objects to TrackDF")
+
+    def store(self,
+              file_name  : str,
+              group_name : str):
+        self.df.to_hdf(file_name, group_name + '/tracks',
+                       format = 'table', data_columns = True)
+
+    def __repr__(self):
+        s  = f"Track DataFrame with {len(self.df)} tracks ...\n"
+        s += str(self.df)
+        return s
+
+    __str__ = __repr__
+
