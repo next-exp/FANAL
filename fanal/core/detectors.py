@@ -22,7 +22,7 @@ DRIFT_VELOCITY =  1. * units.mm / units.mus
 MIN_TIME_SHIFT =  1. * units.mus
 
 
-@dataclass
+@dataclass(frozen=True)
 class Detector:
     name         : str
     active_z_min : float
@@ -30,7 +30,9 @@ class Detector:
     active_rad   : float
 
     def __post_init__(self):
-        self.symmetric : bool = (-self.active_z_min == self.active_z_max)
+        #self.symmetric : bool = (-self.active_z_min == self.active_z_max)
+        # Defined this way and not the other one to be compatible with frozen=True
+        object.__setattr__(self, "symmetric", (-self.active_z_min == self.active_z_max))
 
     def __repr__(self):
         s  = f"* Detector name: {self.name}\n"
