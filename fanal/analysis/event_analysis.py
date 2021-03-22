@@ -19,11 +19,11 @@ from fanal.utils.types              import XYZ
 from fanal.core.detectors           import Detector
 from fanal.core.fanal_types         import AnalysisParams
 
+from fanal.containers.events        import Event
 from fanal.containers.tracks        import Track
 from fanal.containers.tracks        import TrackList
 from fanal.containers.voxels        import Voxel
 from fanal.containers.voxels        import VoxelList
-from fanal.containers.events        import Event
 
 from fanal.analysis.mc_analysis     import check_mc_data
 from fanal.analysis.mc_analysis     import reconstruct_hits
@@ -37,6 +37,8 @@ logger = get_logger('Fanal')
 
 
 
+#############################################################################################
+#############################################################################################
 def analyze_event(detector          : Detector,
                   event_id          : int,
                   event_type        : str,
@@ -97,21 +99,21 @@ def analyze_event(detector          : Detector,
     event_data.voxel_size_z = eff_voxel_size[2]
     logger.info(f"Num Voxels: {event_data.num_voxels:3}  of size: {eff_voxel_size} mm")
 
-    # Check fiduciality
+    # Check fiduciality
     event_data.veto_energy, event_data.fiduc_filter = \
         check_event_fiduciality(fiducial_checker, ic_voxels, params.veto_Eth)
     logger.info(f"Veto_E: {event_data.veto_energy/units.keV:.1f} keV   " + \
                 f"FIDUC filter: {event_data.fiduc_filter}")
 
     if not event_data.fiduc_filter:
-        # Storing voxels without track-id info
+        # Storing voxels without track-id info
         for voxel_id in range(len(ic_voxels)):
             voxels_data.add(Voxel.from_icVoxel(event_id, -1, voxel_id, ic_voxels[voxel_id]))
         logger.debug(voxels_data)
         return event_data, tracks_data, voxels_data
 
     ### Continue analysis of events passing the fiduc_filter ###
-    # Make tracks
+    # Make tracks
     ic_tracks  = make_track_graphs(ic_voxels)
 
     # Storing tracks from ic_tracks
@@ -140,24 +142,14 @@ def analyze_event(detector          : Detector,
     ### Continue analysis of events passing the track_filter ###
     the_track = tracks_data.tracks[0]
 
-    # Getting Track & Blobs extra data
-    ext1, ext2 = get_true_extrema(event_mcParts, event_type)
-
+    # Getting & Storing Blobs info
     blob1_energy, blob2_energy, blob1_hits, blob2_hits, blob1_pos, blob2_pos = \
         blob_energies_hits_and_centres(ic_tracks[0], params.blob_radius)
     blob1_pos, blob2_pos = XYZ.from_array(blob1_pos), XYZ.from_array(blob2_pos)
 
-    ext1, ext2 = order_true_extrema(ext1, ext2, blob1_pos, blob2_pos)
-
-    # Storing Extrema info
-    the_track.t_ext1_x, the_track.t_ext1_y, the_track.t_ext1_z = ext1.x, ext1.y, ext1.z
-    the_track.t_ext2_x, the_track.t_ext2_y, the_track.t_ext2_z = ext2.x, ext2.y, ext2.z
-
-    # Storing Blob info
     the_track.blob1_energy, the_track.blob1_num_hits = blob1_energy, len(blob1_hits)
     the_track.blob1_x, the_track.blob1_y, the_track.blob1_z = \
         blob1_pos.x, blob1_pos.y, blob1_pos.z
-
     the_track.blob2_energy, the_track.blob2_num_hits = blob2_energy, len(blob2_hits)
     the_track.blob2_x, the_track.blob2_y, the_track.blob2_z = \
         blob2_pos.x, blob2_pos.y, blob2_pos.z
@@ -165,7 +157,14 @@ def analyze_event(detector          : Detector,
     the_track.ovlp_energy = \
         float(sum(hit.E for hit in set(blob1_hits).intersection(set(blob2_hits))))
 
-    # Storing Track info
+    # Getting & Storing True extrema info
+    ext1, ext2 = get_true_extrema(event_mcParts, event_type)
+    ext1, ext2 = order_true_extrema(ext1, ext2, blob1_pos, blob2_pos)
+
+    the_track.t_ext1_x, the_track.t_ext1_y, the_track.t_ext1_z = ext1.x, ext1.y, ext1.z
+    the_track.t_ext2_x, the_track.t_ext2_y, the_track.t_ext2_z = ext2.x, ext2.y, ext2.z
+
+    # Storing Track info in event data
     event_data.track_length = the_track.length
     event_data.blob1_energy, event_data.blob2_energy = blob1_energy, blob2_energy
 

@@ -31,6 +31,9 @@ class XYZ:
         if n == 2: return self.z
         raise IndexError
 
+    def __len__(self):
+        return 3
+
     @property
     def array(self): return np.array([self.x, self.y, self.z])
 
@@ -53,5 +56,4 @@ class XYZ:
         return np.sqrt((self.x - point.x)**2 +
                        (self.y - point.y)**2 +
                        (self.z - point.z)**2)
-
 

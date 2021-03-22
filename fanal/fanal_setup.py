@@ -125,9 +125,9 @@ class Setup:
         print(self)
 
         ### Data to collect
-        events_data   = EventList()
-        tracks_data   = TrackList()
-        voxels_data   = VoxelList()
+        all_events    = EventList()
+        all_tracks    = TrackList()
+        all_voxels    = VoxelList()
         event_counter = EventCounter()
 
         ### Obtaining the fiducial_checker
@@ -173,9 +173,9 @@ class Setup:
                                   file_mcHits.loc[event_id, :])
 
                 # Storing event data
-                events_data.add(event_data)
-                tracks_data.add(event_tracks)
-                voxels_data.add(event_voxels)
+                all_events.add(event_data)
+                all_tracks.add(event_tracks)
+                all_voxels.add(event_voxels)
 
                 # Verbosing num analyzed events
                 if (not(event_counter.analyzed % verbose_every)):
@@ -185,13 +185,13 @@ class Setup:
         print(f'\n* Total analyzed events: {event_counter.analyzed}')
 
         # Filling filtered event counters
-        event_counter.fill_filter_counters(events_data)
+        event_counter.fill_filter_counters(all_events)
 
         ### Storing global analysis data
         print(f'\n* Storing results in the output file ...\n  {output_file}\n')
-        events_data.store(self.output_fname, 'FANAL')
-        tracks_data.store(self.output_fname, 'FANAL')
-        voxels_data.store(self.output_fname, 'FANAL')
+        all_events   .store(self.output_fname, 'FANAL')
+        all_tracks   .store(self.output_fname, 'FANAL')
+        all_voxels   .store(self.output_fname, 'FANAL')
         event_counter.store(self.output_fname, 'FANAL')
 
         ### Ending ...
@@ -199,9 +199,9 @@ class Setup:
         print(event_counter)
 
         return (event_counter.df(),
-                events_data  .df(),
-                tracks_data  .df(),
-                voxels_data  .df())
+                all_events   .df(),
+                all_tracks   .df(),
+                all_voxels   .df())
 
 
 

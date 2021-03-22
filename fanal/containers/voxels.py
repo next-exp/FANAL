@@ -13,6 +13,10 @@ from typing      import List, Union
 import invisible_cities.core.system_of_units               as units
 from   invisible_cities.evm.event_model      import Voxel  as icVoxel
 
+# FANAL importings
+from fanal.utils.types                       import XYZ
+
+
 
 @dataclass
 class Voxel:
@@ -23,7 +27,6 @@ class Voxel:
     y        : float = np.nan
     z        : float = np.nan
     energy   : float = np.nan
-
 
     @classmethod
     def from_icVoxel(cls,
@@ -37,7 +40,6 @@ class Voxel:
                    ic_voxel.Z,                    # z coordinate
                    ic_voxel.E)                    # energy
 
-
     def __repr__(self):
         s =  f"* Evt id: {self.event_id} , Trk id: {self.track_id} , Voxel id: {self.voxel_id}\n"
         s += f"  Position: ({self.x:.1f}, {self.y:.1f}, {self.z:.1f})  "
@@ -45,6 +47,20 @@ class Voxel:
         return s
 
     __str__ = __repr__
+
+    @property
+    def position(self):
+        return XYZ(self.x, self.y, self.z)
+
+    # For icVoxel compatibility
+    @property
+    def E(self): return self.energy
+    @property
+    def X(self): return self.x
+    @property
+    def Y(self): return self.y
+    @property
+    def Z(self): return self.z
 
 
 
