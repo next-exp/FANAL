@@ -41,7 +41,7 @@ class Event:
     def __repr__(self):
         s =  f"* Event id: {self.event_id}\n"
         s += f"  mcParts: {self.num_mcParts}   mcHits: {self.num_mcHits} "
-        s += f"  mcE: {self.mc_energy / units.keV:.3f} keV "
+        s += f"  mcE: {self.mc_energy / units.keV:.3f} keV  ->  MC Filter: {self.mc_filter}\n"
         s += f"  smE: {self.sm_energy / units.keV:.3f} keV  ->  Energy Filter: {self.energy_filter}\n"
         s += f"  Num voxels: {self.num_voxels}  of size:"
         s += f"  ({self.voxel_size_x / units.mm:.1f}, {self.voxel_size_x / units.mm:.1f},"
@@ -127,14 +127,14 @@ class EventCounter:
 
     __str__ = __repr__
 
-    def fill_filter_counters(self, events_data : EventList):
-        events_df          = events_data.df()
-        self.mc_filter     = len(events_df[events_df.mc_filter])
-        self.energy_filter = len(events_df[events_df.energy_filter])
-        self.fiduc_filter  = len(events_df[events_df.fiduc_filter])
-        self.track_filter  = len(events_df[events_df.track_filter])
-        self.blob_filter   = len(events_df[events_df.blob_filter])
-        self.roi_filter    = len(events_df[events_df.roi_filter])
+    def fill_filter_counters(self, event_data : EventList):
+        event_df = event_data.df()
+        self.mc_filter     = len(event_df[event_df.mc_filter])
+        self.energy_filter = len(event_df[event_df.energy_filter])
+        self.fiduc_filter  = len(event_df[event_df.fiduc_filter])
+        self.track_filter  = len(event_df[event_df.track_filter])
+        self.blob_filter   = len(event_df[event_df.blob_filter])
+        self.roi_filter    = len(event_df[event_df.roi_filter])
 
     def df(self) -> pd.DataFrame:
         counters_df = pd.DataFrame([self.__dict__]).T

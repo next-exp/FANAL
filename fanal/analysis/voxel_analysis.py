@@ -1,7 +1,7 @@
 # General importings
 from typing import Tuple
 from typing import List
-from  typing import Callable
+from typing import Callable
 
 # IC importings
 from invisible_cities.evm.event_model  import Voxel  as icVoxel

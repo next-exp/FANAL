@@ -3,13 +3,12 @@ from __future__  import annotations
 
 import pandas        as pd
 import numpy         as np
+import networkx      as nx
 
 from dataclasses import dataclass
 from dataclasses import field
 
 from typing      import List, Union
-
-from networkx    import Graph
 
 # IC importings
 import invisible_cities.core.system_of_units                  as units
@@ -47,13 +46,12 @@ class Track:
     def from_icTrack(cls,
                      event_id : int,
                      track_id : int,
-                     ic_track : Graph):
+                     ic_track : nx.Graph):
         "Creates a Track fron an icTrack"
         return cls(event_id, track_id,                  # ids
                    sum(voxel.E for voxel in ic_track),  # energy
                    track_length(ic_track),              # length
                    len(ic_track.nodes()))               # num_voxels
-
 
     def __repr__(self):
         s =  f"* Evt Id: {self.event_id} , Track id: {self.track_id}\n"
