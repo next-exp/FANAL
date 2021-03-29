@@ -26,15 +26,18 @@ class AnalysisParams:
     e_min              : float  = np.nan
     e_max              : float  = np.nan
 
+    procedure          : str    = ""
     voxel_size_x       : float  = np.nan
     voxel_size_y       : float  = np.nan
     voxel_size_z       : float  = np.nan
     strict_voxel_size  : bool   = False
+    barycenter         : bool   = True
     voxel_Eth          : float  = np.nan
 
     veto_width         : float  = np.nan
     veto_Eth           : float  = np.nan
 
+    contiguity         : float  = np.nan
     track_Eth          : float  = np.nan
     max_num_tracks     : int    = -1
     blob_radius        : float  = np.nan
@@ -43,8 +46,6 @@ class AnalysisParams:
     roi_Emin           : float  = np.nan
     roi_Emax           : float  = np.nan
 
-    #__slots__ =  tuple(AnalysisParams.__dataclass_fields__.keys())
-
 
     def __post_init__(self):
         # Assertions
@@ -52,6 +53,8 @@ class AnalysisParams:
             "energy_filter settings not valid: 'e_max' must be higher than 'e_min'"
         assert self.roi_Emax >= self.roi_Emin, \
             "roi_filter settings not valid: 'roi_Emax' must be higher than 'roi_Emin'"
+        assert self.procedure in ['paolina_ic', 'paolina_2'], \
+            "Only valid procedures are: 'paolina_ic' and 'paolina_2'"
 
 
     def set_units(self):
@@ -68,6 +71,7 @@ class AnalysisParams:
         self.voxel_Eth    = self.voxel_Eth    * units.keV
         self.veto_width   = self.veto_width   * units.mm
         self.veto_Eth     = self.veto_Eth     * units.keV
+        self.contiguity   = self.contiguity   * units.mm
         self.track_Eth    = self.track_Eth    * units.keV
         self.blob_radius  = self.blob_radius  * units.mm
         self.blob_Eth     = self.blob_Eth     * units.keV
@@ -80,10 +84,16 @@ class AnalysisParams:
         s += f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
+        s += f"*** Recons. procedure: {self.procedure}\n"
         s += f"*** Voxel Size:        ({self.voxel_size_x / units.mm}, "
         s += f"{self.voxel_size_y / units.mm}, {self.voxel_size_z / units.mm}) mm  "
-        s += f"-  strict: {self.strict_voxel_size}\n"
+        if self.procedure == "paolina_ic":
+            s += f"-  strict: {self.strict_voxel_size}\n"
+        else:
+            s += f"-  barycenter: {self.barycenter}\n"
         s += f"*** Voxel energy th.:  {self.voxel_Eth / units.keV:.1f} keV\n"
+        if self.procedure == "paolina_2":
+            s += f"*** Contiguity      :  {self.contiguity / units.mm} mm\n"
         s += f"*** Track energy th.:  {self.track_Eth / units.keV:.1f} keV\n"
         s += f"*** Max num Tracks:    {self.max_num_tracks}\n"
         s += f"*** Blob radius:       {self.blob_radius:.1f} mm\n"

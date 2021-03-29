@@ -3,11 +3,15 @@ from typing import Tuple
 from typing import List
 from typing import Callable
 
+import pandas as pd
+
+
 # IC importings
 from invisible_cities.evm.event_model  import Voxel  as icVoxel
 
 # FANAL importings
 from fanal.utils.logger  import get_logger
+from fanal.containers.voxels  import Voxel
 
 # The logger
 logger = get_logger('Fanal')
@@ -62,6 +66,37 @@ def check_event_fiduciality(fiducial_checker : Callable,
 
     veto_energy = sum(voxel.E for voxel in event_voxels \
                       if not fiducial_checker(voxel))
+
+    fiducial_filter = veto_energy < veto_Eth
+
+    return veto_energy, fiducial_filter
+
+
+
+def check_event_fiduciality_df(fiducial_checker : Callable,
+                               event_voxels     : pd.DataFrame,
+                               veto_Eth         : float
+                              ) -> Tuple[float, bool]:
+    """
+    Checks if an event is fiducial or not.
+
+    Parameters:
+    -----------
+    iducial_checker : Callable
+        Function to check icVoxel fiduciality
+    event_voxels : DF (by the moment of temporary voxels)
+    veto_Eth     : float
+        Veto energy threshold.
+
+    Returns:
+    --------
+    Tuple of 2 values containing:
+        A float with the energy deposited in veto
+        A bool saying if the event is fiducial or not.
+    """
+
+    veto_energy = sum(voxel.energy for _,voxel in event_voxels.iterrows() \
+                      if not fiducial_checker(Voxel(**voxel)))
 
     fiducial_filter = veto_energy < veto_Eth
 

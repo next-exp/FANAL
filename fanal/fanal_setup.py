@@ -70,7 +70,7 @@ class Setup:
 
     @classmethod
     def from_config_file(cls, config_fname : str):
-        "Initialize Setup from a conig file (json format)"
+        "Initialize Setup from a config file (json format)"
         # Loading file content
         with open(config_fname) as config_file:
             fanal_params = json.load(config_file)
@@ -170,7 +170,7 @@ class Setup:
                     analyze_event(self.detector, int(event_id), self.event_type,
                                   self.analysis_params, fiducial_checker,
                                   file_mcParts.loc[event_id, :],
-                                  file_mcHits.loc[event_id, :])
+                                  file_mcHits .loc[event_id, :])
 
                 # Storing event data
                 all_events.add(event_data)

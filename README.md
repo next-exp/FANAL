@@ -2,14 +2,16 @@
 Fast analysis repo.
 Property of Javier Muñoz Vidal and JJGC
 
-This is a repository to describe NEXT-IC Fast analysis
+This is a repository to describe NEXT Fast analysis
 
 Directory structure:
 
-core/ (General functions)
+analysis/ (Analysis functions)
 
-mc/ (To add montecarlo stuff)
+containers/ (Dataclasses to store and handle info)
 
-reco/ (To add reconstruction stuff)
+core/ (FANAL specific utilities)
 
-ana/ (To add analysis stuff)
+paolina2/ (Funtionality for alternative paolina)
+
+utils/ (General utils)

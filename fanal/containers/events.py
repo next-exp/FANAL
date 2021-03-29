@@ -100,6 +100,43 @@ class EventList:
 
 
 @dataclass
+class EventDF:
+    df : pd.DataFrame = pd.DataFrame(columns=Event.__dataclass_fields__.keys())
+
+    def __post_init__(self):
+        self.df.set_index('event_id', inplace = True)
+        self.df.sort_index()
+
+    def add(self, new_events: Union[Event, List[Event], EventDF]):
+        if   isinstance(new_events, Event):
+            new_events_df = pd.DataFrame([new_events.__dict__])
+            new_events_df.set_index('event_id', inplace = True)
+            self.df = self.df.append(new_events_df)
+        elif isinstance(new_events, List):
+            new_events_df = pd.DataFrame([event.__dict__ for event in new_events])
+            new_events_df.set_index('event_id', inplace = True)
+            self.df = self.df.append(new_events_df)
+        elif isinstance(new_events, EventDF):
+            self.df = self.df.append(new_events.df)
+        else:
+            raise TypeError("Trying to add non-Event objects to EventDF")
+
+    def store(self,
+              file_name  : str,
+              group_name : str):
+        self.df.to_hdf(file_name, group_name + '/events',
+                       format = 'table', data_columns = True)
+
+    def __repr__(self):
+        s  = f"Event DataFrame with {len(self.df)} events ...\n"
+        s += str(self.df)
+        return s
+
+    __str__ = __repr__
+
+
+
+@dataclass
 class EventCounter:
     simulated     : int = 0
     stored        : int = 0
@@ -127,8 +164,9 @@ class EventCounter:
 
     __str__ = __repr__
 
-    def fill_filter_counters(self, event_data : EventList):
-        event_df = event_data.df()
+    def fill_filter_counters(self, event_data : Union[EventList, EventDF]):
+        if isinstance(event_data, EventList): event_df = event_data.df()
+        else                                : event_df = event_data.df
         self.mc_filter     = len(event_df[event_df.mc_filter])
         self.energy_filter = len(event_df[event_df.energy_filter])
         self.fiduc_filter  = len(event_df[event_df.fiduc_filter])
