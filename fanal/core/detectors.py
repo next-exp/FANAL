@@ -4,6 +4,7 @@ import math
 from dataclasses import dataclass
 
 from typing      import Callable
+from typing      import Sequence
 
 # IC importings
 import invisible_cities.core.system_of_units               as units
@@ -28,6 +29,7 @@ class Detector:
     active_z_min : float
     active_z_max : float
     active_rad   : float
+    sensors      : dict
 
     def __post_init__(self):
         #self.symmetric : bool = (-self.active_z_min == self.active_z_max)
@@ -39,7 +41,8 @@ class Detector:
         s += f"  ACTIVE dimensions (mm): Zmin = {self.active_z_min / units.mm:.2f} "
         s += f"  Zmax = {self.active_z_max / units.mm:.2f} "
         s += f"  Rad = {self.active_rad / units.mm:.2f}\n"
-        s += f"  Symmetric: {self.symmetric}"
+        s += f"  Symmetric: {self.symmetric}\n"
+        s += f"  Sensor types: {[key for key in self.sensors.keys()]}\n"
         return s
 
     __str__ = __repr__
@@ -63,6 +66,14 @@ class Detector:
 
         return fiducial_checker
 
+    def get_sensor_types(self) -> Sequence :
+        return [key for key in self.sensors.keys()]
+
+    def get_sensor_ids(self, sensor_name : str) -> Sequence :
+        assert sensor_name in self.sensors.keys(), \
+            f"Detector '{self.name}' has not sensor type '{sensor_name}'"
+        return self.sensors[sensor_name]
+
 
 
 ### Defining the detectors
@@ -72,61 +83,83 @@ DEMOpp = \
     Detector( name         = 'DEMOpp',
               active_z_min =   0.0  * units.mm,
               active_z_max = 309.55 * units.mm,
-              active_rad   =  97.1  * units.mm
+              active_rad   =  97.1  * units.mm,
+              sensors      = {'PMT'  : (2, 4),
+                              'SiPM' : (14*1000, (17+1)*1000)}
             )
 
 NEW = \
     Detector( name         = 'NEW',
               active_z_min =   0.0 * units.mm,
               active_z_max = 532.0 * units.mm,
-              active_rad   = 208.0 * units.mm
+              active_rad   = 208.0 * units.mm,
+              sensors      = {'PMT'  : (0, 12),
+                              'SiPM' : (1000, (29+1)*1000)}
             )
 
 NEXT100 = \
     Detector( name         = 'NEXT100',
               active_z_min =    0.0  * units.mm,
               active_z_max = 1204.95 * units.mm,
-              active_rad   =  492.0  * units.mm
+              active_rad   =  492.0  * units.mm,
+              sensors      = {'PmtR11410' : (0, 60),
+                              'SiPM'      : (1000, (57+1)*1000)}
             )
 
 FLEX100 = \
     Detector( name         = 'FLEX100',
               active_z_min =    0.0  * units.mm,
               active_z_max = 1204.95 * units.mm,
-              active_rad   =  492.0  * units.mm
+              active_rad   =  492.0  * units.mm,
+              sensors      = {'PmtR11410' : (0, 60),
+                              'TP_SiPM'   : (1000, 50000)}
+            )
+
+FLEX100F = \
+    Detector( name         = 'FLEX100F',
+              active_z_min =    0.0  * units.mm,
+              active_z_max = 1204.95 * units.mm,
+              active_rad   =  492.0  * units.mm,
+              sensors      = {'TP_SiPM'    : (  1000,  50000),
+                              'F_SENSOR_L' : (100000, 150000),
+                              'F_SENSOR_R' : (200000, 250000)}
             )
 
 NEXT500 = \
     Detector( name         = 'NEXT500',
               active_z_min = -1000.0 * units.mm,
               active_z_max =  1000.0 * units.mm,
-              active_rad   =  1000.0 * units.mm
+              active_rad   =  1000.0 * units.mm,
+              sensors      =  {}
             )
 
 NEXT_2x2 = \
     Detector( name         = 'NEXT_2x2',
               active_z_min = -1000.0 * units.mm,
               active_z_max =  1000.0 * units.mm,
-              active_rad   =  1000.0 * units.mm
+              active_rad   =  1000.0 * units.mm,
+              sensors      =  {}
             )
 
 NEXT_3X3 = \
     Detector( name         = 'NEXT_3X3',
               active_z_min = -1500.0 * units.mm,
               active_z_max =  1500.0 * units.mm,
-              active_rad   =  1500.0 * units.mm
+              active_rad   =  1500.0 * units.mm,
+              sensors      =  {}
             )
 
 NEXT_HD = \
     Detector( name         = 'NEXT_HD',
               active_z_min = -1300.0 * units.mm,
               active_z_max =  1300.0 * units.mm,
-              active_rad   =  1300.0 * units.mm
+              active_rad   =  1300.0 * units.mm,
+              sensors      =  {}
             )
 
 
 
-VALID_DETECTORS = ['DEMOpp', 'NEW', 'NEXT100' , 'FLEX100',
+VALID_DETECTORS = ['DEMOpp', 'NEW', 'NEXT100', 'FLEX100', 'FLEX100F',
                    'NEXT500', 'NEXT_2x2', 'NEXT_3X3', 'NEXT_HD']
 
 
@@ -135,12 +168,13 @@ def get_detector(name : str):
     if name not in VALID_DETECTORS:
         raise DetectorNameNotDefined
 
-    elif name == 'DEMOpp'  : return DEMOpp
-    elif name == 'NEW'     : return NEW
-    elif name == 'NEXT100' : return NEXT100
-    elif name == 'FLEX100' : return FLEX100
-    elif name == 'NEXT500' : return NEXT500
-    elif name == 'NEXT_2x2': return NEXT_2x2
-    elif name == 'NEXT_3X3': return NEXT_3X3
-    elif name == 'NEXT_HD' : return NEXT_HD
+    elif name == 'DEMOpp'   : return DEMOpp
+    elif name == 'NEW'      : return NEW
+    elif name == 'NEXT100'  : return NEXT100
+    elif name == 'FLEX100'  : return FLEX100
+    elif name == 'FLEX100F' : return FLEX100F
+    elif name == 'NEXT500'  : return NEXT500
+    elif name == 'NEXT_2x2' : return NEXT_2x2
+    elif name == 'NEXT_3X3' : return NEXT_3X3
+    elif name == 'NEXT_HD'  : return NEXT_HD
 
