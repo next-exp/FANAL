@@ -1,23 +1,32 @@
-import pandas     as pd
+import math
+import numpy       as np
+import pandas      as pd
 
-import matplotlib
-from   mpl_toolkits.mplot3d import Axes3D
+from   typing  import Sequence
+from   typing  import List
+from   typing  import Union
+
+from   matplotlib           import colors
 import matplotlib.pyplot        as plt
-matplotlib.use('TkAgg')
 
 import invisible_cities.core.system_of_units    as units
+import invisible_cities.core.fit_functions      as fitf
+from   invisible_cities.core.stat_functions import poisson_sigma
+from   invisible_cities.core.core_functions import shift_to_bin_centers
 from   invisible_cities.io.mcinfo_io        import load_mchits_df
 from   invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
-from   fanal.analysis.mc_analysis           import get_true_extrema
 from   fanal.utils.mc_utils                 import get_fname_with_event
+from   fanal.utils.types                    import XYZ
+from   fanal.core.fanal_units               import Qbb
+from   fanal.analysis.mc_analysis           import get_true_extrema
 
 
 
 def plot_mc_event(event_id   : int,
                   fnames     : str,
                   event_type : str
-                 ) -> None:
+                 )          -> None :
     """
     Plots the MC information of the event_id.
     """
@@ -90,7 +99,125 @@ def plot_rec_event(event_id : int,
     else:
         print("Non plotting blobs as the event has more than one track")
 
-
     cb.set_label('Energy (keV)')
     plt.show()
     return
+
+
+
+def plot_vertices(vertices   : Union[Sequence[XYZ], pd.DataFrame],
+                  num_bins   : int   = 100,
+                  extra_size : float = 10. * units.mm
+                 )          -> None :
+
+    ### Getting data
+    if isinstance(vertices, Sequence):
+        x_positions = list(zip(*vertices))[0]
+        y_positions = list(zip(*vertices))[1]
+        z_positions = list(zip(*vertices))[2]
+
+    elif isinstance(vertices, pd.DataFrame):
+        print("Paso por l128")
+        x_positions = vertices.x
+        y_positions = vertices.y
+        z_positions = vertices.z
+
+    else:
+        raise TypeError("Invalid vertices format")
+
+    print(f"x limits: {min(x_positions):6.1f} - {max(x_positions):6.1f}")
+    print(f"y limits: {min(y_positions):6.1f} - {max(y_positions):6.1f}")
+    print(f"z limits: {min(z_positions):6.1f} - {max(z_positions):6.1f}")
+
+    x_limits = [min(x_positions) - extra_size, max(x_positions) + extra_size]
+    y_limits = [min(y_positions) - extra_size, max(y_positions) + extra_size]
+    z_limits = [min(z_positions) - extra_size, max(z_positions) + extra_size]
+
+
+    ### Plotting
+    fig = plt.figure(figsize = (9,22))
+
+    # x-y projection
+    fig.add_subplot(3, 1, 1)
+    plt.hist2d(x_positions, y_positions, num_bins, [x_limits, y_limits], cmap='Reds')
+    plt.xlabel('x [mm]',  size=14)
+    plt.ylabel('y [mm]',  size=14)
+    plt.title('x-y [mm] (lateral view from endcap)', size=14)
+    plt.grid(True)
+    plt.colorbar()
+
+    # Z-X projection
+    fig.add_subplot(3, 1, 2)
+    plt.hist2d(z_positions, x_positions, num_bins, [z_limits, x_limits], cmap='Reds')
+    plt.xlabel('z [mm]',  size=14)
+    plt.ylabel('x [mm]',  size=14)
+    plt.title('z-x [mm] (top view)', size=14)
+    plt.grid(True)
+    plt.colorbar()
+
+    # z-y projection
+    fig.add_subplot(3, 1, 3)
+    plt.hist2d(z_positions, y_positions, num_bins, [z_limits, y_limits], cmap='Reds')
+    plt.xlabel('z [mm]',  size=14)
+    plt.ylabel('y [mm]',  size=14)
+    plt.title('z-y [mm]  (lateral view from side)', size=14)
+    plt.grid(True)
+    plt.colorbar()
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+def plot_and_fit(data     : List,
+                 title    : str = '',
+                 xlabel   : str = 'Entries / bin',
+                 ylabel   : str = 'Charge (pes)',
+                 num_bins : int = 100 
+                )     -> None :
+
+    # Fitting function
+    def gauss(x, amplitude, mu, sigma):
+        return amplitude / (2*np.pi)**.5 / sigma * np.exp(-0.5*(x-mu)**2. / sigma**2.)
+
+    # Plotting the data
+    fig       = plt.figure(figsize = (8,5))
+    mean      = np.mean(data)
+    max_range = 0.1
+    plt_range = ((1. - max_range) * mean, (1. + max_range) * mean)
+
+    y, x, _ = plt.hist(data, bins = num_bins, range = plt_range)
+    x       = shift_to_bin_centers(x)
+
+    # Fitting data
+    seed      = 1000, mean, mean * 0.01
+    sigma     = poisson_sigma(y)
+    max_range = 0.05
+    fit_range = ((1. - max_range) * mean, (1. + max_range) * mean)
+    f         = fitf.fit(gauss, x, y, seed, fit_range = fit_range, sigma = sigma)
+
+    amplitude, mu, sigma = f.values[0], f.values[1], f.values[2]
+    mu_err, sigma_err    = f.errors[1], f.errors[2]
+    fwhm                 = 2.35 * sigma / mu
+
+    # Plotting the gauss fit
+    mx      = np.linspace(fit_range[0], fit_range[1], 1000)
+
+    legend  = f"$\mu$ = {mu:.3f}\n"
+    legend += f"$\sigma$ = {sigma:.3f}\n"
+    legend += f"fwhm = {fwhm/units.perCent:.2f} %"
+
+    plt.plot  (mx, f.fn(mx), 'r-')
+    plt.plot  (mx, gauss(mx, amplitude, mu, sigma), 'r-', label=legend)
+    plt.title (title,  size=14)
+    plt.xlabel(xlabel, size=14)
+    plt.ylabel(ylabel, size=14)
+    plt.legend(loc=1);
+    plt.show()
+
+    # Verbosing
+    print(f"DATA from {title} ...\n" + \
+          f"mu    = {mu:10.3f} +- {mu_err:.3f}\n" +\
+          f"sigma = {sigma:10.3f} +- {sigma_err:.3f}  ->  " + \
+          f"fwhm  = {fwhm/units.perCent:.3f} %\n"
+          f"Chi2  = {f.chi2:10.3f}\n")
