@@ -26,13 +26,16 @@ MIN_TIME_SHIFT =  1. * units.mus
 
 @dataclass(frozen=True)
 class Detector:
-    name             : str
-    active_z_min     : float
-    active_z_max     : float
-    active_rad       : float
-    energy_sensors   : List[str]
-    tracking_sensors : List[str]
-    sensor_ids       : dict
+    name               : str
+    active_z_min       : float
+    active_z_max       : float
+    active_rad         : float
+    energy_sensors     : List[str]
+    tracking_sensors   : List[str]
+    sensor_ids         : dict
+    tracking_sns_pde   : float = 1.
+    tracking_mask_att  : float = 0.
+    tracking_charge_th : float = 0.
 
     def __post_init__(self):
         #self.symmetric : bool = (-self.active_z_min == self.active_z_max)
@@ -51,6 +54,11 @@ class Detector:
         s += f"  Symmetric: {self.symmetric}\n"
         s += f"  Energy   Sensors: {self.energy_sensors}\n"
         s += f"  Tracking Sensors: {self.tracking_sensors}\n"
+        if (self.tracking_sns_pde != 1.):
+            s += f"  Tracking Sensors PDE: {self.tracking_sns_pde}\n"
+        if (self.tracking_mask_att != 0.):
+            s += f"  Tracking Mask Attenuation: {self.tracking_mask_att}\n"
+        s += f"  Tracking Charge Threshold: {self.tracking_charge_th} pes\n"
         return s
 
     __str__ = __repr__
@@ -88,59 +96,70 @@ class Detector:
 
 # DEMOpp in all their versions
 DEMOpp = \
-    Detector( name             = 'DEMOpp',
-              active_z_min     =   0.0  * units.mm,
-              active_z_max     = 309.55 * units.mm,
-              active_rad       =  97.1  * units.mm,
-              energy_sensors   = ['PMT'],
-              tracking_sensors = ['SiPM'],
-              sensor_ids       = {'PMT'  : (2, 4),
-                                  'SiPM' : (14*1000, (17+1)*1000)}
+    Detector( name               = 'DEMOpp',
+              active_z_min       =   0.0  * units.mm,
+              active_z_max       = 309.55 * units.mm,
+              active_rad         =  97.1  * units.mm,
+              energy_sensors     = ['PMT'],
+              tracking_sensors   = ['SiPM'],
+              sensor_ids         = {'PMT'  : (2, 4),
+                                    'SiPM' : (14*1000, (17+1)*1000)},
+              tracking_charge_th = 5.
             )
 
 NEW = \
-    Detector( name             = 'NEW',
-              active_z_min     =   0.0 * units.mm,
-              active_z_max     = 532.0 * units.mm,
-              active_rad       = 208.0 * units.mm,
-              energy_sensors   = ['PMT'],
-              tracking_sensors = ['SiPM'],
-              sensor_ids       = {'PMT'  : (0, 12),
-                                  'SiPM' : (1000, (29+1)*1000)}
+    Detector( name               = 'NEW',
+              active_z_min       =   0.0 * units.mm,
+              active_z_max       = 532.0 * units.mm,
+              active_rad         = 208.0 * units.mm,
+              energy_sensors     = ['PMT'],
+              tracking_sensors   = ['SiPM'],
+              sensor_ids         = {'PMT'  : (0, 12),
+                                    'SiPM' : (1000, (29+1)*1000)},
+              tracking_charge_th = 5.
             )
 
 NEXT100 = \
-    Detector( name             = 'NEXT100',
-              active_z_min     =    0.0  * units.mm,
-              active_z_max     = 1204.95 * units.mm,
-              active_rad       =  492.0  * units.mm,
-              energy_sensors   = ['PmtR11410'],
-              tracking_sensors = ['SiPM'],
-              sensor_ids       = {'PmtR11410' : (0, 60),
-                                  'SiPM'      : (1000, (57+1)*1000)}
+    Detector( name               = 'NEXT100',
+              active_z_min       =    0.0  * units.mm,
+              active_z_max       = 1204.95 * units.mm,
+              active_rad         =  492.0  * units.mm,
+              energy_sensors     = ['PmtR11410'],
+              tracking_sensors   = ['SiPM'],
+              sensor_ids         = {'PmtR11410' : (0, 60),
+                                    'SiPM'      : (1000, (57+1)*1000)},
+              tracking_sns_pde   = 0.4,
+              tracking_mask_att  = 0.0,
+              tracking_charge_th = 5.
             )
 
 FLEX100 = \
-    Detector( name             = 'FLEX100',
-              active_z_min     =    0.0  * units.mm,
-              active_z_max     = 1204.95 * units.mm,
-              active_rad       =  492.0  * units.mm,
-              energy_sensors   = ['PmtR11410'],
-              tracking_sensors = ['TP_SiPM'],
-              sensor_ids       = {'PmtR11410' : (0, 60),
-                                  'TP_SiPM'   : (1000, 50000)}
+    Detector( name               = 'FLEX100',
+              active_z_min       =    0.0  * units.mm,
+              active_z_max       = 1204.95 * units.mm,
+              active_rad         =  492.0  * units.mm,
+              energy_sensors     = ['PmtR11410'],
+              tracking_sensors   = ['TP_SiPM'],
+              sensor_ids         = {'PmtR11410' : (0, 60),
+                                    'TP_SiPM'   : (1000, 50000)},
+              tracking_sns_pde   = 0.4,
+              tracking_mask_att  = 0.0,
+              tracking_charge_th = 5.
             )
 
 FLEX100F = \
-    Detector( name             = 'FLEX100F',
-              active_z_min     =    0.0  * units.mm,
-              active_z_max     = 1204.95 * units.mm,
-              active_rad       =  492.0  * units.mm,
-              energy_sensors   = ['F_SENSOR_L', 'F_SENSOR_R'],
-              tracking_sensors = ['TP_SiPM'],
-              sensor_ids       = {'TP_SiPM'    : (  1000,  50000),
-                                  'F_SENSOR_L' : (100000, 150000),
-                                  'F_SENSOR_R' : (200000, 250000)}
+    Detector( name               = 'FLEX100F',
+              active_z_min       =    0.0  * units.mm,
+              active_z_max       = 1204.95 * units.mm,
+              active_rad         =  492.0  * units.mm,
+              energy_sensors     = ['F_SENSOR_L', 'F_SENSOR_R'],
+              tracking_sensors   = ['TP_SiPM'],
+              sensor_ids         = {'TP_SiPM'    : (  1000,  50000),
+                                    'F_SENSOR_L' : (100000, 150000),
+                                    'F_SENSOR_R' : (200000, 250000)},
+              tracking_sns_pde   = 0.4,
+              tracking_mask_att  = 0.0,
+              tracking_charge_th = 5.
             )
 
 NEXT500 = \
