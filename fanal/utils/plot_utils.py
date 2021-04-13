@@ -171,8 +171,8 @@ def plot_vertices(vertices   : Union[Sequence[XYZ], pd.DataFrame],
 
 def plot_and_fit(data     : List,
                  title    : str = '',
-                 xlabel   : str = 'Entries / bin',
-                 ylabel   : str = 'Charge (pes)',
+                 xlabel   : str = 'Charge (pes)',
+                 ylabel   : str = 'Entries / bin',
                  num_bins : int = 100 
                 )     -> None :
 
