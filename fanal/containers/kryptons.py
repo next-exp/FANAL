@@ -20,44 +20,46 @@ from fanal.utils.types      import XYZ
 @dataclass
 class Krypton:
     krypton_id  : int   = -1
-    true_x      : float = np.nan
-    true_y      : float = np.nan
-    true_z      : float = np.nan
-    true_energy : float = np.nan
-    rec_x       : float = np.nan
-    rec_y       : float = np.nan
-    rec_z       : float = np.nan
-    rec_energy  : float = np.nan
-    s2_pes      : int   = np.nan
-    corr_s2_pes : int   = np.nan
-    s1_pes      : int   = np.nan
-    corr_s1_pes : int   = np.nan
+    x_true      : float = np.nan
+    y_true      : float = np.nan
+    z_true      : float = np.nan
+    energy_true : float = 0.
+    x_rec       : float = np.nan
+    y_rec       : float = np.nan
+    z_rec       : float = np.nan
+    energy_rec  : float = 0.
+    s1_pes      : int   = 0
+    s2_pes      : int   = 0
+    s1_pes_corr : int   = 0
+    s2_pes_corr : int   = 0
+    q_tot       : float = 0.
+    q_max       : float = 0.
 
     def __repr__(self):
         s =  f"* Krypton id: {self.krypton_id}\n"
-        s += f"  True ... Position: ({self.true_x:.1f}, {self.true_y:.1f}, {self.true_z:.1f})  "
-        s += f"  Energy: {self.true_energy / units.keV:.3f} keV\n"
-        s += f"  Rec. ... Position: ({self.rec_x:.1f}, {self.rec_y:.1f}, {self.rec_z:.1f})  "
-        s += f"  Energy: {self.rec_energy / units.keV:.3f} keV\n"
-        s += f"  S2 pes: {self.s2_pes}  ->  Corrected: {self.corr_s2_pes}\n"
-        s += f"  S1 pes: {self.s1_pes}  ->  Corrected: {self.corr_s1_pes}\n"
+        s += f"  True ... Position: ({self.x_true:.1f}, {self.y_true:.1f}, {self.z_true:.1f})  "
+        s += f"  Energy: {self.energy_true / units.keV:.3f} keV\n"
+        s += f"  Rec. ... Position: ({self.x_rec:.1f}, {self.y_rec:.1f}, {self.z_rec:.1f})  "
+        s += f"  Energy: {self.energy_rec / units.keV:.3f} keV\n"
+        s += f"  S1 pes: {self.s1_pes}  ->  Corrected: {self.s1_pes_corr}\n"
+        s += f"  S2 pes: {self.s2_pes}  ->  Corrected: {self.s2_pes_corr}\n"
         return s
 
     __str__ = __repr__
 
     @property
     def true_pos(self):
-        return XYZ(self.true_x, self.true_y, self.true_z)
+        return XYZ(self.x_true, self.y_true, self.z_true)
 
     @property
     def rec_pos(self):
-        return XYZ(self.rec_x, self.rec_y, self.rec_z)
+        return XYZ(self.x_rec, self.y_rec, self.z_rec)
 
     def set_true_pos(self, pos : XYZ):
-        self.true_x, self.true_y, self.true_z = pos.x, pos.y, pos.z
+        self.x_true, self.y_true, self.z_true = pos.x, pos.y, pos.z
 
     def set_rec_pos(self, pos : XYZ):
-        self.rec_x, self.rec_y, self.rec_z = pos.x, pos.y, pos.z
+        self.x_rec, self.y_rec, self.z_rec = pos.x, pos.y, pos.z
 
 
 
