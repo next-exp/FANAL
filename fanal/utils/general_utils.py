@@ -78,3 +78,11 @@ def bin_data_with_equal_bin_size(data     : List[np.array],
         bin_data     .append(xbins)
         bin_eff_sizes.append(bin_eff_size)
     return bin_data, bin_eff_sizes
+
+
+
+def get_barycenter(positions : np.array,
+                   weights   : np.array) -> np.array:
+    """Computes baricenter as the product of position positions and weights"""
+    return np.dot(positions, weights) / np.sum(weights)
+
