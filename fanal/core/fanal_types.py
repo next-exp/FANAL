@@ -101,3 +101,28 @@ class AnalysisParams:
         s += f"*** ROI energy limits: ({self.roi_Emin/units.keV:4.1f}, "
         s += f"{self.roi_Emax/units.keV:4.1f}) keV\n"
         return s
+
+    __str__ = __repr__
+
+
+
+@dataclass
+class KrAnalysisParams:
+
+    veto_width         : float = np.nan
+    tracking_sns_pde   : float = 1.
+    tracking_mask_att  : float = 0.
+    tracking_charge_th : float = 0.
+
+    def set_units(self):
+        "Setting units to parameters when being read from json config file"
+        self.veto_width = self.veto_width * units.mm
+
+    def __repr__(self):
+        s  = f"*** Veto width:           {self.veto_width / units.mm:.1f} mm\n"
+        s += f"*** Tracking sensors pde: {self.tracking_sns_pde:.3f}\n"
+        s += f"*** Tracking mask att:    {self.tracking_mask_att:.3f}\n"
+        s += f"*** Tracking charge th:   {self.tracking_charge_th:.3f} pes\n"
+        return s
+
+    __str__ = __repr__
