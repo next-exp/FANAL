@@ -1,5 +1,6 @@
 # General importings
 import pandas as pd
+import numpy  as np
 
 import matplotlib.pyplot        as plt
 
@@ -58,12 +59,13 @@ def build_correction_map_xy(kr_df    : pd.DataFrame,
                             num_bins : int
                            )        -> pd.DataFrame:
     # XXXXXX TO BE DEVELOPED
-    xs, ys, pes, pes_error = profileXY(kr_df.x_true,
-                                       kr_df.y_true,
+    xs, ys, pes, pes_error = profileXY(kr_df.x_rec,
+                                       kr_df.y_rec,
                                        kr_df.s2_pes,
                                        num_bins, num_bins)
     corr = pes / pes.min()
-    print(xs, ys, pes)
+
+    return pd.DataFrame({'x': xs, 'y': ys, 'correction': corr})
 
 
 
@@ -72,12 +74,43 @@ def load_correction_map(map_fname : str) -> pd.DataFrame :
 
 
 
-def correct_s2(krypton_df, corr_map):
+def correct_s2(kr_df    : pd.DataFrame,
+               corr_map : pd.DataFrame,
+               map_type : str
+              ) -> np.array:
+    """
+    It corrects the krypton s2_pes with the factor from the nearest id
+    of the correction map.
+    corrected values are stored in kr_df and returned as a numpy array.
+    """
+    if   (map_type == 'rad'):
+        pes_corr = correct_s2_rad(kr_df, corr_map)
+    elif (map_type == 'xy'):
+        pes_corr = correct_s2_xy(kr_df, corr_map)
+    else:
+        raise TypeError(f"Correction map type '{map_type}' NOT VALID")
+
+    return pes_corr
+
+
+
+def correct_s2_rad(kr_df    : pd.DataFrame,
+                   corr_map : pd.DataFrame
+                  )        -> np.array:
     pes_corr = []
-    for id, krypton in krypton_df.iterrows():
-        nearest_id = abs(corr_map.rad - krypton.rad_true).argmin()
+    for id, krypton in kr_df.iterrows():
+        nearest_id = abs(corr_map.rad - krypton.rad_rec).argmin()
         correction = corr_map.iloc[nearest_id].correction
         krypton.s2_pes_corr = krypton.s2_pes / correction
         pes_corr.append(krypton.s2_pes_corr)
-    krypton_df.s2_pes_corr = pes_corr
-    return pes_corr
+    kr_df.s2_pes_corr = pes_corr
+    return np.array(pes_corr)
+
+
+
+def correct_s2_xy(kr_df    : pd.DataFrame,
+                  corr_map : pd.DataFrame
+                 )        -> np.array:
+    pes_corr = []
+    # XXXXXX TO BE DEVELOPED
+    return np.array(pes_corr)
