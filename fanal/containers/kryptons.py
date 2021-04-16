@@ -23,10 +23,12 @@ class Krypton:
     x_true      : float = np.nan
     y_true      : float = np.nan
     z_true      : float = np.nan
+    rad_true    : float = np.nan
     energy_true : float = 0.
     x_rec       : float = np.nan
     y_rec       : float = np.nan
     z_rec       : float = np.nan
+    rad_rec     : float = np.nan
     energy_rec  : float = 0.
     s1_pes      : int   = 0
     s2_pes      : int   = 0
@@ -48,17 +50,17 @@ class Krypton:
     __str__ = __repr__
 
     @property
-    def true_pos(self):
+    def pos_true(self):
         return XYZ(self.x_true, self.y_true, self.z_true)
 
     @property
-    def rec_pos(self):
+    def pos_rec(self):
         return XYZ(self.x_rec, self.y_rec, self.z_rec)
 
-    def set_true_pos(self, pos : XYZ):
+    def set_pos_true(self, pos : XYZ):
         self.x_true, self.y_true, self.z_true = pos.x, pos.y, pos.z
 
-    def set_rec_pos(self, pos : XYZ):
+    def set_pos_rec(self, pos : XYZ):
         self.x_rec, self.y_rec, self.z_rec = pos.x, pos.y, pos.z
 
 

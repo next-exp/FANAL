@@ -37,7 +37,7 @@ def build_correction_map(kr_df     : pd.DataFrame,
 def build_correction_map_rad(kr_df    : pd.DataFrame,
                              num_bins : int
                             )        -> pd.DataFrame:
-    rad, pes, pes_error = profileX(kr_df.rad_true, kr_df.s2_pes, num_bins)
+    rad, pes, pes_error = profileX(kr_df.rad_rec, kr_df.s2_pes, num_bins)
     corr = pes / pes.min()
 
     # Plotting corrections
