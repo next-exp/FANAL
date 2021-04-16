@@ -3,16 +3,19 @@ import math
 import pandas as pd
 import numpy  as np
 
-from   typing import List
+from   typing           import List
+
+from fanal.utils.types  import XYZ
 
 maps_path = '../fanal/maps/'
+
 
 
 def get_neighbour_ids(sns_id       : int,
                       tracking_map : pd.DataFrame
                      )            -> List[int] :
     """
-    It returns a list with the neighbour sensor ids
+    It returns a list with the valid neighbour sensor ids
     """
     neigh_ids = []
     sensor    = tracking_map.loc[sns_id]
@@ -23,10 +26,11 @@ def get_neighbour_ids(sns_id       : int,
     return neigh_ids
 
 
+
 def fill_neighbours(tracking_map_fname : pd.DataFrame,
                     pitch_x            : float,
                     pitch_y            : float
-                    )           -> None :
+                   )                  -> None :
     """
     It fills the neighbour sensor ids of the tracking_map stored in tracking_map_fname
     based on the pitchs provided, and re-write it.
@@ -59,3 +63,13 @@ def fill_neighbours(tracking_map_fname : pd.DataFrame,
 
     tracking_map.to_csv(maps_path + tracking_map_fname)
 
+
+
+def get_sensor_pos(sns_id       : int,
+                   tracking_map : pd.DataFrame
+                  )            -> XYZ :
+    """
+    It returns the position xy of a tracking sensor
+    """
+    sensor = tracking_map.loc[sns_id]
+    return XYZ(sensor.x, sensor.y, 0.)

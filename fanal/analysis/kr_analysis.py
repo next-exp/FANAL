@@ -8,10 +8,14 @@ from   typing import Tuple
 from fanal.core.fanal_types    import KrAnalysisParams
 from fanal.core.detectors      import Detector
 from fanal.core.detectors      import S1_WIDTH
+from fanal.core.detectors      import DRIFT_VELOCITY
 from fanal.core.sensors        import get_energy_response
 from fanal.core.sensors        import get_tracking_response
+from fanal.core.tracking_maps  import get_sensor_pos
 
 from fanal.containers.kryptons import Krypton
+
+from fanal.utils.general_utils import get_barycenter
 from fanal.utils.types         import XYZ
 from fanal.utils.logger        import get_logger
 
@@ -31,70 +35,136 @@ def analyze_kr_event(detector     : Detector,
     krypton = Krypton()
     krypton.krypton_id = event_id
 
-    # Getting true position
-    true_pos = get_kr_pos_true(mcHits)
-    logger.info(f"  True pos: {true_pos}")
-    krypton.set_true_pos(true_pos)
-    krypton.rad_true = true_pos.rad
-
+    ### True stuff
     # Getting true energy
     krypton.energy_true = mcHits[mcHits.label=="ACTIVE"].energy.sum()
 
-    # Getting rec position
-    #tracking_ids = detector.get_sensor_ids('TP_SiPM')
-    rec_pos      = XYZ(0., 0., 0.)
-    logger.info(f"  Rec. pos: {rec_pos}")
-    krypton.set_rec_pos(rec_pos)
+    # Getting true position
+    pos_true = get_kr_pos_true(mcHits)
+    logger.info(f"  True pos: {pos_true}")
+    krypton.set_pos_true(pos_true)
+    krypton.rad_true = pos_true.rad
 
-    # Getting energy
-    energy_response = get_energy_response(sns_response, detector)
-    krypton.s1_pes += energy_response[energy_response.time <  S1_WIDTH].charge.sum()
-    krypton.s2_pes += energy_response[energy_response.time >= S1_WIDTH].charge.sum()
+    ### Reconstructed stuff
+    energy_response    = get_energy_response(sns_response, detector)
+    energy_s1_response = energy_response[energy_response.time <  S1_WIDTH]
+    energy_s2_response = energy_response[energy_response.time >= S1_WIDTH]
+    tracking_response  = get_tracking_response(sns_response, detector)
+    tracking_Q         = get_tracking_intQ(tracking_response,
+                                           charge_th    = params.tracking_charge_th,
+                                           mask_att     = params.tracking_mask_att,
+                                           phot_det_eff = params.tracking_sns_pde)
+
+    # Storing energy pes
+    krypton.s1_pes = energy_s1_response.charge.sum()
+    krypton.s2_pes = energy_s2_response.charge.sum()
+
+    # Getting rec position
+    pos_rec = get_kr_pos_rec(tracking_Q,
+                             energy_s2_response,
+                             detector.tracking_map)
+    logger.info(f"  Rec. pos: {pos_rec}")
+    krypton.set_pos_rec(pos_rec)
+    krypton.rad_rec = pos_rec.rad
 
     # Getting tracking charge
-    tracking_response = get_tracking_response(sns_response, detector)
-    krypton.q_tot, krypton.q_max, hot_id = \
-        get_kr_Q(tracking_response,
-                 charge_th    = params.tracking_charge_th,
-                 mask_att     = params.tracking_mask_att,
-                 phot_det_eff = params.tracking_sns_pde)
+    krypton.q_tot = tracking_Q.sum()
+    krypton.q_max = tracking_Q.max()
 
     return krypton
 
 
 
 def get_kr_pos_true(mcHits : pd.DataFrame) -> XYZ :
+    """
+    True position is the mean pos of all the hits
+    """
     return XYZ(mcHits.x.mean(), mcHits.y.mean(), mcHits.z.mean())
 
 
 
-def get_kr_Q(tracking_response : pd.DataFrame,
-             charge_th         : float = 0.,
-             mask_att          : float = 0.,
-             phot_det_eff      : float = 1.
-            ) -> Tuple[float, float, int] :
+
+def get_pos_q(sensor_id    : int,
+              tracking_map : pd.DataFrame,
+              tracking_Q   : pd.Series
+             )            -> Tuple[XYZ, float]:
+
+    pos = get_sensor_pos(sensor_id, tracking_map)
+
+    try:             q = tracking_Q.loc[sensor_id]
+    except KeyError: q = 0.
+
+    return pos, q
+
+
+
+def get_kr_pos_rec(tracking_Q   : pd.Series,
+                   energy_s2    : pd.DataFrame,
+                   tracking_map : pd.DataFrame
+                  )            -> XYZ :
     """
-    Compute the charge of SiPMs after fluctuations and
-    threshold, for tracking sensors in a given event
+    Reconstruct XY position from barycenter around sensor with max charge.
+    Reconstruct  Z position from s2 starting time * drift_velocity
+    """
+    hot_id  = tracking_Q.idxmax()
+    hot_sns = tracking_map.loc[hot_id]
+    hot_q   = tracking_Q.loc[hot_id]
+
+    if np.isnan(hot_sns.id_left): left_pos, left_q = XYZ(0., 0., 0.), 0.
+    else: left_pos, left_q = get_pos_q(hot_sns.id_left, tracking_map, tracking_Q)
+
+    if np.isnan(hot_sns.id_right): right_pos, right_q = XYZ(0., 0., 0.), 0.
+    else: right_pos, right_q = get_pos_q(hot_sns.id_right, tracking_map, tracking_Q)
+
+    if np.isnan(hot_sns.id_up): up_pos, up_q = XYZ(0., 0., 0.), 0.
+    else: up_pos, up_q = get_pos_q(hot_sns.id_up, tracking_map, tracking_Q)
+
+    if np.isnan(hot_sns.id_down): down_pos, down_q = XYZ(0., 0., 0.), 0.
+    else: down_pos, down_q = get_pos_q(hot_sns.id_down, tracking_map, tracking_Q)
+
+    # Reconstructing position
+    x_rec = get_barycenter(np.array([hot_sns.x, left_pos.x, right_pos.x]),
+                           np.array([hot_q    , left_q    , right_q]))
+
+    y_rec = get_barycenter(np.array([hot_sns.y, up_pos.y, down_pos.y]),
+                           np.array([hot_q    , up_q    , down_q]))
+
+    z_rec = energy_s2.time.min() * DRIFT_VELOCITY
+
+    return XYZ(x_rec, y_rec, z_rec)
+
+
+
+def get_tracking_intQ(tracking_response : pd.DataFrame,
+                      charge_th         : float = 0.,
+                      mask_att          : float = 0.,
+                      phot_det_eff      : float = 1.
+                     )                 -> pd.Series :
+    """
+    Computes the integrated charge for all time bins
+    of tracking sensors after fluctuations and threshold in a given event
     tracking_response is an DataFrame containing the charge and time
     for each tracking sensor.
-    It returns the total and maximum charge, and the sns_id with max_q
     """
-    sns_charge = tracking_response.groupby('sensor_id').charge.sum()
-    hot_id     = sns_charge.idxmax()
+    sns_charge = tracking_response.groupby('sensor_id').charge.sum().to_frame()
+    sns_charge['q'] = sns_charge['charge']
 
     # if the mask attenuation is more than zero we need to fluctuate
     # these numbers according to Poisson and then multiply by (1-mask_att)
     if mask_att != 0.:
-        sns_charge = np.array([np.random.poisson(xi) for xi in sns_charge]) * (1. - mask_att)
+        sns_charge.q = np.random.poisson(sns_charge.q * (1. - mask_att))
+        #sns_charge = np.array([np.random.poisson(q) for q in sns_charge]) * (1. - mask_att)
 
     # if the PDE of the SiPM is less than one we need to fluctuate
     # these numbers according to Poisson and then multiply by the PDE
     if phot_det_eff != 1.:
-        sns_charge = np.array([np.random.poisson(xi) for xi in sns_charge]) * phot_det_eff
+        sns_charge.q = np.random.poisson(sns_charge.q * phot_det_eff)
+        #sns_charge = np.array([np.random.poisson(q) for q in sns_charge]) * phot_det_eff
 
     # if there is a threshold we apply it now.
     if charge_th > 0.:
-        sns_charge = np.array([q if q >= charge_th else 0. for q in sns_charge])
+        sns_charge.q.values[sns_charge.q.values < charge_th] = 0.
+        #sns_charge = np.array([q if q >= charge_th else 0. for q in sns_charge])
 
-    return sum(sns_charge), max(sns_charge), hot_id
+    #return sns_charge
+    return sns_charge.q
