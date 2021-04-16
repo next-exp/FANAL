@@ -1,13 +1,8 @@
 import time
-import math
 
 import numpy as np
 
-from datetime import datetime
-from typing   import Tuple, List, Iterable
-from numpy    import pi
-
-NN = np.nan
+from typing   import Tuple, List
 
 
 
@@ -84,5 +79,10 @@ def bin_data_with_equal_bin_size(data     : List[np.array],
 def get_barycenter(positions : np.array,
                    weights   : np.array) -> np.array:
     """Computes baricenter as the product of position positions and weights"""
+
+    if (np.sum(weights) == 0.):
+        print("WARNING: trying to get barycenter with all-zero weights.")
+        return np.mean(positions)
+
     return np.dot(positions, weights) / np.sum(weights)
 
