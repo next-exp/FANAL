@@ -5,6 +5,7 @@ import pandas      as pd
 from   typing  import Sequence
 from   typing  import List
 from   typing  import Union
+from   typing  import Tuple
 
 from   matplotlib           import colors
 import matplotlib.pyplot        as plt
@@ -174,7 +175,7 @@ def plot_and_fit(data     : List,
                  xlabel   : str = 'Charge (pes)',
                  ylabel   : str = 'Entries / bin',
                  num_bins : int = 100 
-                )     -> None :
+                )        -> Tuple[float, float, float] :
 
     # Fitting function
     def gauss(x, amplitude, mu, sigma):
@@ -221,3 +222,5 @@ def plot_and_fit(data     : List,
           f"sigma = {sigma:10.3f} +- {sigma_err:.3f}  ->  " + \
           f"fwhm  = {fwhm/units.perCent:.3f} %\n"
           f"Chi2  = {f.chi2:10.3f}\n")
+
+    return mu, sigma, fwhm
