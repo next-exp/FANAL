@@ -29,7 +29,6 @@ logger = get_logger('Fanal')
 
 
 def run_bb_analysis(detector     : Detector,
-                    event_type   : str,
                     input_fnames : List[str],
                     output_fname : str,
                     params       : BBAnalysisParams
@@ -75,7 +74,7 @@ def run_bb_analysis(detector     : Detector,
 
             # Analyze event
             event_data, event_tracks, event_voxels = \
-                analyze_bb_event(detector, int(event_id), event_type,
+                analyze_bb_event(detector, int(event_id),
                                  params, fiducial_checker,
                                  file_mcParts.loc[event_id, :],
                                  file_mcHits .loc[event_id, :])

@@ -23,7 +23,6 @@ class Setup:
 
     def __init__(self,
                  det_name           : str,
-                 event_type         : str,
                  input_fname        : str,
                  output_fname       : str,
                  bb_analysis_params : BBAnalysisParams,
@@ -33,9 +32,6 @@ class Setup:
         # The detector
         self.det_name = det_name
         self.detector = get_detector(self.det_name)
-
-        # Event type
-        self.event_type = event_type
 
         # Input files
         self.input_fname  = input_fname
@@ -73,7 +69,6 @@ class Setup:
     def __repr__(self):
         s  =  "*******************************************************************************\n"
         s += f"*** Detector:          {self.det_name}\n"
-        s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
         s += str(self.bb_analysis_params)
@@ -86,7 +81,7 @@ class Setup:
 
     def config_df(self):
         # Config params except the analysis-related ones
-        params_to_store = ['det_name', 'event_type', 'input_fname', 'output_fname']
+        params_to_store = ['det_name', 'input_fname', 'output_fname']
         param_values = []
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
@@ -114,7 +109,7 @@ class Setup:
             output_file.create_group('/', 'FANAL')
         self.store_config()
 
-        return run_bb_analysis(self.detector,     self.event_type,
+        return run_bb_analysis(self.detector,
                                self.input_fnames, self.output_fname,
                                self.bb_analysis_params)
 
