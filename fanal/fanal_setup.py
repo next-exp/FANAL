@@ -14,9 +14,12 @@ from fanal.utils.logger             import get_logger
 
 from fanal.core.detectors           import get_detector
 from fanal.core.fanal_types         import BBAnalysisParams
+from fanal.core.fanal_types         import KrAnalysisParams
 
 from fanal.analysis.setup_analysis  import run_bb_analysis
-#from fanal.analysis.setup_analysis  import run_kr_analysis
+from fanal.analysis.setup_analysis  import run_kr_analysis
+
+VALID_ANALYSIS = ['bb', 'kr']
 
 
 
@@ -26,7 +29,8 @@ class Setup:
                  det_name           : str,
                  input_fname        : str,
                  output_fname       : str,
-                 bb_analysis_params : BBAnalysisParams,
+                 bb_analysis_params : BBAnalysisParams = None,
+                 kr_analysis_params : KrAnalysisParams = None,
                  verbosity          : str = 'WARNING'
                 ) :
 
@@ -48,22 +52,39 @@ class Setup:
 
         # Analysis params
         self.bb_analysis_params = bb_analysis_params
+        self.kr_analysis_params = kr_analysis_params
 
         # The logger
         self.logger = get_logger('Fanal', verbosity)
 
 
     @classmethod
-    def from_config_file(cls, config_fname : str):
+    def from_config_file(cls,
+                         analysis_type : str,
+                         config_fname  : str
+                        ):
         "Initialize Setup from a config file (json format)"
+        # Checking analysis type provided is valid
+        assert analysis_type in VALID_ANALYSIS, "WRONG analysis type"
+
         # Loading file content
         with open(config_fname) as config_file:
             fanal_params = json.load(config_file)
+
         # Building the BBAnalysisParams
-        bb_analysis_dict = {key: fanal_params.pop(key) for key in \
-                            BBAnalysisParams.__dataclass_fields__.keys()}
-        fanal_params['bb_analysis_params'] = BBAnalysisParams(**bb_analysis_dict)
-        fanal_params['bb_analysis_params'].set_units()
+        if analysis_type == 'bb':
+            bb_analysis_dict = {key: fanal_params.pop(key) for key in \
+                                BBAnalysisParams.__dataclass_fields__.keys()}
+            fanal_params['bb_analysis_params'] = BBAnalysisParams(**bb_analysis_dict)
+            fanal_params['bb_analysis_params'].set_units()
+
+        # Building the KrAnalysisParams
+        if analysis_type == 'kr':
+            kr_analysis_dict = {key: fanal_params.pop(key) for key in \
+                                KrAnalysisParams.__dataclass_fields__.keys()}
+            fanal_params['kr_analysis_params'] = KrAnalysisParams(**kr_analysis_dict)
+            fanal_params['kr_analysis_params'].set_units()
+
         return cls(**fanal_params)
 
 
@@ -81,14 +102,25 @@ class Setup:
 
 
     def config_df(self):
-        # Config params except the analysis-related ones
+        # Setup config parameters
         params_to_store = ['det_name', 'input_fname', 'output_fname']
         param_values = []
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
-        # Adding analysis parameters
-        params_to_store += list(BBAnalysisParams.__dataclass_fields__.keys())
-        param_values    += list(str(val) for val in self.bb_analysis_params.__dict__.values())
+
+        # Adding 'bb' analysis parameters
+        if(self.bb_analysis_params):
+            params_to_store += \
+                list(BBAnalysisParams.__dataclass_fields__.keys())
+            param_values    += \
+                list(str(val) for val in self.bb_analysis_params.__dict__.values())
+
+        # Adding 'kr' analysis parameters
+        if(self.kr_analysis_params):
+            params_to_store += \
+                list(KrAnalysisParams.__dataclass_fields__.keys())
+            param_values    += \
+                list(str(val) for val in self.kr_analysis_params.__dict__.values())
 
         return pd.DataFrame(index=params_to_store, data=param_values, columns=['value'])
 
@@ -103,8 +135,7 @@ class Setup:
     def run_analysis(self, analysis_type : str) :
 
         ### Checking analysis type provided is valid
-        valid_analysis = ['bb', 'kr']
-        assert analysis_type in valid_analysis, "WRONG analysis type"
+        assert analysis_type in VALID_ANALYSIS, "WRONG analysis type"
 
         ### Print the Setup
         print(self)
@@ -121,10 +152,9 @@ class Setup:
                                    self.bb_analysis_params)
         # Running 'kr' analysis
         if(analysis_type == 'kr') :
-            pass
-            #return run_kr_analysis(self.detector,
-            #                       self.input_fnames, self.output_fname,
-            #                       self.kr_analysis_params)
+            return run_kr_analysis(self.detector,
+                                   self.input_fnames, self.output_fname,
+                                   self.kr_analysis_params)
 
 
 
@@ -138,5 +168,5 @@ if __name__ == '__main__':
         print("\nUsage: python fanal_setup.py <analysis_type> config_file\n")
         sys.exit()
 
-    fanal_setup = Setup.from_config_file(config_fname)
+    fanal_setup = Setup.from_config_file(analysis_type, config_fname)
     fanal_setup.run_analysis(analysis_type)
