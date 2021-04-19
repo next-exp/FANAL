@@ -17,7 +17,7 @@ from fanal.utils.logger             import get_logger
 from fanal.utils.types              import XYZ
 
 from fanal.core.detectors           import Detector
-from fanal.core.fanal_types         import AnalysisParams
+from fanal.core.fanal_types         import BBAnalysisParams
 
 from fanal.containers.events        import Event
 from fanal.containers.tracks        import Track
@@ -46,34 +46,34 @@ logger = get_logger('Fanal')
 
 #############################################################################################
 #############################################################################################
-def analyze_event(detector          : Detector,
-                  event_id          : int,
-                  event_type        : str,
-                  params            : AnalysisParams,
-                  fiducial_checker  : Callable,
-                  event_mcParts     : pd.DataFrame,
-                  event_mcHits      : pd.DataFrame
-                 )                 -> Tuple[Event, TrackList, VoxelList] :
-
-    if   params.procedure == "paolina_ic":
-        return analyze_event_ic(detector, event_id, event_type, params,
-                                fiducial_checker, event_mcParts, event_mcHits)
-    elif params.procedure == "paolina_2":
-        return analyze_event_2(detector, event_id, event_type, params,
-                               fiducial_checker, event_mcParts, event_mcHits)
-
-
-
-#############################################################################################
-#############################################################################################
-def analyze_event_ic(detector          : Detector,
+def analyze_bb_event(detector          : Detector,
                      event_id          : int,
                      event_type        : str,
-                     params            : AnalysisParams,
+                     params            : BBAnalysisParams,
                      fiducial_checker  : Callable,
                      event_mcParts     : pd.DataFrame,
                      event_mcHits      : pd.DataFrame
-                 )                    -> Tuple[Event, TrackList, VoxelList] :
+                    )                 -> Tuple[Event, TrackList, VoxelList] :
+
+    if   params.procedure == "paolina_ic":
+        return analyze_bb_event_ic(detector, event_id, event_type, params,
+                                   fiducial_checker, event_mcParts, event_mcHits)
+    elif params.procedure == "paolina_2":
+        return analyze_bb_event_2(detector, event_id, event_type, params,
+                                  fiducial_checker, event_mcParts, event_mcHits)
+
+
+
+#############################################################################################
+#############################################################################################
+def analyze_bb_event_ic(detector          : Detector,
+                        event_id          : int,
+                        event_type        : str,
+                        params            : BBAnalysisParams,
+                        fiducial_checker  : Callable,
+                        event_mcParts     : pd.DataFrame,
+                        event_mcHits      : pd.DataFrame
+                       )                 -> Tuple[Event, TrackList, VoxelList] :
     """
     It assess the global acceptance factor after fiducial, topology and ROI cuts
     based on the paolina functions implemented into IC.
@@ -225,14 +225,14 @@ def analyze_event_ic(detector          : Detector,
 
 #############################################################################################
 #############################################################################################
-def analyze_event_2(detector          : Detector,
-                    event_id          : int,
-                    event_type        : str,
-                    params            : AnalysisParams,
-                    fiducial_checker  : Callable,
-                    event_mcParts     : pd.DataFrame,
-                    event_mcHits      : pd.DataFrame
-                   )                 -> Tuple[Event, TrackList, VoxelList] :
+def analyze_bb_event_2(detector          : Detector,
+                       event_id          : int,
+                       event_type        : str,
+                       params            : BBAnalysisParams,
+                       fiducial_checker  : Callable,
+                       event_mcParts     : pd.DataFrame,
+                       event_mcHits      : pd.DataFrame
+                      )                 -> Tuple[Event, TrackList, VoxelList] :
     """
     It assess the global acceptance factor after fiducial, topology and ROI cuts
     based on the paolina2 functions implemented into FANAL.

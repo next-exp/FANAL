@@ -16,30 +16,30 @@ from invisible_cities.io.mcinfo_io        import load_mchits_df
 from invisible_cities.io.mcinfo_io        import load_mcparticles_df
 
 # FANAL importings
-from fanal.utils.logger             import get_logger
-from fanal.utils.mc_utils           import get_event_numbers_in_file
+from fanal.utils.logger          import get_logger
+from fanal.utils.mc_utils        import get_event_numbers_in_file
 
-from fanal.core.detectors           import get_detector
-from fanal.core.fanal_types         import AnalysisParams
+from fanal.core.detectors        import get_detector
+from fanal.core.fanal_types      import BBAnalysisParams
 
-from fanal.containers.tracks        import TrackList
-from fanal.containers.voxels        import VoxelList
-from fanal.containers.events        import EventList
-from fanal.containers.events        import EventCounter
+from fanal.containers.tracks     import TrackList
+from fanal.containers.voxels     import VoxelList
+from fanal.containers.events     import EventList
+from fanal.containers.events     import EventCounter
 
-from fanal.analysis.event_analysis  import analyze_event
+from fanal.analysis.bb_analysis  import analyze_bb_event
 
 
 
 class Setup:
 
     def __init__(self,
-                 det_name        : str,
-                 event_type      : str,
-                 input_fname     : str,
-                 output_fname    : str,
-                 analysis_params : AnalysisParams,
-                 verbosity       : str = 'WARNING'
+                 det_name           : str,
+                 event_type         : str,
+                 input_fname        : str,
+                 output_fname       : str,
+                 bb_analysis_params : BBAnalysisParams,
+                 verbosity          : str = 'WARNING'
                 ) :
 
         # The detector
@@ -62,7 +62,7 @@ class Setup:
             os.makedirs(output_path)
 
         # Analysis params
-        self.analysis_params = analysis_params
+        self.bb_analysis_params = bb_analysis_params
 
         # The logger
         self.logger = get_logger('Fanal', verbosity)
@@ -74,11 +74,11 @@ class Setup:
         # Loading file content
         with open(config_fname) as config_file:
             fanal_params = json.load(config_file)
-        # Building the AnalysisParams
-        analysis_dict = {key: fanal_params.pop(key) for key in \
-                         AnalysisParams.__dataclass_fields__.keys()}
-        fanal_params['analysis_params'] = AnalysisParams(**analysis_dict)
-        fanal_params['analysis_params'].set_units()
+        # Building the BBAnalysisParams
+        bb_analysis_dict = {key: fanal_params.pop(key) for key in \
+                            BBAnalysisParams.__dataclass_fields__.keys()}
+        fanal_params['bb_analysis_params'] = BBAnalysisParams(**bb_analysis_dict)
+        fanal_params['bb_analysis_params'].set_units()
         return cls(**fanal_params)
 
 
@@ -88,7 +88,7 @@ class Setup:
         s += f"*** Reconstructing:    {self.event_type} events\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
-        s += str(self.analysis_params)
+        s += str(self.bb_analysis_params)
         s +=  "*******************************************************************************\n"
         return s
 
@@ -103,8 +103,8 @@ class Setup:
         for key in params_to_store:
             param_values.append(str(self.__dict__[key]))
         # Adding analysis parameters
-        params_to_store += list(AnalysisParams.__dataclass_fields__.keys())
-        param_values    += list(str(val) for val in self.analysis_params.__dict__.values())
+        params_to_store += list(BBAnalysisParams.__dataclass_fields__.keys())
+        param_values    += list(str(val) for val in self.bb_analysis_params.__dict__.values())
 
         return pd.DataFrame(index=params_to_store, data=param_values, columns=['value'])
 
@@ -132,7 +132,7 @@ class Setup:
 
         ### Obtaining the fiducial_checker
         fiducial_checker = \
-            self.detector.get_fiducial_checker(self.analysis_params.veto_width)
+            self.detector.get_fiducial_checker(self.bb_analysis_params.veto_width)
 
         ### Opening the output file and storing configration parameters
         with tb.open_file(self.output_fname, 'w', filters=tbl_filters('ZLIB4')) as output_file:
@@ -167,10 +167,10 @@ class Setup:
 
                 # Analyze event
                 event_data, event_tracks, event_voxels = \
-                    analyze_event(self.detector, int(event_id), self.event_type,
-                                  self.analysis_params, fiducial_checker,
-                                  file_mcParts.loc[event_id, :],
-                                  file_mcHits .loc[event_id, :])
+                    analyze_bb_event(self.detector, int(event_id), self.event_type,
+                                     self.bb_analysis_params, fiducial_checker,
+                                     file_mcParts.loc[event_id, :],
+                                     file_mcHits .loc[event_id, :])
 
                 # Storing event data
                 all_events.add(event_data)
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     try:
         config_fname = sys.argv[1]
     except IndexError:
-        print("\nUsage: python nexus-production.py config_file\n")
+        print("\nUsage: python fanal_setup.py config_file\n")
         sys.exit()
 
     fanal_setup = Setup.from_config_file(config_fname)

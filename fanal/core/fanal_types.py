@@ -17,7 +17,7 @@ class VolumeDim:
 
 
 @dataclass
-class AnalysisParams:
+class BBAnalysisParams:
 
     buffer_Eth         : float  = np.nan
     trans_diff         : float  = np.nan
