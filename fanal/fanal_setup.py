@@ -16,6 +16,7 @@ from fanal.core.detectors           import get_detector
 from fanal.core.fanal_types         import BBAnalysisParams
 
 from fanal.analysis.setup_analysis  import run_bb_analysis
+#from fanal.analysis.setup_analysis  import run_kr_analysis
 
 
 
@@ -99,7 +100,11 @@ class Setup:
                                 data_columns = True, format = 'table')
 
 
-    def run_analysis(self) :
+    def run_analysis(self, analysis_type : str) :
+
+        ### Checking analysis type provided is valid
+        valid_analysis = ['bb', 'kr']
+        assert analysis_type in valid_analysis, "WRONG analysis type"
 
         ### Print the Setup
         print(self)
@@ -109,19 +114,29 @@ class Setup:
             output_file.create_group('/', 'FANAL')
         self.store_config()
 
-        return run_bb_analysis(self.detector,
-                               self.input_fnames, self.output_fname,
-                               self.bb_analysis_params)
+        # Running 'bb' analysis
+        if(analysis_type == 'bb') :
+            return run_bb_analysis(self.detector,
+                                   self.input_fnames, self.output_fname,
+                                   self.bb_analysis_params)
+        # Running 'kr' analysis
+        if(analysis_type == 'kr') :
+            pass
+            #return run_kr_analysis(self.detector,
+            #                       self.input_fnames, self.output_fname,
+            #                       self.kr_analysis_params)
+
 
 
 
 ### Make it executable
 if __name__ == '__main__':
     try:
-        config_fname = sys.argv[1]
+        analysis_type = sys.argv[1]
+        config_fname  = sys.argv[2]
     except IndexError:
-        print("\nUsage: python fanal_setup.py config_file\n")
+        print("\nUsage: python fanal_setup.py <analysis_type> config_file\n")
         sys.exit()
 
     fanal_setup = Setup.from_config_file(config_fname)
-    fanal_setup.run_analysis()
+    fanal_setup.run_analysis(analysis_type)

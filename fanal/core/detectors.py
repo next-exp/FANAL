@@ -50,7 +50,7 @@ class Detector:
         # Loading the tracking map
         tracking_map = pd.DataFrame()
         if (self.tracking_map_fname == ''):
-            print(f"WARNING: No tracking map defined for detector {self.name} !!")
+            print(f"WARNING: No tracking map defined for detector {self.name} !!\n")
         else:
             tracking_map = pd.read_csv(maps_path + self.tracking_map_fname)
             tracking_map.set_index('sensor_id', inplace = True)
