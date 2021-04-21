@@ -8,6 +8,9 @@ import matplotlib.pyplot        as plt
 from invisible_cities.core.fit_functions import profileX
 from invisible_cities.core.fit_functions import profileXY
 
+# FANAL importings
+from fanal.utils.general_utils           import is_interactive
+
 
 
 def build_correction_map(kr_df     : pd.DataFrame,
@@ -41,15 +44,16 @@ def build_correction_map_rad(kr_df    : pd.DataFrame,
     rad, pes, pes_error = profileX(kr_df.rad_rec, kr_df.s2_pes, num_bins)
     corr = pes / pes.min()
 
-    # Plotting corrections
-    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(16,7))
-    ax1.errorbar(rad, pes, pes_error, fmt="kp", ms=7, lw=3)
-    ax1.set_title ("S2 pes (with errors)"   , size=16);
-    ax1.set_xlabel("Radius (mm)", size=16);
-    ax1.set_ylabel("pes"        , size=16);
-    ax2.plot(rad, corr)
-    ax2.set_title ("Correction factor"   , size=16);
-    ax2.set_xlabel("Radius (mm)", size=16);
+    # Plotting corrections if running interactively
+    if is_interactive():
+        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(16,7))
+        ax1.errorbar(rad, pes, pes_error, fmt="kp", ms=7, lw=3)
+        ax1.set_title ("S2 pes (with errors)"   , size=16);
+        ax1.set_xlabel("Radius (mm)", size=16);
+        ax1.set_ylabel("pes"        , size=16);
+        ax2.plot(rad, corr)
+        ax2.set_title ("Correction factor"   , size=16);
+        ax2.set_xlabel("Radius (mm)", size=16);
 
     return pd.DataFrame({'rad': rad, 'correction': corr})
 

@@ -6,6 +6,15 @@ from typing   import Tuple, List
 
 
 
+def is_interactive() -> bool:
+    """
+    It returns if the code is being run interactively
+    """
+    import __main__ as main
+    return not hasattr(main, '__file__')
+
+
+
 def timeit(f):
     """
     Decorator for function timing.
