@@ -148,7 +148,7 @@ FLEX100 = {
     'tracking_sensors'   : ['TP_SiPM'],
     'sensor_ids'         : {'PmtR11410' : (0, 60),
                           'TP_SiPM'   : (1000, 50000)},
-    'tracking_map_fname' : ''
+    'tracking_map_fname' : 'FLEX100.tracking_map.csv'
 }
 
 FLEX100F = {
