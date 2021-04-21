@@ -149,22 +149,19 @@ def get_tracking_intQ(tracking_response : pd.DataFrame,
     sns_charge = tracking_response.groupby('sensor_id').charge.sum().to_frame()
     sns_charge['q'] = sns_charge['charge']
 
-    # if the mask attenuation is more than zero we need to fluctuate
-    # these numbers according to Poisson and then multiply by (1-mask_att)
+    # if the mask attenuation is more than zero, we need to recalculate the mean by
+    # multiplyig by (1-mask_att) and then fluctuate according to Poisson
     if mask_att != 0.:
         sns_charge.q = np.random.poisson(sns_charge.q * (1. - mask_att))
-        #sns_charge = np.array([np.random.poisson(q) for q in sns_charge]) * (1. - mask_att)
 
-    # if the PDE of the SiPM is less than one we need to fluctuate
-    # these numbers according to Poisson and then multiply by the PDE
+    # if the PDE of the SiPM is less than one we need to recalculate the mean by
+    # multiplyig by the PDE and then fluctuate according to Poisson
     if phot_det_eff != 1.:
         sns_charge.q = np.random.poisson(sns_charge.q * phot_det_eff)
-        #sns_charge = np.array([np.random.poisson(q) for q in sns_charge]) * phot_det_eff
 
     # if there is a threshold we apply it now.
     if charge_th > 0.:
         sns_charge.q.values[sns_charge.q.values < charge_th] = 0.
-        #sns_charge = np.array([q if q >= charge_th else 0. for q in sns_charge])
 
     #return sns_charge
     return sns_charge.q
