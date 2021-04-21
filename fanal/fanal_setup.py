@@ -94,7 +94,12 @@ class Setup:
         s += f"*** Detector:          {self.det_name}\n"
         s += f"*** Input  files:      {self.input_fname}  ({len(self.input_fnames)} files)\n"
         s += f"*** Output file:       {self.output_fname}\n"
-        s += str(self.bb_analysis_params)
+        if (self.bb_analysis_params):
+            s += "\n*** bb analysys parameters ***\n"
+            s += str(self.bb_analysis_params)
+        if (self.kr_analysis_params):
+            s += "\n*** kr analysys parameters ***\n"
+            s += str(self.kr_analysis_params)
         s +=  "*******************************************************************************\n"
         return s
 
