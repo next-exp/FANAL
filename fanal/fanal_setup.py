@@ -41,6 +41,7 @@ class Setup:
         # Input files
         self.input_fname  = input_fname
         self.input_fnames = sorted(glob.glob(self.input_fname))
+        assert len(self.input_fnames) > 0, "Provided input files EMPTY"
         self.input_path   = os.path.dirname(self.input_fnames[0])
 
         # Output files
