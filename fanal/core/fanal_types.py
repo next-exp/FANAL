@@ -17,7 +17,8 @@ class VolumeDim:
 
 
 @dataclass
-class AnalysisParams:
+class BBAnalysisParams:
+    event_type         : str    = ""
 
     buffer_Eth         : float  = np.nan
     trans_diff         : float  = np.nan
@@ -80,7 +81,8 @@ class AnalysisParams:
 
 
     def __repr__(self):
-        s  = f"*** Buffer energy th.: {self.buffer_Eth / units.keV:.1f} keV\n"
+        s  = f"*** Reconstructing:    {self.event_type} events\n"
+        s += f"*** Buffer energy th.: {self.buffer_Eth / units.keV:.1f} keV\n"
         s += f"*** Transverse   diff: {self.trans_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Longitudinal diff: {self.long_diff / (units.mm/units.cm**0.5):.2f}  mm/cm**0.5\n"
         s += f"*** Energy Resolution: {self.fwhm / units.perCent:.2f}% fwhm at Qbb\n"
@@ -101,3 +103,30 @@ class AnalysisParams:
         s += f"*** ROI energy limits: ({self.roi_Emin/units.keV:4.1f}, "
         s += f"{self.roi_Emax/units.keV:4.1f}) keV\n"
         return s
+
+    __str__ = __repr__
+
+
+
+@dataclass
+class KrAnalysisParams:
+
+    veto_width          : float = np.nan
+    tracking_sns_pde    : float = 1.
+    tracking_mask_att   : float = 0.
+    tracking_charge_th  : float = 0.
+    correction_map_type : str   = ''
+
+    def set_units(self):
+        "Setting units to parameters when being read from json config file"
+        self.veto_width = self.veto_width * units.mm
+
+    def __repr__(self):
+        s  = f"*** Veto width:            {self.veto_width / units.mm:.1f} mm\n"
+        s += f"*** Tracking sensors pde:  {self.tracking_sns_pde:.3f}\n"
+        s += f"*** Tracking mask att:     {self.tracking_mask_att:.3f}\n"
+        s += f"*** Tracking charge th:    {self.tracking_charge_th:.3f} pes\n"
+        s += f"*** Correction map type:   {self.correction_map_type}\n"
+        return s
+
+    __str__ = __repr__

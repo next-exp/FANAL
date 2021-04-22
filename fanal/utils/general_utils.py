@@ -1,13 +1,17 @@
 import time
-import math
 
 import numpy as np
 
-from datetime import datetime
-from typing   import Tuple, List, Iterable
-from numpy    import pi
+from typing   import Tuple, List
 
-NN = np.nan
+
+
+def is_interactive() -> bool:
+    """
+    It returns if the code is being run interactively
+    """
+    import __main__ as main
+    return not hasattr(main, '__file__')
 
 
 
@@ -78,3 +82,16 @@ def bin_data_with_equal_bin_size(data     : List[np.array],
         bin_data     .append(xbins)
         bin_eff_sizes.append(bin_eff_size)
     return bin_data, bin_eff_sizes
+
+
+
+def get_barycenter(positions : np.array,
+                   weights   : np.array) -> np.array:
+    """Computes baricenter as the product of position positions and weights"""
+
+    if (np.sum(weights) == 0.):
+        print("WARNING: trying to get barycenter with all-zero weights.")
+        return np.mean(positions)
+
+    return np.dot(positions, weights) / np.sum(weights)
+

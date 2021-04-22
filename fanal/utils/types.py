@@ -21,7 +21,7 @@ class XYZ:
         return cls(array[0], array[1], array[2])
 
     def __str__(self):
-        return f"(x = {self.x}, y = {self.y}, z = {self.z})"
+        return f"(x = {self.x:.3f}, y = {self.y:.3f}, z = {self.z:.3f})"
 
     __repr__ = __str__
 
