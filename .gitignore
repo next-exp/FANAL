@@ -5,6 +5,7 @@ fanal/.hypothesis/
 NB/__pycache__/
 NB/.ipynb_checkpoints/
 fanal/__pycache__/
+fanal/tmp/
 fanal/logger_test.log
 fanal/analysis/__pycache__/
 fanal/containers/__pycache__/
@@ -14,3 +15,4 @@ fanal/utils/logger_test.log
 data/next100/Bi214/fanal/
 data/next100/Tl208/fanal/
 data/next100/bb0nu/fanal/
+data/flex100f/kr/fanal/

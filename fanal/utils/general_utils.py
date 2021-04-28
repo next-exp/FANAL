@@ -1,8 +1,10 @@
+import sys
 import time
 
-import numpy as np
+import pandas as pd
+import numpy  as np
 
-from typing   import Tuple, List
+from typing   import Tuple, List, Any
 
 
 
@@ -94,4 +96,50 @@ def get_barycenter(positions : np.array,
         return np.mean(positions)
 
     return np.dot(positions, weights) / np.sum(weights)
+
+
+
+def get_size(obj  : Any,
+             seen : bool = False
+            )    -> None:
+    """
+    Recursively finds object´s size
+
+    parameters:
+    obj : Object to be sized
+
+    returns:
+    size : Object size in bytes
+    """
+
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([get_size(v, seen) for v in obj.values()])
+        size += sum([get_size(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += get_size(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([get_size(i, seen) for i in obj])
+
+    return size
+
+
+
+def my_value_counts(photons    : pd.DataFrame,
+                    value_name : str
+                   )          -> None :
+
+    total   = len(photons)
+    entries = photons[value_name].value_counts()
+    for key in entries.keys():
+        print(f"{key:20}: {entries[key]:10}  ({entries[key] * 100 / total:.5}%)")
 

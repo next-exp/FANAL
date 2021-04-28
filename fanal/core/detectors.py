@@ -27,6 +27,44 @@ MIN_TIME_SHIFT =  1. * units.mus
 
 
 
+def el_yield(pressure  : float,
+             field_int : float,
+             el_gap    : float
+            )         -> float :
+    """
+    Empirical formula taken from C.M.B. Monteiro et al., JINST 2 (2007) P05001.
+    Y/x = (a E/p - b) p,
+    where Y/x is the number of photons per unit lenght (cm),
+    E is the electric field strength, p is the pressure
+    a and b are empirically determined constants depending on pressure.
+    Values for different pressures are found in: Freitas-2010
+    Physics Letters B 684 (2010) 205–210
+
+    It returns the absolute yield along the whole el_gap
+    """
+    b = 116. # units: /bar/cm
+    a = 140. # units: /kilovolt
+
+    # Updating the slope
+    if (pressure >= 2. * units.bar): a = 141.
+    if (pressure >= 4. * units.bar): a = 142.
+    if (pressure >= 5. * units.bar): a = 151.
+    if (pressure >= 6. * units.bar): a = 161.
+    if (pressure >= 8. * units.bar): a = 170.
+
+    # Translating variables to the units expected by the formula
+    field_int /= (units.kilovolt / units.cm)
+    pressure  /= units.bar
+    el_gap    /= units.cm
+
+    # Getting the yield
+    el_y = (a * field_int / pressure - b) * pressure * el_gap
+    if (el_y < 0.): el_y = 0.
+
+    return el_y
+
+
+
 @dataclass(frozen=True)
 class Detector:
     name               : str

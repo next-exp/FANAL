@@ -170,6 +170,53 @@ def plot_vertices(vertices   : Union[Sequence[XYZ], pd.DataFrame],
 
 
 
+def plot_photons_spectrum(photons     : pd.DataFrame,
+                          title       : str            = '',
+                          kin_energy  : bool           = True,
+                          wave_length : bool           = True,
+                          e_range     : [float, float] = [2., 9.],
+                          num_bins    : int            = 100
+                         )           -> None :
+
+    wl_range  = [1240 / e_range[1], 1240 / e_range[0]]
+
+    print(f"Spectrum of the {len(photons)} {title} photons:\n")
+
+    if kin_energy & wave_length:
+        fig = plt.figure(figsize = (15,5))
+
+        ax1 = fig.add_subplot(1, 2, 1)
+        plt.hist(photons.kin_energy / units.eV, num_bins, e_range)
+        plt.xlabel('kin_energy [eV]'            , size=14)
+        plt.ylabel('Num entries'                , size=14)
+        plt.title(f'Spectrum of {title} photons', size=14)
+
+        ax2 = fig.add_subplot(1, 2, 2)
+        plt.hist(1240 / (photons.kin_energy / units.eV), num_bins, wl_range)
+        plt.xlabel('Wave Length [nm]'           , size=14)
+        plt.ylabel('Num entries'                , size=14)
+        plt.title(f'Spectrum of {title} photons', size=14)
+
+    elif kin_energy:
+        fig = plt.figure(figsize = (10,5))
+        plt.hist(photons.kin_energy / units.eV, num_bins, e_range)
+        plt.xlabel('kin_energy [eV]'            , size=14)
+        plt.ylabel('Num entries'                , size=14)
+        plt.title(f'Spectrum of {title} photons', size=14)
+
+    elif wave_length:
+        fig = plt.figure(figsize = (10,5))
+        plt.hist(1240 / (photons.kin_energy / units.eV), num_bins, wl_range)
+        plt.xlabel('Wave Length [nm]'           , size=14)
+        plt.ylabel('Num entries'                , size=14)
+        plt.title(f'Spectrum of {title} photons', size=14)
+
+    else:
+        print("WARNING: All plotting options set to FALSE")
+
+
+
+
 def plot_and_fit(data     : List,
                  title    : str = '',
                  xlabel   : str = 'Charge (pes)',
@@ -224,3 +271,47 @@ def plot_and_fit(data     : List,
           f"Chi2  = {f.chi2:10.3f}\n")
 
     return mu, sigma, fwhm
+
+
+
+def plot_dict(data  : dict,
+              title : str = "",
+              ylabel: str = ""
+             )     -> None :
+    names, values = zip(*data.items())
+    plt.bar(range(len(data)), values, align='center')
+    plt.xticks(range(len(data)), names, rotation='80')
+    plt.ylabel(ylabel)
+    plt.ylim([0., max(values) + 5.])
+    plt.title(title)
+    # Adding values
+    for index, value in enumerate(values):
+        plt.text(index-0.25, value+2, f"{value:5.1f}")
+
+    plt.show()
+
+
+
+def plot_value_counts(photons    : pd.DataFrame,
+                      value_name : str,
+                      min_perc   : float = 0.,
+                      title      : str   = ""
+                     )          -> None :
+
+    total = len(photons)
+    data  = dict(photons[value_name].value_counts())
+
+    percents = {}
+    rest = 0.
+    for key in data.keys():
+        perc = data[key] * 100 / total
+        if perc >= min_perc:
+            percents[key] = perc
+        else:
+            rest += data[key] * 100 / total
+
+    if rest > 0.:
+        percents["OTHERS"] = rest
+
+    plot_dict(percents, title=title, ylabel="Percentage")
+
